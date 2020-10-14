@@ -24,6 +24,8 @@ library(shinyBS)
 library(ggdag)
 library(reshape2)
 
+
+#library(visNetwork_new)
 source("R/module/clickpad.R")
 source("R/columns.R")
 source("R/node.R")
@@ -226,20 +228,42 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "graph",
                 fluidPage(
-#                    useShinyjs(),
                     fluidRow(
-                      column(6,
+                      box(
+                        width = 12,
+                        
+                        box(witdth = 6, collapsible = FALSE,
+                            solidHeader = TRUE,
+                            collapsed = TRUE,
+                            numericInput(inputId="Number_Hypotheses2",
+                                         label="Number of Hypotheses:",
+                                         value=3,step = 1,min = 1)),
+                        box(witdth = 6, collapsible = FALSE,
+                            solidHeader = TRUE,
+                            collapsed = TRUE,
+                            numericInput(inputId = "alpha2", 
+                                         label = HTML("&alpha;"),
+                                         value = 0.05,step = 0.001,min = 0))),
+                      column(8,
                              selectInput(inputId = "Weighting_Strategy",
                                          label = "Weighting Strategy",                                
                                          choices = c(
                                            "Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
                                          selected = "Bonferroni-Holm procedure"),
                     visNetworkOutput("ini_network")),
-                    column(6,
-                           br(),
-                           actionButton("TestButton2", "Testing!"),
-                           visNetworkOutput("fin_network")
-                           )
+                    column(
+                      width = 4,
+                      br(),br(),
+                      p("Hypotheses in the graph:"),
+                      tableOutput("all_nodes"),
+                      p("Propagation in the graph:"),
+                      tableOutput("all_edges")
+                    )
+                    # column(6,
+                    #        br(),
+                    #        actionButton("TestButton2", "Testing!"),
+                    #        visNetworkOutput("fin_network")
+                    #        )
                     ),
                     a(id = "toggleAdvanced", "More"),
                     hidden(
@@ -279,7 +303,7 @@ server <- function(input, output,session) {
     
     output$ini_network <- renderVisNetwork({
       # -- different plots in common --
-        num <- as.integer(input$Number_Hypotheses)
+        num <- as.integer(input$Number_Hypotheses2)
         names <- as.matrix(lapply(1:num, function(i) {
             paste0("H", i)
         }))
@@ -295,9 +319,12 @@ server <- function(input, output,session) {
           fromto <- cbind(fromto,value=melt(input$TransitionMatrixG)[,"value"])
           colnames(fromto) <- c("from","to","trans","label")
           edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
-          weights <- round(as.numeric(input$WeightPvalue[,2]),digits=2) 
+          weights <- round(as.numeric(input$WeightPvalue[,2]),digits=2)
+          pvalues <- round(as.numeric(input$WeightPvalue[,3]),digits=2)
           nodes$title  <- lapply(1:num, function(i) {
-            paste0("H", i,":",weights[i])
+            paste(paste0("H", i,":"),
+                  paste0("weight= ", weights[i]),
+                  paste0("p-value= ", pvalues[i]),sep="<br/>")
           })
          netplot <-  visNetwork(nodes, edges, 
                      width="100%", height="800px") %>%
@@ -306,10 +333,8 @@ server <- function(input, output,session) {
             visOptions(highlightNearest = TRUE,
                        manipulation = TRUE
                        #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            ) %>% 
+            )
          #   visInteraction(navigationButtons = TRUE)%>%
-           visEvents(selectNode = "function(properties) {
-      alert('p-value of '+ this.body.data.nodes.get(properties.nodes[0]).id) + 'is'+ this.body.data.weights[0].id;}")
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
@@ -330,8 +355,11 @@ server <- function(input, output,session) {
           edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
           weights <- rep(0,num)
           weights[1] <- 1
+          pvalues <- round(as.numeric(input$WeightPvalue[,3]),digits=2)
           nodes$title  <- lapply(1:num, function(i) {
-            paste0("H", i,":",weights[i])
+            paste(paste0("H", i,":"),
+                  paste0("weight= ", weights[i]),
+                  paste0("p-value= ", pvalues[i]),sep="<br/>")
           })
           netplot <-  visNetwork(nodes, edges,
                      width="100%", height="800px") %>%
@@ -362,8 +390,11 @@ server <- function(input, output,session) {
           colnames(fromto) <- c("from","to","trans","label")
           edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
           weights <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
+          pvalues <- round(as.numeric(input$WeightPvalue[,3]),digits=2)
           nodes$title  <- lapply(1:num, function(i) {
-            paste0("H", i,":",weights[i])
+            paste(paste0("H", i,":"),
+                  paste0("weight= ", weights[i]),
+                  paste0("p-value= ", pvalues[i]),sep="<br/>")
           })
           netplot <-  visNetwork(nodes, edges,
                                  width="100%", height="800px") %>%
