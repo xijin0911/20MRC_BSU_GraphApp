@@ -244,7 +244,7 @@ ui <- dashboardPage(
                             numericInput(inputId = "alpha2", 
                                          label = HTML("&alpha;"),
                                          value = 0.05,step = 0.001,min = 0))),
-                      column(8,
+                      column(7,
                              selectInput(inputId = "Weighting_Strategy",
                                          label = "Weighting Strategy",                                
                                          choices = c(
@@ -252,10 +252,11 @@ ui <- dashboardPage(
                                          selected = "Bonferroni-Holm procedure"),
                     visNetworkOutput("ini_network")),
                     column(
-                      width = 4,
+                      width = 5,
                       br(),br(),
                       p("Hypotheses in the graph:"),
                       tableOutput("all_nodes"),
+                      br(),
                       p("Propagation in the graph:"),
                       tableOutput("all_edges")
                     )
@@ -300,6 +301,20 @@ server <- function(input, output,session) {
     onclick("toggleAdvanced", toggle(id = "advanced", anim = TRUE))
     onclick("Moreinformation", toggle(id = "Moreinfor", anim = TRUE))
     
+    init.nodes.df = data.frame(id = c("foo", "bar"),
+                               label = c("Foo", "Bar"),
+                               newcol = c(3,4),
+                               stringsAsFactors = F)
+    init.edges.df = data.frame(id = "foobar",
+                               from = "foo", 
+                               to = "bar",
+                               stringsAsFactors = F)
+    # `graph_data` is a list of two data frames: one of nodes, one of edges.
+    graph_data = reactiveValues(
+      nodes = init.nodes.df,
+      edges = init.edges.df
+    )
+    
     
     output$ini_network <- renderVisNetwork({
       # -- different plots in common --
@@ -309,32 +324,36 @@ server <- function(input, output,session) {
         }))
         # -- plot --
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
-          nodes <- data.frame(id = names)
-          net <- network(input$TransitionMatrixG,
+          
+          net <- network(input$TransitionMatrixG2,
                            directed = TRUE,
                            names.eval = "weights",
                            ignore.eval = FALSE)
           wide <- as.matrix(net)
           fromto <- melt(wide)
-          fromto <- cbind(fromto,value=melt(input$TransitionMatrixG)[,"value"])
+          fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
           colnames(fromto) <- c("from","to","trans","label")
-          edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
-          weights <- round(as.numeric(input$WeightPvalue[,2]),digits=2)
-          pvalues <- round(as.numeric(input$WeightPvalue[,3]),digits=2)
+          
+          weights <- round(as.numeric(input$WeightPvalue2[,2]),digits=2)
+          pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
+          
+          edges <- fromto[which(fromto$trans!=0),]  
+          nodes <- data.frame(id = names)
           nodes$title  <- lapply(1:num, function(i) {
-            paste(paste0("H", i,":"),
+            paste(input$WeightPvalue2[i,1],
                   paste0("weight= ", weights[i]),
                   paste0("p-value= ", pvalues[i]),sep="<br/>")
           })
-         netplot <-  visNetwork(nodes, edges, 
+          
+          netplot <-  visNetwork(nodes, edges, 
                      width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
             visOptions(highlightNearest = TRUE,
                        manipulation = TRUE
                        #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            )
-         #   visInteraction(navigationButtons = TRUE)%>%
+            ) %>%
+            visInteraction(navigationButtons = TRUE)
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
@@ -353,9 +372,11 @@ server <- function(input, output,session) {
           fromto <- cbind(fromto,value=melt(FS_TransitionMatrixG)[,"value"])
           colnames(fromto) <- c("from","to","trans","label")
           edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
+          
           weights <- rep(0,num)
           weights[1] <- 1
-          pvalues <- round(as.numeric(input$WeightPvalue[,3]),digits=2)
+          pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
+          
           nodes$title  <- lapply(1:num, function(i) {
             paste(paste0("H", i,":"),
                   paste0("weight= ", weights[i]),
@@ -368,9 +389,8 @@ server <- function(input, output,session) {
             visOptions(highlightNearest = TRUE,
                        manipulation = TRUE
                        #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            )
-          #%>%
-          #  visInteraction(navigationButtons = TRUE)
+            )%>%
+           visInteraction(navigationButtons = TRUE)
         }
         if(input$Weighting_Strategy == "Fallback procedure"){
           nodes <- data.frame(id = names)
@@ -403,10 +423,97 @@ server <- function(input, output,session) {
                        manipulation = TRUE
                        #nodesIdSelection = list(enabled = TRUE, selected = "a")
             ) %>%
-    #        visInteraction(navigationButtons = TRUE) %>%
+            visInteraction(navigationButtons = TRUE) %>%
             visExport() 
         }
         netplot
+    })
+    
+    output$uioutput_Tmatrix <- renderUI({
+      num <- as.integer(input$Number_Hypotheses)
+      df <- (1-diag(num))/(num-1)
+      rownames(df) <- lapply(1:num, function(i) {
+        paste0("H", i)
+      })
+      colnames(df) <- rownames(df)
+      box(width = 12,
+          box(title = "Transition matrix",
+              status = "primary", 
+              solidHeader = TRUE,
+              width = 6, collapsible = TRUE,collapsed = TRUE,
+              helpText(""),
+              matrixInput(inputId = "TransitionMatrixG",
+                          value = df,class = "numeric",
+                          cols = list(
+                            names = TRUE,extend = FALSE,
+                            editableNames = TRUE,delta = 2),
+                          rows = list(
+                            names = TRUE, extend = FALSE,
+                            editableNames = TRUE,delta = 1),
+                          copy = TRUE,paste = TRUE)),
+          box(title = "Weights and P-values",
+              status = "primary",solidHeader = TRUE,
+              width = 6,collapsible = TRUE,collapsed = TRUE,
+              matrixInput(inputId = "WeightPvalue",
+                          value = matrix(cbind(
+                            (lapply(1:num, function(i) {
+                              paste0("H", i)
+                            })),rep(1/num,num),rep(0.01,num)),
+                            nrow = num, ncol = 3,
+                            dimnames = list(NULL, c("Hypotheses", "Weights",'P-values'))),
+                          cols = list(names = TRUE, extend = FALSE,
+                                      editableNames = FALSE, delta = 2),
+                          rows = list(
+                            names = FALSE, extend = FALSE,
+                            editableNames = TRUE, delta = 1),
+                          copy = TRUE, paste = TRUE)
+          ),
+      )
+    })
+    
+    # Render the table showing all the nodes in the graph.
+    output$all_nodes = renderUI({
+      num <- as.integer(input$Number_Hypotheses2)
+      df <- (1-diag(num))/(num-1)
+      rownames(df) <- lapply(1:num, function(i) {
+        paste0("H", i)
+      })
+      colnames(df) <- rownames(df)
+          box(width = 10,
+              matrixInput(inputId = "WeightPvalue2",
+              value = matrix(cbind(
+                (lapply(1:num, function(i) {
+                  paste0("H", i)
+                })),rep(1/num,num),rep(0.01,num)),
+                nrow = num, ncol = 3,
+                dimnames = list(NULL, c("Hypotheses", "Weights",'P-values'))),
+              cols = list(names = TRUE, extend = FALSE,
+                          editableNames = FALSE, delta = 2),
+              rows = list(
+                names = FALSE, extend = FALSE,
+                editableNames = TRUE, delta = 1),
+              copy = TRUE, paste = TRUE)
+              )
+    })
+    
+    output$all_edges = renderUI({
+      num <- as.integer(input$Number_Hypotheses2)
+      df <- (1-diag(num))/(num-1)
+      rownames(df) <- lapply(1:num, function(i) {
+        paste0("H", i)
+      })
+      colnames(df) <- rownames(df)
+      box(width = 10,
+          matrixInput(inputId = "TransitionMatrixG2",
+                      value = df,class = "numeric",
+                      cols = list(
+                        names = TRUE,extend = FALSE,
+                        editableNames = TRUE,delta = 2),
+                      rows = list(
+                        names = TRUE, extend = FALSE,
+                        editableNames = TRUE,delta = 1),
+                      copy = TRUE,paste = TRUE)
+      )
     })
     
       
