@@ -164,10 +164,10 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             id = "shinydag_page",
-            menuItem("Tweak", tabName = "tweak", icon = icon("sliders")),
-            menuItem("Graph", tabName = "graph", icon = icon("home")),
-            menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o")),
-            menuItem("Examples", tabName = "examples", icon = icon("info"))
+        #    menuItem("Tweak", tabName = "tweak", icon = icon("sliders")),
+            menuItem("Graph", tabName = "graph", icon = icon("home"))
+        #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o")),
+        #    menuItem("Examples", tabName = "examples", icon = icon("info"))
         )
     ),
     dashboardBody(
@@ -187,7 +187,6 @@ ui <- dashboardPage(
                 ## 1. hypotheses & alpha 
                 box(
                     width = 12,
-                    
                     box(witdth = 6, collapsible = FALSE,
                     solidHeader = TRUE,
                     collapsed = TRUE,
@@ -219,19 +218,16 @@ ui <- dashboardPage(
                             tableOutput("extend2")),
                         box(width=3,"Resulting Adjusted p-values",
                             tableOutput("extend3"))
-                    )
-                )
-                ),
+                    ))),
             #---
             # graph
             #---
             tabItem(
-                tabName = "graph",
+                tabName = "graph",                
                 fluidPage(
                     fluidRow(
                       box(
                         width = 12,
-                        
                         box(witdth = 6, collapsible = FALSE,
                             solidHeader = TRUE,
                             collapsed = TRUE,
@@ -244,19 +240,23 @@ ui <- dashboardPage(
                             numericInput(inputId = "alpha2", 
                                          label = HTML("&alpha;"),
                                          value = 0.05,step = 0.001,min = 0))),
+                      # actionButton("action", "Testing Strategy"),
+                      # conditionalPanel(condition = "input.action != 0",plotOutput("ResultPlot")),
                       column(7,
-                             selectInput(inputId = "Weighting_Strategy",
-                                         label = "Weighting Strategy",                                
-                                         choices = c(
-                                           "Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                                         selected = "Bonferroni-Holm procedure"),
-                    visNetworkOutput("ini_network")),
+                             column(8,
+                               #     actionButton("action", "Testing Strategy"),
+                                    selectInput(inputId = "Weighting_Strategy",
+                                                label = "Weighting Strategy",
+                                                choices = c("Specify the weighting strategy...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
+                                                selected = "Specify the weighting strategy...")),
+                             column(12,
+                                    visNetworkOutput("ini_network"))),
                     column(
                       width = 5,
-                      br(),br(),
                       p("Hypotheses in the graph:"),
-                      tableOutput("all_nodes"),
-                      br(),
+                      tableOutput("all_nodes")),
+                    column(
+                      width=5,
                       p("Propagation in the graph:"),
                       tableOutput("all_edges")
                     )
@@ -301,6 +301,8 @@ server <- function(input, output,session) {
     onclick("toggleAdvanced", toggle(id = "advanced", anim = TRUE))
     onclick("Moreinformation", toggle(id = "Moreinfor", anim = TRUE))
     
+    observe({ toggle(id="action", condition=!is.null(input$location))})
+    
     init.nodes.df = data.frame(id = c("foo", "bar"),
                                label = c("Foo", "Bar"),
                                newcol = c(3,4),
@@ -323,12 +325,47 @@ server <- function(input, output,session) {
             paste0("H", i)
         }))
         # -- plot --
-        if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
+        
+        if(input$Weighting_Strategy == "Specify the weighting strategy..."){
           
           net <- network(input$TransitionMatrixG2,
-                           directed = TRUE,
-                           names.eval = "weights",
-                           ignore.eval = FALSE)
+                         directed = TRUE,
+                         names.eval = "weights",
+                         ignore.eval = FALSE)
+          wide <- as.matrix(net)
+          fromto <- melt(wide)
+          fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
+          colnames(fromto) <- c("from","to","trans","label")
+          
+          weights <- round(as.numeric(input$WeightPvalue2[,2]),digits=2)
+          pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
+          
+          edges <- fromto[which(fromto$trans!=0),]  
+          nodes <- data.frame(id = names)
+          nodes$title  <- lapply(1:num, function(i) {
+            paste(input$WeightPvalue2[i,1],
+                  paste0("weight= ", weights[i]),
+                  paste0("p-value= ", pvalues[i]),sep="<br/>")
+          })
+          
+          nodes <- data.frame(NULL)
+          edges <- data.frame(from = NULL, to = NULL)
+          
+          netplot <-  visNetwork(nodes, edges, 
+                                 width="100%", height="800px") %>%
+            visExport() %>%
+            visEdges(arrows = 'to') %>% 
+            visOptions(highlightNearest = TRUE,
+                       manipulation = TRUE
+                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            ) %>%
+            visInteraction(navigationButtons = TRUE)
+        }
+        if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
+          net <- network(input$TransitionMatrixG2,
+                         directed = TRUE,
+                         names.eval = "weights",
+                         ignore.eval = FALSE)
           wide <- as.matrix(net)
           fromto <- melt(wide)
           fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
@@ -346,7 +383,7 @@ server <- function(input, output,session) {
           })
           
           netplot <-  visNetwork(nodes, edges, 
-                     width="100%", height="800px") %>%
+                                 width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
             visOptions(highlightNearest = TRUE,
@@ -354,6 +391,7 @@ server <- function(input, output,session) {
                        #nodesIdSelection = list(enabled = TRUE, selected = "a")
             ) %>%
             visInteraction(navigationButtons = TRUE)
+          
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
