@@ -458,8 +458,8 @@ visOption_xc <- function(graph,
     graph$session$sendCustomMessage("visShinyCustomOptions",data)
     
   }else{
-    graph$x <- mergeLists(graph$x, x)
-    graph$x$options <- mergeLists(graph$x$options, options)
+    graph$x <- visNetwork:::mergeLists(graph$x, x)
+    graph$x$options <- visNetwork:::mergeLists(graph$x$options, options)
   }
   graph
 }

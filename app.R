@@ -359,10 +359,10 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            # visOptions(highlightNearest = TRUE,
-            #            manipulation = TRUE
-            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            # ) %>%
+            visOption_xc(highlightNearest = TRUE,
+                       manipulation = TRUE
+                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            ) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE)
         }
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
@@ -391,15 +391,10 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            # visOptions(manipulation = list(enabled = T, 
-            #                                editEdgeCols = c("label"), 
-            #                                editNodeCols = c("id", "label", "title", "size"), 
-            #                                addNodeCols = c("label", "group"))) %>%
-            #    
-            # visOptions(highlightNearest = TRUE,
-            #            manipulation = TRUE
-            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            # ) %>%
+            visOption_xc(manipulation = list(enabled = T,
+                                           editEdgeCols = c("label"),
+                                           editNodeCols = c("id", "label", "title"),
+                                           addNodeCols = c("label", "group"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
           
@@ -435,11 +430,10 @@ server <- function(input, output,session) {
                      width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>%
-            # visOption(manipulation = list(enabled = TRUE, addNode = FALSE, addEdge = FALSE)) %>%
-            # visOptions(highlightNearest = TRUE,
-            #            manipulation = TRUE
-            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            # )%>%
+            visOption_xc(manipulation = list(enabled = T,
+                                             editEdgeCols = c("label"),
+                                             editNodeCols = c("id", "label", "title"),
+                                             addNodeCols = c("label", "group"))) %>%
            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
         }
@@ -470,10 +464,10 @@ server <- function(input, output,session) {
           netplot <-  visNetwork(nodes, edges,
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
-            # visOptions(highlightNearest = TRUE,
-            #            manipulation = TRUE
-            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            # ) %>%
+            visOption_xc(manipulation = list(enabled = T,
+                                             editEdgeCols = c("label"),
+                                             editNodeCols = c("id", "label", "title"),
+                                             addNodeCols = c("label", "group"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
             visExport() 
