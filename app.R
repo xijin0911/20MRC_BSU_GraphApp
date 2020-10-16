@@ -11,7 +11,7 @@ library(igraph)
 library(dplyr)
 library(network)
 
-#library(visNetwork)
+# the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
 library(ggnetwork)
@@ -33,6 +33,7 @@ source("R/columns.R")
 source("R/node.R")
 source("R/functions.R")
 source("R/func/gMCP_xc2.R")
+# something wrong with the original function in the package
 source("R/func/visOption_xc.R")
 
 
@@ -188,8 +189,7 @@ ui <- dashboardPage(
             tabItem(
                 tabName="tweak", 
                 ## 1. hypotheses & alpha 
-                box(
-                    width = 12,
+                box(width = 12,
                     box(witdth = 6, collapsible = FALSE,
                     solidHeader = TRUE,
                     collapsed = TRUE,
@@ -243,6 +243,10 @@ ui <- dashboardPage(
                             numericInput(inputId = "alpha2", 
                                          label = HTML("&alpha;"),
                                          value = 0.05,step = 0.001,min = 0))),
+                      box(width=12,
+                        #  dataTableOutput("nodes_data_from_shiny"),
+                       #   actionButton("getNodes", "Nodes"),
+                      verbatimTextOutput("shiny_return")),
                       # actionButton("action", "Testing Strategy"),
                       # conditionalPanel(condition = "input.action != 0",plotOutput("ResultPlot")),
                       column(7,
@@ -380,24 +384,32 @@ server <- function(input, output,session) {
           
           edges <- fromto[which(fromto$trans!=0),]  
           edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$label)
-          nodes <- data.frame(id = names)
+          edges$propagation <- edges$label
+          
+          nodes <- data.frame(id = names,
+                              label=names)
           nodes$title  <- lapply(1:num, function(i) {
             paste(input$WeightPvalue2[i,1],
                   paste0("weight= ", weights[i]),
                   paste0("p-value= ", pvalues[i]),sep="<br/>")
           })
+          nodes$Hypothesis <- names
+          nodes$weight <- weights
+          nodes$pvalue <- pvalues
           
           netplot <-  visNetwork(nodes, edges, 
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
             visOption_xc(manipulation = list(enabled = T,
-                                           editEdgeCols = c("label"),
-                                           editNodeCols = c("id", "label", "title"),
-                                           addNodeCols = c("label", "group"))) %>%
+                                           editEdgeCols = c("propagation"),
+                                           editNodeCols = c("Hypothesis", "weight", "pvalue"),
+                                           addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
-          
+                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
+            visEvents(select = "function(nodes) {
+                Shiny.onInputChange('current_node_weight', nodes.nodes);
+                ;}")    
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
@@ -431,9 +443,9 @@ server <- function(input, output,session) {
             visExport() %>%
             visEdges(arrows = 'to') %>%
             visOption_xc(manipulation = list(enabled = T,
-                                             editEdgeCols = c("label"),
-                                             editNodeCols = c("id", "label", "title"),
-                                             addNodeCols = c("label", "group"))) %>%
+                                             editEdgeCols = c("propagation"),
+                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
+                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
         }
@@ -465,15 +477,34 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
             visOption_xc(manipulation = list(enabled = T,
-                                             editEdgeCols = c("label"),
-                                             editNodeCols = c("id", "label", "title"),
-                                             addNodeCols = c("label", "group"))) %>%
+                                             editEdgeCols = c("propagation"),
+                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
+                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
             visExport() 
         }
         netplot
     })
+    output$shiny_return <- renderPrint({
+      input$current_node_weight
+    })
+    
+    # output$nodes_data_from_shiny <- renderDataTable( {
+    #   if (!is.null(input$current_node_id) && !is.null(input$ini_network_nodes)) {
+    #     info <- data.frame(matrix(unlist(input$ini_network_nodes), 
+    #                               ncol = dim(nodes)[1], byrow = T),
+    #                        stringsAsFactors = FALSE)
+    #     colnames(info) <- colnames(nodes)
+    #     info[info$id == input$current_node_id, ]
+    #   }
+    # })
+    # 
+    # observeEvent(input$current_node_id, {
+    #   visNetworkProxy("ini_network") %>%
+    #     visGetNodes() 
+    # })
+ 
     
     output$uioutput_Tmatrix <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
