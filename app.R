@@ -11,6 +11,8 @@ library(igraph)
 library(dplyr)
 library(network)
 
+#library(visNetwork)
+# devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
 library(ggnetwork)
 library(ggpubr)
@@ -31,9 +33,13 @@ source("R/columns.R")
 source("R/node.R")
 source("R/functions.R")
 source("R/func/gMCP_xc2.R")
+source("R/func/visOption_xc.R")
 
 
 components <- list(toolbar = list())
+
+
+
 
 # Components - examples ----
 components$examples <- list()
@@ -161,22 +167,19 @@ ui <- dashboardPage(
             )
         )
     ),
+    
     dashboardSidebar(
         sidebarMenu(
             id = "shinydag_page",
         #    menuItem("Tweak", tabName = "tweak", icon = icon("sliders")),
             menuItem("Graph", tabName = "graph", icon = icon("home"))
-        #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o")),
+        #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o"))
         #    menuItem("Examples", tabName = "examples", icon = icon("info"))
         )
     ),
     dashboardBody(
         shinyjs::useShinyjs(),
-        tags$script(src = "shinydag.js", async = TRUE),
-        # todo: what these css can do
-        includeCSS("www/AdminLTE.gerkelab.min.css"),
-        includeCSS("www/_all-skins.gerkelab.min.css"),
-        includeCSS("www/shinydag.css"),
+        
         chooseSliderSkin("Flat", "#418c7a"),
         tabItems(
             #---
@@ -282,6 +285,7 @@ ui <- dashboardPage(
             #---
              tabItem(
                  tabName = "examples",
+                 tags$script(src = "net.js"),
                 box(
                     title = "Examples",
                     width = "16 col-md-8",
@@ -355,11 +359,11 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            visOptions(highlightNearest = TRUE,
-                       manipulation = TRUE
-                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            ) %>%
-            visInteraction(navigationButtons = TRUE)
+            # visOptions(highlightNearest = TRUE,
+            #            manipulation = TRUE
+            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            # ) %>%
+            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE)
         }
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
           net <- network(input$TransitionMatrixG2,
@@ -375,6 +379,7 @@ server <- function(input, output,session) {
           pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
           
           edges <- fromto[which(fromto$trans!=0),]  
+          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$label)
           nodes <- data.frame(id = names)
           nodes$title  <- lapply(1:num, function(i) {
             paste(input$WeightPvalue2[i,1],
@@ -386,11 +391,17 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            visOptions(highlightNearest = TRUE,
-                       manipulation = TRUE
-                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            ) %>%
-            visInteraction(navigationButtons = TRUE)
+            # visOptions(manipulation = list(enabled = T, 
+            #                                editEdgeCols = c("label"), 
+            #                                editNodeCols = c("id", "label", "title", "size"), 
+            #                                addNodeCols = c("label", "group"))) %>%
+            #    
+            # visOptions(highlightNearest = TRUE,
+            #            manipulation = TRUE
+            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            # ) %>%
+            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
           
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
@@ -424,11 +435,13 @@ server <- function(input, output,session) {
                      width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>%
-            visOptions(highlightNearest = TRUE,
-                       manipulation = TRUE
-                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            )%>%
-           visInteraction(navigationButtons = TRUE)
+            # visOption(manipulation = list(enabled = TRUE, addNode = FALSE, addEdge = FALSE)) %>%
+            # visOptions(highlightNearest = TRUE,
+            #            manipulation = TRUE
+            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            # )%>%
+           visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+                          dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
         }
         if(input$Weighting_Strategy == "Fallback procedure"){
           nodes <- data.frame(id = names)
@@ -457,11 +470,12 @@ server <- function(input, output,session) {
           netplot <-  visNetwork(nodes, edges,
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
-            visOptions(highlightNearest = TRUE,
-                       manipulation = TRUE
-                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            ) %>%
-            visInteraction(navigationButtons = TRUE) %>%
+            # visOptions(highlightNearest = TRUE,
+            #            manipulation = TRUE
+            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            # ) %>%
+            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
             visExport() 
         }
         netplot
