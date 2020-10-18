@@ -172,56 +172,16 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             id = "shinydag_page",
-        #    menuItem("Tweak", tabName = "tweak", icon = icon("sliders")),
-            menuItem("Graph", tabName = "graph", icon = icon("home"))
+            menuItem("Graph", tabName = "graph", icon = icon("home")),
+            menuItem("Tweak", tabName = "tweak", icon = icon("sliders"))
         #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o"))
         #    menuItem("Examples", tabName = "examples", icon = icon("info"))
         )
     ),
     dashboardBody(
         shinyjs::useShinyjs(),
-        
         chooseSliderSkin("Flat", "#418c7a"),
         tabItems(
-            #---
-            # tweak
-            #---
-            tabItem(
-                tabName="tweak", 
-                ## 1. hypotheses & alpha 
-                box(width = 12,
-                    box(witdth = 6, collapsible = FALSE,
-                    solidHeader = TRUE,
-                    collapsed = TRUE,
-                    numericInput(inputId="Number_Hypotheses",
-                                 label="Number of Hypotheses:",
-                                 value=3,step = 1,min = 1)),
-                    box(witdth = 6, collapsible = FALSE,
-                           solidHeader = TRUE,
-                           collapsed = TRUE,
-                        numericInput(inputId = "alpha", 
-                                     label = HTML("&alpha;"),
-                                     value = 0.05,step = 0.001,min = 0)),
-                    uiOutput("uioutput_Tmatrix")),
-                
-                br(),
-                br(),
-                      box(width=12,
-                          actionButton("TestButton", "Testing!"),
-                          conditionalPanel(condition = "input.TestButton != 0",plotOutput("ResultPlot")),
-                          br(),
-                          br(),
-                          p("Initial and final graph")),
-                a(id = "Moreinformation", "More information about the result"),
-                hidden(
-                    div(id = "Moreinfor",
-                        box(width=3,"Resulting weights",
-                        tableOutput("extend1")),
-                        box(width=6,"Resulting Transition Matrix",
-                            tableOutput("extend2")),
-                        box(width=3,"Resulting Adjusted p-values",
-                            tableOutput("extend3"))
-                    ))),
             #---
             # graph
             #---
@@ -243,12 +203,6 @@ ui <- dashboardPage(
                             numericInput(inputId = "alpha2", 
                                          label = HTML("&alpha;"),
                                          value = 0.05,step = 0.001,min = 0))),
-                      box(width=12,
-                        #  dataTableOutput("nodes_data_from_shiny"),
-                       #   actionButton("getNodes", "Nodes"),
-                      verbatimTextOutput("shiny_return")),
-                      # actionButton("action", "Testing Strategy"),
-                      # conditionalPanel(condition = "input.action != 0",plotOutput("ResultPlot")),
                       column(7,
                              column(8,
                                #     actionButton("action", "Testing Strategy"),
@@ -273,6 +227,14 @@ ui <- dashboardPage(
                     #        visNetworkOutput("fin_network")
                     #        )
                     ),
+                    box(width=12,
+                        # verbatimTextOutput("shiny_return")),
+                        box(width=6,
+                            actionButton("getEdges", "Edges"),
+                            verbatimTextOutput("edges_data_from_shiny")),
+                        box(width=6,
+                            actionButton("getNodes", "Nodes"),
+                            dataTableOutput("nodes_data_from_shiny"))),
                     a(id = "toggleAdvanced", "More"),
                     hidden(
                         div(id = "advanced",
@@ -284,6 +246,45 @@ ui <- dashboardPage(
                     )
                 )
             ),
+            #---
+            # tweak
+            #---
+            tabItem(
+              tabName="tweak", 
+              ## 1. hypotheses & alpha 
+              box(width = 12,
+                  box(witdth = 6, collapsible = FALSE,
+                      solidHeader = TRUE,
+                      collapsed = TRUE,
+                      numericInput(inputId="Number_Hypotheses",
+                                   label="Number of Hypotheses:",
+                                   value=3,step = 1,min = 1)),
+                  box(witdth = 6, collapsible = FALSE,
+                      solidHeader = TRUE,
+                      collapsed = TRUE,
+                      numericInput(inputId = "alpha", 
+                                   label = HTML("&alpha;"),
+                                   value = 0.05,step = 0.001,min = 0)),
+                  uiOutput("uioutput_Tmatrix")),
+              
+              br(),
+              br(),
+              box(width=12,
+                  actionButton("TestButton", "Testing!"),
+                  conditionalPanel(condition = "input.TestButton != 0",plotOutput("ResultPlot")),
+                  br(),
+                  br(),
+                  p("Initial and final graph")),
+              a(id = "Moreinformation", "More information about the result"),
+              hidden(
+                div(id = "Moreinfor",
+                    box(width=3,"Resulting weights",
+                        tableOutput("extend1")),
+                    box(width=6,"Resulting Transition Matrix",
+                        tableOutput("extend2")),
+                    box(width=3,"Resulting Adjusted p-values",
+                        tableOutput("extend3"))
+                ))),
             #---
             # examplese
             #---
@@ -486,6 +487,35 @@ server <- function(input, output,session) {
         }
         netplot
     })
+    
+    output$nodes_data_from_shiny <- renderDataTable({
+      if(!is.null(input$ini_network_nodes)){
+        num <- as.integer(input$Number_Hypotheses)
+        info <- data.frame(matrix(unlist(input$ini_network_nodes), 
+                                  ncol = num,
+                                  byrow=T),stringsAsFactors=FALSE)
+        colnames(info) <- lapply(1:num, function(i) {
+          paste0("H", i)
+        })
+        info
+      }
+    })
+    output$edges_data_from_shiny <- renderPrint({
+      if(!is.null(input$ini_network_edges)){
+        input$ini_network_edges
+      }
+    })
+    
+    observeEvent(input$getNodes,{
+      visNetworkProxy("ini_network") %>%
+        visGetNodes() 
+    })
+    
+    observeEvent(input$getEdges, {
+      visNetworkProxy("ini_network") %>%
+        visGetEdges()
+    })
+    
     output$shiny_return <- renderPrint({
       input$current_node_weight
     })
