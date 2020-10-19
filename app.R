@@ -227,14 +227,18 @@ ui <- dashboardPage(
                     #        visNetworkOutput("fin_network")
                     #        )
                     ),
+                    
                     box(width=12,
-                        # verbatimTextOutput("shiny_return")),
-                        box(width=6,
+                     #    verbatimTextOutput("shiny_return"),  # TODO: only name of nodes
+                     box(width=6,
+                         actionButton("getNodes", "Nodes"),
+                      #   DT::dataTableOutput("nodes_data_from_shiny")),
+                      tableOutput("nodes_all")),
+                     box(width=6,
                             actionButton("getEdges", "Edges"),
-                            verbatimTextOutput("edges_data_from_shiny")),
-                        box(width=6,
-                            actionButton("getNodes", "Nodes"),
-                            dataTableOutput("nodes_data_from_shiny"))),
+                       #  DT::dataTableOutput("edges_data_from_shiny"))
+                       tableOutput("edges_all"))
+                        ),
                     a(id = "toggleAdvanced", "More"),
                     hidden(
                         div(id = "advanced",
@@ -312,13 +316,15 @@ server <- function(input, output,session) {
     
     observe({ toggle(id="action", condition=!is.null(input$location))})
     
-    init.nodes.df = data.frame(id = c("foo", "bar"),
-                               label = c("Foo", "Bar"),
-                               newcol = c(3,4),
-                               stringsAsFactors = F)
-    init.edges.df = data.frame(id = "foobar",
-                               from = "foo", 
-                               to = "bar",
+    init.nodes.df = data.frame(id=integer(),
+                               label=character(),
+                               Hypothesis=character(),
+                               weight=numeric(),
+                               pvalue=numeric(),
+                               stringsAsFactors=FALSE)
+    init.edges.df = data.frame(from = character(), 
+                               to = character(),
+                               propagation = numeric(),
                                stringsAsFactors = F)
     # `graph_data` is a list of two data frames: one of nodes, one of edges.
     graph_data = reactiveValues(
@@ -334,33 +340,11 @@ server <- function(input, output,session) {
             paste0("H", i)
         }))
         # -- plot --
-        
         if(input$Weighting_Strategy == "Specify the weighting strategy..."){
+          # nodes <- data.frame(NULL)
+          # edges <- data.frame(from = NULL, to = NULL)
           
-          net <- network(input$TransitionMatrixG2,
-                         directed = TRUE,
-                         names.eval = "weights",
-                         ignore.eval = FALSE)
-          wide <- as.matrix(net)
-          fromto <- melt(wide)
-          fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
-          colnames(fromto) <- c("from","to","trans","label")
-          
-          weights <- round(as.numeric(input$WeightPvalue2[,2]),digits=2)
-          pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
-          
-          edges <- fromto[which(fromto$trans!=0),]  
-          nodes <- data.frame(id = names)
-          nodes$title  <- lapply(1:num, function(i) {
-            paste(input$WeightPvalue2[i,1],
-                  paste0("weight= ", weights[i]),
-                  paste0("p-value= ", pvalues[i]),sep="<br/>")
-          })
-          
-          nodes <- data.frame(NULL)
-          edges <- data.frame(from = NULL, to = NULL)
-          
-          netplot <-  visNetwork(nodes, edges, 
+          netplot <-  visNetwork(graph_data$nodes, graph_data$edges, 
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
@@ -368,37 +352,46 @@ server <- function(input, output,session) {
                        manipulation = TRUE
                        #nodesIdSelection = list(enabled = TRUE, selected = "a")
             ) %>%
-            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE)
+            visOption_xc(manipulation = list(enabled = T,
+                                             editEdgeCols = c("propagation"),
+                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
+                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
+            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
         }
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
-          net <- network(input$TransitionMatrixG2,
+          # -- initial setting for matrix --
+          df <- (1-diag(num))/(num-1)  
+          rownames(df) <- names
+          colnames(df) <- names
+          net <- network(df,   # do not depend on the input of right handside
                          directed = TRUE,
                          names.eval = "weights",
                          ignore.eval = FALSE)
-          wide <- as.matrix(net)
-          fromto <- melt(wide)
-          fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
-          colnames(fromto) <- c("from","to","trans","label")
+          edges <- melt(df)
+          #  fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
+          colnames(edges) <- c("from","to","propagation")
           
-          weights <- round(as.numeric(input$WeightPvalue2[,2]),digits=2)
-          pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
+          # --- input part on the right ---
+          # weights <- round(as.numeric(input$WeightPvalue2[,2]),digits=2)
+          # pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
+          # --- input part on the right ---
           
-          edges <- fromto[which(fromto$trans!=0),]  
-          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$label)
-          edges$propagation <- edges$label
+          edges <- edges[which(edges$propagation!=0),]  
+          # nodes <- data.frame(id = names)
           
-          nodes <- data.frame(id = names,
-                              label=names)
+          # -- title of nodes to show with click
           nodes$title  <- lapply(1:num, function(i) {
-            paste(input$WeightPvalue2[i,1],
-                  paste0("weight= ", weights[i]),
-                  paste0("p-value= ", pvalues[i]),sep="<br/>")
+            paste(paste0(nodes$id[i],":"),
+                  paste0("weight= ", nodes$weight[i]),
+                  paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
           })
-          nodes$Hypothesis <- names
-          nodes$weight <- weights
-          nodes$pvalue <- pvalues
+          # -- title of edges to show with click
+          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
           
-          netplot <-  visNetwork(nodes, edges, 
+          graph_data$nodes <- nodes
+          graph_data$edges <- edges
+          netplot <-  visNetwork(graph_data$nodes, graph_data$edges, 
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
@@ -407,10 +400,12 @@ server <- function(input, output,session) {
                                            editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                            addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
-            visEvents(select = "function(nodes) {
-                Shiny.onInputChange('current_node_weight', nodes.nodes);
-                ;}")    
+                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
+          # %>%
+          #   visEvents(select = "function(data) {
+          #       Shiny.onInputChange('current_nodes_weight', data.nodes);
+          #       Shiny.onInputChange('current_edges_weight', data.edges);
+          #       ;}")    
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
@@ -477,10 +472,7 @@ server <- function(input, output,session) {
           netplot <-  visNetwork(nodes, edges,
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
-            visOption_xc(manipulation = list(enabled = T,
-                                             editEdgeCols = c("propagation"),
-                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
-                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
+            visOption_xc(manipulation = T) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
             visExport() 
@@ -488,29 +480,116 @@ server <- function(input, output,session) {
         netplot
     })
     
-    output$nodes_data_from_shiny <- renderDataTable({
+    # --- try 1019 ---
+    # If the user edits the graph, this shows up in
+    # `input$[name_of_the_graph_output]_graphChange`.  This is a list whose
+    # members depend on whether the user added a node or an edge.  The "cmd"
+    # element tells us what the user did.
+    observeEvent(input$ini_network_graphChange, {
+      # If the user added a node, add it to the data frame of nodes.
+      if(input$ini_network_graphChange$cmd == "addNode") {
+        temp = bind_rows(
+          nodes,
+          data.frame(id = input$ini_network_graphChange$id,
+                     label = input$ini_network_graphChange$label,
+                     Hypothesis = input$ini_network_graphChange$Hypothesis,
+                     weight = input$ini_network_graphChange$weight,
+                     pvalue = input$ini_network_graphChange$pvalue,
+                     stringsAsFactors = F)
+        )
+        nodes = temp
+      }
+      # If the user added an edge, add it to the data frame of edges.
+      else if(input$ini_network_graphChange$cmd == "addEdge") {
+        temp = bind_rows(
+          edges,
+          data.frame(trans = input$ini_network_graphChange$trans,
+                     from = input$ini_network_graphChange$from,
+                     to = input$ini_network_graphChange$to,
+                     label = input$ini_network_graphChange$label,
+                     propagation = input$ini_network_graphChange$propagation,
+                     stringsAsFactors = F)
+        )
+        edges = temp
+      }
+      # If the user edited a node, update that record.
+      else if(input$ini_network_graphChange$cmd == "editNode") {
+        temp = nodes
+        temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
+        temp$Hypothesis[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$Hypothesis
+        temp$weight[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$weight
+        temp$pvalue[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$pvalue
+        nodes = temp
+      }
+      # If the user edited an edge, update that record.
+      else if(input$ini_network_graphChange$cmd == "editEdge") {
+        temp = edges
+        temp$from[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$from
+        temp$to[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$to
+        temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
+        temp$propagation[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$propagation
+        edges = temp
+      }
+      # If the user deleted something, remove those records.
+      else if(input$ini_network_graphChange$cmd == "deleteElements") {
+        for(node.id in input$ini_network_graphChange$nodes) {
+          temp = nodes
+          temp = temp[temp$id != node.id,]
+          nodes = temp
+        }
+        for(edge.id in input$ini_network_graphChange$edges) {
+          temp = edges
+          temp = temp[temp$id != edge.id,]
+          edges = temp
+        }
+      }
+    })
+    
+    # Render the table showing all the nodes in the graph.
+    output$nodes_all = renderTable({
+      nodes[,c("Hypothesis","weight","pvalue")]
+    })
+    
+    # Render the table showing all the edges in the graph.
+    output$edges_all = renderTable({
+      edges[,c("from","to","propagation")]
+    })
+    
+    
+    # --- try 1019 ---
+
+    
+    output$nodes_data_from_shiny <- DT::renderDataTable({
       if(!is.null(input$ini_network_nodes)){
-        num <- as.integer(input$Number_Hypotheses)
-        info <- data.frame(matrix(unlist(input$ini_network_nodes), 
-                                  ncol = num,
-                                  byrow=T),stringsAsFactors=FALSE)
-        colnames(info) <- lapply(1:num, function(i) {
-          paste0("H", i)
-        })
-        info
+        nodes <- data.frame(input$ini_network_nodes)
+       # info <- nodes[,c("Hypothesis","weight","pvalue")]
+        # colnames(info) <- lapply(1:num, function(i) {
+        #   paste0("H", i)
+        # })
+        DT::datatable(nodes,options = list(searching = FALSE,
+                                           paging = FALSE))
       }
     })
-    output$edges_data_from_shiny <- renderPrint({
+    output$edges_data_from_shiny <- DT::renderDataTable({
       if(!is.null(input$ini_network_edges)){
-        input$ini_network_edges
+        edges <- data.frame(input$ini_network_edges)
+        DT::datatable(edges,options = list(searching = FALSE,
+                                           paging = FALSE))
       }
     })
+    # observeEvent(input$getNodes,{
+    #   print(input$current_nodes_selection)
+    # })
+    # 
+    # observeEvent(input$getEdges,{
+    #   print(input$current_edges_selection)
+    # })
     
     observeEvent(input$getNodes,{
       visNetworkProxy("ini_network") %>%
-        visGetNodes() 
+        visGetNodes()
     })
-    
+
     observeEvent(input$getEdges, {
       visNetworkProxy("ini_network") %>%
         visGetEdges()
