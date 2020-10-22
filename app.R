@@ -10,6 +10,7 @@ library(shinyWidgets)
 library(igraph)
 library(dplyr)
 library(network)
+library(shinythemes)
 
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
@@ -142,119 +143,126 @@ components$build <- box(
 # -----------------------------------------------------
 
 
-ui <- dashboardPage(
-    title = "shinyGraph",
-    skin = "black",
-    dashboardHeader(
-        title = "GraphApp",
-        tags$li(
-            class = "dropdown",
-            actionLink(
-                inputId = "._bookmark_", 
-                label = "Bookmark",
-                icon = icon("link", lib = "glyphicon"),
-                title = "Bookmark GraphApp's state and get a URL for sharing.",
-                `data-toggle` = "tooltip",
-                `data-placement` = "bottom"
-            )
-        ),
-        tags$li(
-            class = "dropdown",
-            tags$a(
-                href = "https://github.com/xijin0911/",
-                title = "shinyDAG on GitHub",
-                target = "_blank",
-                icon("github")
-            )
-        )
-    ),
+
+    # title = "shinyGraph",
+    # skin = "black",
+    # dashboardHeader(
+    #     title = "GraphApp",
+    #     tags$li(
+    #         class = "dropdown",
+    #         actionLink(
+    #             inputId = "._bookmark_", 
+    #             label = "Bookmark",
+    #             icon = icon("link", lib = "glyphicon"),
+    #             title = "Bookmark GraphApp's state and get a URL for sharing.",
+    #             `data-toggle` = "tooltip",
+    #             `data-placement` = "bottom"
+    #         )
+    #     ),
+    #     tags$li(
+    #         class = "dropdown",
+    #         tags$a(
+    #             href = "https://github.com/xijin0911/",
+    #             title = "shinyDAG on GitHub",
+    #             target = "_blank",
+    #             icon("github")
+    #         )
+    #     )
+  #),
     
-    dashboardSidebar(
-        sidebarMenu(
-            id = "shinydag_page",
-            menuItem("Graph", tabName = "graph", icon = icon("home")),
-            menuItem("Tweak", tabName = "tweak", icon = icon("sliders"))
-        #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o"))
-        #    menuItem("Examples", tabName = "examples", icon = icon("info"))
-        )
-    ),
-    dashboardBody(
-        shinyjs::useShinyjs(),
-        chooseSliderSkin("Flat", "#418c7a"),
-        tabItems(
-            #---
-            # graph
-            #---
-            tabItem(
-                tabName = "graph",                
-                fluidPage(
-                    fluidRow(
-                      box(
-                        width = 12,
-                        box(witdth = 6, collapsible = FALSE,
-                            solidHeader = TRUE,
-                            collapsed = TRUE,
-                            numericInput(inputId="Number_Hypotheses2",
-                                         label="Number of Hypotheses:",
-                                         value=3,step = 1,min = 1)),
-                        box(witdth = 6, collapsible = FALSE,
-                            solidHeader = TRUE,
-                            collapsed = TRUE,
-                            numericInput(inputId = "alpha2", 
-                                         label = HTML("&alpha;"),
-                                         value = 0.05,step = 0.001,min = 0))),
-                      column(7,
-                             column(8,
-                               #     actionButton("action", "Testing Strategy"),
-                                    selectInput(inputId = "Weighting_Strategy",
-                                                label = "Weighting Strategy",
-                                                choices = c("Specify the weighting strategy...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                                                selected = "Specify the weighting strategy...")),
-                             column(12,
-                                    visNetworkOutput("ini_network"))),
-                    column(
-                      width = 5,
-                      p("Hypotheses in the graph:"),
-                      tableOutput("all_nodes")),
-                    column(
-                      width=5,
-                      p("Propagation in the graph:"),
-                      tableOutput("all_edges")
-                    )
-                    # column(6,
-                    #        br(),
-                    #        actionButton("TestButton2", "Testing!"),
-                    #        visNetworkOutput("fin_network")
-                    #        )
-                    ),
-                    
-                    box(width=12,
-                     #    verbatimTextOutput("shiny_return"),  # TODO: only name of nodes
-                     box(width=6,
-                         actionButton("getNodes", "Nodes"),
-                      #   DT::dataTableOutput("nodes_data_from_shiny")),
-                      tableOutput("nodes_all")),
-                     box(width=6,
-                            actionButton("getEdges", "Edges"),
-                       #  DT::dataTableOutput("edges_data_from_shiny"))
-                       tableOutput("edges_all"))
-                        ),
-                    a(id = "toggleAdvanced", "More"),
-                    hidden(
-                        div(id = "advanced",
-                            box(width=6,
-                            numericInput("age", "Weight Matrix", 30)),
-                            box(width=6,
-                            textInput("company", "Transition Matrix", "")
-                        ))
-                    )
-                )
+    # dashboardSidebar(
+    #     sidebarMenu(
+    #         id = "shinydag_page",
+    #         menuItem("Graph", tabName = "graph", icon = icon("home")),
+    #         menuItem("Tweak", tabName = "tweak", icon = icon("sliders"))
+    #     #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o"))
+    #     #    menuItem("Examples", tabName = "examples", icon = icon("info"))
+    #     )
+    # ),
+    # dashboardBody(
+    #     shinyjs::useShinyjs(),
+    #     chooseSliderSkin("Flat", "#418c7a"),
+    #     tabItems(
+           
+ui <- fluidPage(
+      theme = shinytheme("cerulean"),
+      navbarPage(
+        id = "tabs",
+        title = "GraphApp",
+        collapsible = TRUE,
+        #--- graph --
+        tabPanel(
+          "graph",                
+          fluidPage(
+            fluidRow(
+              column(
+                2,
+                h2("Settings"),
+                hr(),
+                numericInput(inputId="Number_Hypotheses2",
+                             label="Number of Hypotheses:",
+                             value=3,step = 1,min = 1),
+                numericInput(inputId = "alpha2", 
+                             label = HTML("&alpha;"),
+                             value = 0.05,step = 0.001,min = 0),
+                h4("other graph settings"),
+                actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
+                actionButton(inputId = "runGfpop", label = "Run gfpop!"),
+              ),
+              
+            
+              column(6,
+                     column(8,
+                            #     actionButton("action", "Testing Strategy"),
+                            selectInput(inputId = "Weighting_Strategy",
+                                        label = "Weighting Strategy",
+                                        choices = c("Specify the weighting strategy...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
+                                        selected = "Specify the weighting strategy...")),
+                     column(12,
+                            visNetworkOutput("ini_network"))),
+              column(
+                width = 4,
+                p("Hypotheses in the graph:"),
+                tableOutput("all_nodes")),
+              column(
+                width=4,
+                p("Propagation in the graph:"),
+                tableOutput("all_edges")
+              )
+              # column(6,
+              #        br(),
+              #        actionButton("TestButton2", "Testing!"),
+              #        visNetworkOutput("fin_network")
+              #        )
             ),
+            
+            box(width=12,
+                #    verbatimTextOutput("shiny_return"),  # TODO: only name of nodes
+                box(width=6,
+                    actionButton("getNodes", "Nodes"),
+                    #   DT::dataTableOutput("nodes_data_from_shiny")),
+                    tableOutput("nodes_all")),
+                box(width=6,
+                    actionButton("getEdges", "Edges"),
+                    #  DT::dataTableOutput("edges_data_from_shiny"))
+                    tableOutput("edges_all"))
+            ),
+            a(id = "toggleAdvanced", "More"),
+            hidden(
+              div(id = "advanced",
+                  box(width=6,
+                      numericInput("age", "Weight Matrix", 30)),
+                  box(width=6,
+                      textInput("company", "Transition Matrix", "")
+                  ))
+            )
+          )
+        ),
             #---
             # tweak
             #---
-            tabItem(
-              tabName="tweak", 
+    tabPanel(
+              "tweak", 
               ## 1. hypotheses & alpha 
               box(width = 12,
                   box(witdth = 6, collapsible = FALSE,
@@ -292,8 +300,8 @@ ui <- dashboardPage(
             #---
             # examplese
             #---
-             tabItem(
-                 tabName = "examples",
+    tabPanel(
+                 "examples",
                  tags$script(src = "net.js"),
                 box(
                     title = "Examples",
@@ -305,9 +313,11 @@ ui <- dashboardPage(
                     components$examples$team
                 )
              )
-        )
-    )
-)
+    
+    ))
+#         )
+#     )
+# )
 
 server <- function(input, output,session) {    
     # ---- graph - Xijin ----
@@ -383,7 +393,7 @@ server <- function(input, output,session) {
           # -- title of nodes to show with click
           nodes$title  <- lapply(1:num, function(i) {
             paste(paste0(nodes$id[i],":"),
-                  paste0("weight= ", nodes$weight[i]),
+                  paste0("weight= ", round(nodes$weight[i],digits = 2)),
                   paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
           })
           # -- title of edges to show with click
@@ -472,7 +482,10 @@ server <- function(input, output,session) {
           netplot <-  visNetwork(nodes, edges,
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
-            visOption_xc(manipulation = T) %>%
+            visOption_xc(manipulation = list(enabled = T,
+                                             editEdgeCols = c("propagation"),
+                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
+                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
             visExport() 
@@ -503,7 +516,7 @@ server <- function(input, output,session) {
       else if(input$ini_network_graphChange$cmd == "addEdge") {
         temp = bind_rows(
           edges,
-          data.frame(trans = input$ini_network_graphChange$trans,
+          data.frame(
                      from = input$ini_network_graphChange$from,
                      to = input$ini_network_graphChange$to,
                      label = input$ini_network_graphChange$label,
@@ -526,7 +539,7 @@ server <- function(input, output,session) {
         temp = edges
         temp$from[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$from
         temp$to[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$to
-        temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
+       # temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
         temp$propagation[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$propagation
         edges = temp
       }
@@ -547,12 +560,12 @@ server <- function(input, output,session) {
     
     # Render the table showing all the nodes in the graph.
     output$nodes_all = renderTable({
-      nodes[,c("Hypothesis","weight","pvalue")]
+      graph_data$nodes[,c("Hypothesis","weight","pvalue")]
     })
     
     # Render the table showing all the edges in the graph.
     output$edges_all = renderTable({
-      edges[,c("from","to","propagation")]
+      graph_data$edges[,c("from","to","propagation")]
     })
     
     
