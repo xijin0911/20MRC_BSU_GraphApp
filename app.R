@@ -153,7 +153,7 @@ ui <- fluidPage(
           fluidPage(
             fluidRow(
               column(
-                3,
+                3,style = "background-color: skyblue;",
                 h2("Settings"),
                 hr(),
                 numericInput(inputId="Number_Hypotheses2",
@@ -173,29 +173,33 @@ ui <- fluidPage(
               ),
               
             
-              column(5,
+              column(6,
                      h2("Graph"),
                      visNetworkOutput("ini_network")),
-              column(4,
+              column(3,
                 h2("Details"),
                 hr(),
-                p("Hypotheses in the graph:"),
-                tableOutput("all_nodes"),
-             
-                p("Propagation in the graph:"),
-                tableOutput("all_edges")
+                actionButton("getNodes", "Nodes for Hypotheses:"),
+                tableOutput("nodes_all"),
+                # tableOutput("all_nodes"),
+                
+                actionButton("getEdges", "Edges for Transition:"),
+                tableOutput("edges_all")
+                #  tableOutput("all_edges")
               )
             ),
-            box(width=12,
-                box(width=6,
-                    actionButton("getNodes", "Nodes"),
-                    #   DT::dataTableOutput("nodes_data_from_shiny")),
-                    tableOutput("nodes_all")),
-                box(width=6,
-                    actionButton("getEdges", "Edges"),
-                    #  DT::dataTableOutput("edges_data_from_shiny"))
-                    tableOutput("edges_all"))
-            ),
+            # box(width=12,
+            #     box(width=6,
+            #         actionButton("getNodes", "Nodes"),
+            #         #   DT::dataTableOutput("nodes_data_from_shiny")),
+            #         # tableOutput("nodes_all")
+            #         ),
+            #     box(width=6,
+            #         actionButton("getEdges", "Edges"),
+            #         #  DT::dataTableOutput("edges_data_from_shiny"))
+            #         # tableOutput("edges_all")
+            #         )
+            # ),
             a(id = "toggleAdvanced", "More"),
             hidden(
               div(id = "advanced",
@@ -267,24 +271,23 @@ ui <- fluidPage(
 #         )
 #     )
 # )
-
+init.nodes.df = data.frame(id=integer(),
+                           label=character(),
+                           Hypothesis=character(),
+                           weight=numeric(),
+                           pvalue=numeric(),
+                           stringsAsFactors=FALSE)
+init.edges.df = data.frame(from = character(), 
+                           to = character(),
+                           propagation = numeric(),
+                           stringsAsFactors = F)
 server <- function(input, output,session) {    
     # ---- graph - Xijin ----
-    onclick("toggleAdvanced", toggle(id = "advanced", anim = TRUE))
-    onclick("Moreinformation", toggle(id = "Moreinfor", anim = TRUE))
+    # onclick("toggleAdvanced", toggle(id = "advanced", anim = TRUE))
+    # onclick("Moreinformation", toggle(id = "Moreinfor", anim = TRUE))
+    # observe({ toggle(id="action", condition=!is.null(input$location))})
     
-    observe({ toggle(id="action", condition=!is.null(input$location))})
     
-    init.nodes.df = data.frame(id=integer(),
-                               label=character(),
-                               Hypothesis=character(),
-                               weight=numeric(),
-                               pvalue=numeric(),
-                               stringsAsFactors=FALSE)
-    init.edges.df = data.frame(from = character(), 
-                               to = character(),
-                               propagation = numeric(),
-                               stringsAsFactors = F)
     # `graph_data` is a list of two data frames: one of nodes, one of edges.
     graph_data = reactiveValues(
       nodes = init.nodes.df,
@@ -319,6 +322,8 @@ server <- function(input, output,session) {
         }
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
           nodes <- data.frame(id = names)
+          nodes$label <- names
+          nodes$Hypothesis <- names
           nodes$weight <- round(rep(1/num,num),digits = 2)
           nodes$pvalue <- rep(0.01,num)
           nodes$title  <- lapply(1:num, function(i) {
@@ -346,20 +351,17 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            visOption_xc(manipulation = list(enabled = T,
+            visOptions(manipulation = list(enabled = T,
                                            editEdgeCols = c("propagation"),
                                            editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                            addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
-          # %>%
-          #   visEvents(select = "function(data) {
-          #       Shiny.onInputChange('current_nodes_weight', data.nodes);
-          #       Shiny.onInputChange('current_edges_weight', data.edges);
-          #       ;}")    
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
+          nodes$label <- names
+          nodes$Hypothesis <- names
           nodes$weight <- rep(0,num)
           nodes$weight[1] <- 1 
           nodes$pvalue <- rep(0.01,num)
@@ -390,7 +392,7 @@ server <- function(input, output,session) {
                      width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>%
-            visOption_xc(manipulation = list(enabled = T,
+            visOptions(manipulation = list(enabled = T,
                                              editEdgeCols = c("propagation"),
                                              editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                              addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
@@ -399,6 +401,8 @@ server <- function(input, output,session) {
         }
         if(input$Weighting_Strategy == "Fallback procedure"){
           nodes <- data.frame(id = names)
+          nodes$Hypothesis <- names
+          nodes$label <- names
           nodes$weight <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
           nodes$pvalue <- rep(0.01,num)
           nodes$title  <- lapply(1:num, function(i) {
@@ -427,7 +431,7 @@ server <- function(input, output,session) {
           netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
-            visOption_xc(manipulation = list(enabled = T,
+            visOptions(manipulation = list(enabled = T,
                                              editEdgeCols = c("propagation"),
                                              editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                              addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
@@ -443,7 +447,7 @@ server <- function(input, output,session) {
       # If the user added a node, add it to the data frame of nodes.
       if(input$ini_network_graphChange$cmd == "addNode") {
         temp = bind_rows(
-          nodes,
+          graph_data$nodes,
           data.frame(id = input$ini_network_graphChange$id,
                      label = input$ini_network_graphChange$label,
                      Hypothesis = input$ini_network_graphChange$Hypothesis,
@@ -451,60 +455,55 @@ server <- function(input, output,session) {
                      pvalue = input$ini_network_graphChange$pvalue,
                      stringsAsFactors = F)
         )
-        nodes = temp
+        graph_data$nodes = temp
       }
       # If the user added an edge, add it to the data frame of edges.
       else if(input$ini_network_graphChange$cmd == "addEdge") {
         temp = bind_rows(
-          edges,
+          graph_data$edges,
           data.frame(
                      from = input$ini_network_graphChange$from,
                      to = input$ini_network_graphChange$to,
-                     label = input$ini_network_graphChange$label,
                      propagation = input$ini_network_graphChange$propagation,
                      stringsAsFactors = F)
         )
-        edges = temp
+        graph_data$edges = temp
       }
       # If the user edited a node, update that record.
       else if(input$ini_network_graphChange$cmd == "editNode") {
-        temp = nodes
+        temp = graph_data$nodes
         temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
         temp$Hypothesis[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$Hypothesis
         temp$weight[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$weight
         temp$pvalue[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$pvalue
-        nodes = temp
+        graph_data$nodes = temp
       }
       # If the user edited an edge, update that record.
       else if(input$ini_network_graphChange$cmd == "editEdge") {
-        temp = edges
+        temp = graph_data$edges
         temp$from[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$from
         temp$to[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$to
-       # temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
         temp$propagation[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$propagation
-        edges = temp
+        graph_data$edges = temp
       }
       # If the user deleted something, remove those records.
       else if(input$ini_network_graphChange$cmd == "deleteElements") {
         for(node.id in input$ini_network_graphChange$nodes) {
-          temp = nodes
+          temp = graph_data$nodes
           temp = temp[temp$id != node.id,]
-          nodes = temp
+          graph_data$nodes = temp
         }
         for(edge.id in input$ini_network_graphChange$edges) {
-          temp = edges
+          temp = graph_data$edges
           temp = temp[temp$id != edge.id,]
-          edges = temp
+          graph_data$edges = temp
         }
       }
     })
     
-    # Render the table showing all the nodes in the graph.
     output$nodes_all = renderTable({
       graph_data$nodes[,c("Hypothesis","weight","pvalue")]
     })
-    
-    # Render the table showing all the edges in the graph.
     output$edges_all = renderTable({
       graph_data$edges[,c("from","to","propagation")]
     })
