@@ -141,49 +141,6 @@ components$build <- box(
 )
 
 # -----------------------------------------------------
-
-
-
-    # title = "shinyGraph",
-    # skin = "black",
-    # dashboardHeader(
-    #     title = "GraphApp",
-    #     tags$li(
-    #         class = "dropdown",
-    #         actionLink(
-    #             inputId = "._bookmark_", 
-    #             label = "Bookmark",
-    #             icon = icon("link", lib = "glyphicon"),
-    #             title = "Bookmark GraphApp's state and get a URL for sharing.",
-    #             `data-toggle` = "tooltip",
-    #             `data-placement` = "bottom"
-    #         )
-    #     ),
-    #     tags$li(
-    #         class = "dropdown",
-    #         tags$a(
-    #             href = "https://github.com/xijin0911/",
-    #             title = "shinyDAG on GitHub",
-    #             target = "_blank",
-    #             icon("github")
-    #         )
-    #     )
-  #),
-    
-    # dashboardSidebar(
-    #     sidebarMenu(
-    #         id = "shinydag_page",
-    #         menuItem("Graph", tabName = "graph", icon = icon("home")),
-    #         menuItem("Tweak", tabName = "tweak", icon = icon("sliders"))
-    #     #    menuItem("LaTeX", tabName = "latex", icon = icon("file-text-o"))
-    #     #    menuItem("Examples", tabName = "examples", icon = icon("info"))
-    #     )
-    # ),
-    # dashboardBody(
-    #     shinyjs::useShinyjs(),
-    #     chooseSliderSkin("Flat", "#418c7a"),
-    #     tabItems(
-           
 ui <- fluidPage(
       theme = shinytheme("cerulean"),
       navbarPage(
@@ -196,7 +153,7 @@ ui <- fluidPage(
           fluidPage(
             fluidRow(
               column(
-                2,
+                3,
                 h2("Settings"),
                 hr(),
                 numericInput(inputId="Number_Hypotheses2",
@@ -205,39 +162,31 @@ ui <- fluidPage(
                 numericInput(inputId = "alpha2", 
                              label = HTML("&alpha;"),
                              value = 0.05,step = 0.001,min = 0),
-                h4("other graph settings"),
+                hr(),
+                selectInput(inputId = "Weighting_Strategy",
+                            label = "Weighting Strategy",
+                            choices = c("Specify the weighting strategy...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
+                            selected = "Specify the weighting strategy..."),
                 actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
-                actionButton(inputId = "runGfpop", label = "Run gfpop!"),
+                br(),
+                actionButton(inputId = "runGfpop", label = "Run!"),
               ),
               
             
-              column(6,
-                     column(8,
-                            #     actionButton("action", "Testing Strategy"),
-                            selectInput(inputId = "Weighting_Strategy",
-                                        label = "Weighting Strategy",
-                                        choices = c("Specify the weighting strategy...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                                        selected = "Specify the weighting strategy...")),
-                     column(12,
-                            visNetworkOutput("ini_network"))),
-              column(
-                width = 4,
+              column(5,
+                     h2("Graph"),
+                     visNetworkOutput("ini_network")),
+              column(4,
+                h2("Details"),
+                hr(),
                 p("Hypotheses in the graph:"),
-                tableOutput("all_nodes")),
-              column(
-                width=4,
+                tableOutput("all_nodes"),
+             
                 p("Propagation in the graph:"),
                 tableOutput("all_edges")
               )
-              # column(6,
-              #        br(),
-              #        actionButton("TestButton2", "Testing!"),
-              #        visNetworkOutput("fin_network")
-              #        )
             ),
-            
             box(width=12,
-                #    verbatimTextOutput("shiny_return"),  # TODO: only name of nodes
                 box(width=6,
                     actionButton("getNodes", "Nodes"),
                     #   DT::dataTableOutput("nodes_data_from_shiny")),
@@ -342,7 +291,6 @@ server <- function(input, output,session) {
       edges = init.edges.df
     )
     
-    
     output$ini_network <- renderVisNetwork({
       # -- different plots in common --
         num <- as.integer(input$Number_Hypotheses2)
@@ -358,10 +306,10 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            visOption_xc(highlightNearest = TRUE,
-                       manipulation = TRUE
-                       #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            ) %>%
+            # visOption_xc(highlightNearest = TRUE,
+            #            manipulation = TRUE
+            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
+            # ) %>%
             visOption_xc(manipulation = list(enabled = T,
                                              editEdgeCols = c("propagation"),
                                              editNodeCols = c("Hypothesis", "weight", "pvalue"),
@@ -370,37 +318,30 @@ server <- function(input, output,session) {
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
         }
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
-          # -- initial setting for matrix --
-          df <- (1-diag(num))/(num-1)  
-          rownames(df) <- names
-          colnames(df) <- names
-          net <- network(df,   # do not depend on the input of right handside
-                         directed = TRUE,
-                         names.eval = "weights",
-                         ignore.eval = FALSE)
-          edges <- melt(df)
-          #  fromto <- cbind(fromto,value=melt(input$TransitionMatrixG2)[,"value"])
-          colnames(edges) <- c("from","to","propagation")
-          
-          # --- input part on the right ---
-          # weights <- round(as.numeric(input$WeightPvalue2[,2]),digits=2)
-          # pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
-          # --- input part on the right ---
-          
-          edges <- edges[which(edges$propagation!=0),]  
-          # nodes <- data.frame(id = names)
-          
-          # -- title of nodes to show with click
+          nodes <- data.frame(id = names)
+          nodes$weight <- round(rep(1/num,num),digits = 2)
+          nodes$pvalue <- rep(0.01,num)
           nodes$title  <- lapply(1:num, function(i) {
             paste(paste0(nodes$id[i],":"),
                   paste0("weight= ", round(nodes$weight[i],digits = 2)),
                   paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
           })
-          # -- title of edges to show with click
-          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
-          
           graph_data$nodes <- nodes
+          
+          # -- initial setting for edges based on weighting strategy --
+          df <- (1-diag(num))/(num-1)  
+          rownames(df) <- names
+          colnames(df) <- names
+          net <- network(df,   
+                         directed = TRUE,
+                         names.eval = "weights",
+                         ignore.eval = FALSE)
+          edges <- melt(df)
+          colnames(edges) <- c("from","to","propagation")
+          edges <- edges[which(edges$propagation!=0),] 
+          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
           graph_data$edges <- edges
+          
           netplot <-  visNetwork(graph_data$nodes, graph_data$edges, 
                                  width="100%", height="800px") %>%
             visExport() %>%
@@ -419,32 +360,33 @@ server <- function(input, output,session) {
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
-          FS_TransitionMatrixG <- matrix(0, nrow = num, ncol = num)
-          colnames(FS_TransitionMatrixG) <- names
-          rownames(FS_TransitionMatrixG) <- names
-          for (i in 1:(num-1)){
-            FS_TransitionMatrixG[i,i+1] <- 1
-          }
-          net <- network(FS_TransitionMatrixG,
-                           directed = TRUE,
-                           names.eval = "weights",
-                           ignore.eval = FALSE)
-          wide <- as.matrix(net)
-          fromto <- melt(wide)
-          fromto <- cbind(fromto,value=melt(FS_TransitionMatrixG)[,"value"])
-          colnames(fromto) <- c("from","to","trans","label")
-          edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
-          
-          weights <- rep(0,num)
-          weights[1] <- 1
-          pvalues <- round(as.numeric(input$WeightPvalue2[,3]),digits=2)
-          
+          nodes$weight <- rep(0,num)
+          nodes$weight[1] <- 1 
+          nodes$pvalue <- rep(0.01,num)
           nodes$title  <- lapply(1:num, function(i) {
-            paste(paste0("H", i,":"),
-                  paste0("weight= ", weights[i]),
-                  paste0("p-value= ", pvalues[i]),sep="<br/>")
+            paste(paste0(nodes$id[i],":"),
+                  paste0("weight= ", round(nodes$weight[i],digits = 2)),
+                  paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
           })
-          netplot <-  visNetwork(nodes, edges,
+          graph_data$nodes <- nodes
+          
+          df <- matrix(0, nrow = num, ncol = num)
+          rownames(df) <- names
+          colnames(df) <- names
+          for (i in 1:(num-1)){
+            df[i,i+1] <- 1
+          }
+          net <- network(df,   
+                         directed = TRUE,
+                         names.eval = "weights",
+                         ignore.eval = FALSE)
+          edges <- melt(df)
+          colnames(edges) <- c("from","to","propagation")
+          edges <- edges[which(edges$propagation!=0),] 
+          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+          graph_data$edges <- edges
+          
+          netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
                      width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>%
@@ -457,29 +399,32 @@ server <- function(input, output,session) {
         }
         if(input$Weighting_Strategy == "Fallback procedure"){
           nodes <- data.frame(id = names)
-          FP_TransitionMatrixG <- matrix(0, nrow = num, ncol = num)
-          colnames(FP_TransitionMatrixG) <- names
-          rownames(FP_TransitionMatrixG) <- names
+          nodes$weight <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
+          nodes$pvalue <- rep(0.01,num)
+          nodes$title  <- lapply(1:num, function(i) {
+            paste(paste0(nodes$id[i],":"),
+                  paste0("weight= ", round(nodes$weight[i],digits = 2)),
+                  paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
+          })
+          graph_data$nodes <- nodes
+          
+          df <- matrix(0, nrow = num, ncol = num)
+          rownames(df) <- names
+          colnames(df) <- names
           for (i in 1:(num-1)){
-            FP_TransitionMatrixG[i,i+1] <- 1
+            df[i,i+1] <- 1
           }
-          net <- network(FP_TransitionMatrixG,
+          net <- network(df,   
                          directed = TRUE,
                          names.eval = "weights",
                          ignore.eval = FALSE)
-          wide <- as.matrix(net)
-          fromto <- melt(wide)
-          fromto <- cbind(fromto,value=melt(FP_TransitionMatrixG)[,"value"])
-          colnames(fromto) <- c("from","to","trans","label")
-          edges <- fromto[which(fromto$trans!=0),]  # weights!=0 ==> edges
-          weights <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
-          pvalues <- round(as.numeric(input$WeightPvalue[,3]),digits=2)
-          nodes$title  <- lapply(1:num, function(i) {
-            paste(paste0("H", i,":"),
-                  paste0("weight= ", weights[i]),
-                  paste0("p-value= ", pvalues[i]),sep="<br/>")
-          })
-          netplot <-  visNetwork(nodes, edges,
+          edges <- melt(df)
+          colnames(edges) <- c("from","to","propagation")
+          edges <- edges[which(edges$propagation!=0),] 
+          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+          graph_data$edges <- edges
+          
+          netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
             visOption_xc(manipulation = list(enabled = T,
@@ -493,11 +438,7 @@ server <- function(input, output,session) {
         netplot
     })
     
-    # --- try 1019 ---
-    # If the user edits the graph, this shows up in
-    # `input$[name_of_the_graph_output]_graphChange`.  This is a list whose
-    # members depend on whether the user added a node or an edge.  The "cmd"
-    # element tells us what the user did.
+    # reaction after editing the graph
     observeEvent(input$ini_network_graphChange, {
       # If the user added a node, add it to the data frame of nodes.
       if(input$ini_network_graphChange$cmd == "addNode") {
