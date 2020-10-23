@@ -169,7 +169,7 @@ ui <- fluidPage(
                             selected = "Specify the weighting strategy..."),
                 actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
                 br(),
-                actionButton(inputId = "runGfpop", label = "Run!"),
+                # actionButton(inputId = "runGfpop", label = "Run!"),
               ),
               
             
@@ -281,19 +281,17 @@ init.edges.df = data.frame(from = character(),
                            to = character(),
                            propagation = numeric(),
                            stringsAsFactors = F)
+# `graph_data` is a list of two data frames: one of nodes, one of edges.
+graph_data = reactiveValues(
+  nodes = init.nodes.df,
+  edges = init.edges.df
+)
+
 server <- function(input, output,session) {    
     # ---- graph - Xijin ----
     # onclick("toggleAdvanced", toggle(id = "advanced", anim = TRUE))
     # onclick("Moreinformation", toggle(id = "Moreinfor", anim = TRUE))
     # observe({ toggle(id="action", condition=!is.null(input$location))})
-    
-    
-    # `graph_data` is a list of two data frames: one of nodes, one of edges.
-    graph_data = reactiveValues(
-      nodes = init.nodes.df,
-      edges = init.edges.df
-    )
-    
     output$ini_network <- renderVisNetwork({
       # -- different plots in common --
         num <- as.integer(input$Number_Hypotheses2)
@@ -309,11 +307,7 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visExport() %>%
             visEdges(arrows = 'to') %>% 
-            # visOption_xc(highlightNearest = TRUE,
-            #            manipulation = TRUE
-            #            #nodesIdSelection = list(enabled = TRUE, selected = "a")
-            # ) %>%
-            visOption_xc(manipulation = list(enabled = T,
+            visOptions(manipulation = list(enabled = T,
                                              editEdgeCols = c("propagation"),
                                              editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                              addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
@@ -322,7 +316,8 @@ server <- function(input, output,session) {
         }
         if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
           nodes <- data.frame(id = names)
-          nodes$label <- names
+          nodes$label <- as.character(names)
+          nodes$shape <- "circle"
           nodes$Hypothesis <- names
           nodes$weight <- round(rep(1/num,num),digits = 2)
           nodes$pvalue <- rep(0.01,num)
@@ -356,11 +351,13 @@ server <- function(input, output,session) {
                                            editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                            addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
+                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
+            visLayout(randomSeed = 8)
         }
         if(input$Weighting_Strategy == "Fixed sequence test"){
           nodes <- data.frame(id = names)
-          nodes$label <- names
+          nodes$label <- as.character(names)
+          nodes$shape <- "circle"
           nodes$Hypothesis <- names
           nodes$weight <- rep(0,num)
           nodes$weight[1] <- 1 
@@ -397,12 +394,14 @@ server <- function(input, output,session) {
                                              editNodeCols = c("Hypothesis", "weight", "pvalue"),
                                              addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                          dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
+                          dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
+            visLayout(randomSeed = 12)
         }
         if(input$Weighting_Strategy == "Fallback procedure"){
           nodes <- data.frame(id = names)
           nodes$Hypothesis <- names
-          nodes$label <- names
+          nodes$label <- as.character(names)
+          nodes$shape <- "circle"
           nodes$weight <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
           nodes$pvalue <- rep(0.01,num)
           nodes$title  <- lapply(1:num, function(i) {
@@ -437,7 +436,8 @@ server <- function(input, output,session) {
                                              addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
-            visExport() 
+            visExport() %>%
+            visLayout(randomSeed = 12)
         }
         netplot
     })
