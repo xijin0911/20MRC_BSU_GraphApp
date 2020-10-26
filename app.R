@@ -165,26 +165,29 @@ ui <- fluidPage(
                 hr(),
                 selectInput(inputId = "Weighting_Strategy",
                             label = "Weighting Strategy",
-                            choices = c("Specify the weighting strategy...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                            selected = "Specify the weighting strategy..."),
-                actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
+                            choices = c("Specify ...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
+                            selected = "Specify ..."),
                 br(),
                 # actionButton(inputId = "runGfpop", label = "Run!"),
               ),
               
             
-              column(6,
+              column(5,
                      h2("Graph"),
+                     actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
                      visNetworkOutput("ini_network")),
-              column(3,
+              column(4,
                 h2("Details"),
                 hr(),
-                actionButton("getNodes", "Nodes for Hypotheses:"),
-                tableOutput("nodes_all"),
+                # actionButton("getNodes", "Nodes for Hypotheses:"),
                 # tableOutput("all_nodes"),
+                dataTableOutput("graphOutput_visNodes"),
                 
-                actionButton("getEdges", "Edges for Transition:"),
-                tableOutput("edges_all")
+                
+                # actionButton("getEdges", "Edges for Transition:"),
+                # tableOutput("all_edges")
+                dataTableOutput("graphOutput_visEdges")
+                
                 #  tableOutput("all_edges")
               )
             ),
@@ -271,35 +274,42 @@ ui <- fluidPage(
 #         )
 #     )
 # )
-init.nodes.df = data.frame(id=integer(),
+init.nodes.df = data.frame(id=character(),
                            label=character(),
-                           Hypothesis=character(),
+                           title = character(),
+                           shape = character(),
+                           Test=character(),
                            weight=numeric(),
                            pvalue=numeric(),
                            stringsAsFactors=FALSE)
 init.edges.df = data.frame(from = character(), 
                            to = character(),
+                           title = character(),
                            propagation = numeric(),
                            stringsAsFactors = F)
-# `graph_data` is a list of two data frames: one of nodes, one of edges.
-graph_data = reactiveValues(
-  nodes = init.nodes.df,
-  edges = init.edges.df
-)
 
-server <- function(input, output,session) {    
-    # ---- graph - Xijin ----
-    # onclick("toggleAdvanced", toggle(id = "advanced", anim = TRUE))
-    # onclick("Moreinformation", toggle(id = "Moreinfor", anim = TRUE))
-    # observe({ toggle(id="action", condition=!is.null(input$location))})
-    output$ini_network <- renderVisNetwork({
+
+server <- function(input, output,session) { 
+  
+  # When i is edited, the the constraint graph undergoes a hard refresh
+  dummy_graph_refresh <- reactiveValues(i = 0)
+  
+  # `graph_data` is a list of two data frames: one of nodes, one of edges.
+  graph_data = reactiveValues(
+    nodes = init.nodes.df,
+    edges = init.edges.df
+  )
+  
+  output$ini_network <- renderVisNetwork({
+    
+
       # -- different plots in common --
         num <- as.integer(input$Number_Hypotheses2)
         names <- as.matrix(lapply(1:num, function(i) {
             paste0("H", i)
         }))
         # -- plot --
-        if(input$Weighting_Strategy == "Specify the weighting strategy..."){
+        if(input$Weighting_Strategy == "Specify ..."){
           # nodes <- data.frame(NULL)
           # edges <- data.frame(from = NULL, to = NULL)
           
@@ -309,8 +319,11 @@ server <- function(input, output,session) {
             visEdges(arrows = 'to') %>% 
             visOptions(manipulation = list(enabled = T,
                                              editEdgeCols = c("propagation"),
-                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
-                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
+                                             editNodeCols = c("Test", "weight", "pvalue")
+                                             # addNodeCols = c("label","title","shape",
+                                             #                 "Test", "weight", "pvalue"),
+                                             # addEdgeCols=c("propagation","title","from","to")
+                                           )) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
         }
@@ -318,7 +331,7 @@ server <- function(input, output,session) {
           nodes <- data.frame(id = names)
           nodes$label <- as.character(names)
           nodes$shape <- "circle"
-          nodes$Hypothesis <- names
+          nodes$Test <- names
           nodes$weight <- round(rep(1/num,num),digits = 2)
           nodes$pvalue <- rep(0.01,num)
           nodes$title  <- lapply(1:num, function(i) {
@@ -347,9 +360,8 @@ server <- function(input, output,session) {
             visExport() %>%
             visEdges(arrows = 'to') %>% 
             visOptions(manipulation = list(enabled = T,
-                                           editEdgeCols = c("propagation"),
-                                           editNodeCols = c("Hypothesis", "weight", "pvalue"),
-                                           addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
+                                           editEdgeCols = c("propagation","title","from","to"),
+                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
             visLayout(randomSeed = 8)
@@ -358,7 +370,7 @@ server <- function(input, output,session) {
           nodes <- data.frame(id = names)
           nodes$label <- as.character(names)
           nodes$shape <- "circle"
-          nodes$Hypothesis <- names
+          nodes$Test <- names
           nodes$weight <- rep(0,num)
           nodes$weight[1] <- 1 
           nodes$pvalue <- rep(0.01,num)
@@ -390,16 +402,15 @@ server <- function(input, output,session) {
             visExport() %>%
             visEdges(arrows = 'to') %>%
             visOptions(manipulation = list(enabled = T,
-                                             editEdgeCols = c("propagation"),
-                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
-                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
+                                           editEdgeCols = c("propagation","title","from","to"),
+                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
             visLayout(randomSeed = 12)
         }
         if(input$Weighting_Strategy == "Fallback procedure"){
           nodes <- data.frame(id = names)
-          nodes$Hypothesis <- names
+          nodes$Test <- names
           nodes$label <- as.character(names)
           nodes$shape <- "circle"
           nodes$weight <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
@@ -431,9 +442,8 @@ server <- function(input, output,session) {
                                  width="100%", height="800px") %>%
             visEdges(arrows = 'to',shadow = FALSE) %>%
             visOptions(manipulation = list(enabled = T,
-                                             editEdgeCols = c("propagation"),
-                                             editNodeCols = c("Hypothesis", "weight", "pvalue"),
-                                             addNodeCols = c("Hypothesis", "weight", "pvalue"))) %>%
+                                           editEdgeCols = c("propagation","title","from","to"),
+                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
             visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                            dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
             visExport() %>%
@@ -441,7 +451,20 @@ server <- function(input, output,session) {
         }
         netplot
     })
-    
+  
+  
+  # # Respond to a change in the visNetwork plot (via manipulation)
+  # observeEvent(input$ini_network_graphChange, {
+  #   event <- input$ini_network_graphChange
+  #   gfpop_data$graphdata_visNetwork <- modify_visNetwork(
+  #     event,
+  #     gfpop_data$graphdata_visNetwork,
+  #   )
+  #   
+  #   # Ensure that graphdata stays in sync with visNetwork data
+  #   gfpop_data$graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
+  # })
+  
     # reaction after editing the graph
     observeEvent(input$ini_network_graphChange, {
       # If the user added a node, add it to the data frame of nodes.
@@ -450,7 +473,9 @@ server <- function(input, output,session) {
           graph_data$nodes,
           data.frame(id = input$ini_network_graphChange$id,
                      label = input$ini_network_graphChange$label,
-                     Hypothesis = input$ini_network_graphChange$Hypothesis,
+                     title = input$ini_network_graphChange$title,
+                     shape = input$ini_network_graphChange$shape,
+                     Test = input$ini_network_graphChange$Test,
                      weight = input$ini_network_graphChange$weight,
                      pvalue = input$ini_network_graphChange$pvalue,
                      stringsAsFactors = F)
@@ -463,6 +488,7 @@ server <- function(input, output,session) {
           graph_data$edges,
           data.frame(
                      from = input$ini_network_graphChange$from,
+                     title = input$ini_network_graphChange$title,
                      to = input$ini_network_graphChange$to,
                      propagation = input$ini_network_graphChange$propagation,
                      stringsAsFactors = F)
@@ -473,7 +499,9 @@ server <- function(input, output,session) {
       else if(input$ini_network_graphChange$cmd == "editNode") {
         temp = graph_data$nodes
         temp$label[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$label
-        temp$Hypothesis[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$Hypothesis
+        temp$shape[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$shape
+        temp$title[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$title
+        temp$Test[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$Test
         temp$weight[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$weight
         temp$pvalue[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$pvalue
         graph_data$nodes = temp
@@ -482,6 +510,7 @@ server <- function(input, output,session) {
       else if(input$ini_network_graphChange$cmd == "editEdge") {
         temp = graph_data$edges
         temp$from[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$from
+        temp$title[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$title
         temp$to[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$to
         temp$propagation[temp$id == input$ini_network_graphChange$id] = input$ini_network_graphChange$propagation
         graph_data$edges = temp
@@ -499,23 +528,91 @@ server <- function(input, output,session) {
           graph_data$edges = temp
         }
       }
+      # visNetworkProxy("ini_network") %>%
+      #   visUpdateNodes(nodes = graph_data$nodes) %>%
+      #   visUpdateEdges(edges = graph_data$edges)
     })
     
+    
+    # ------------------------------------------------------------------ 
+    # 
+    # # Update graph when a cell is edited in the visEdges datatable
+    # proxy_visEdges <- dataTableProxy("graphOutput_visEdges")
+    # observeEvent(input$graphOutput_visEdges_cell_edit, {
+    #   info <- input$graphOutput_visEdges_cell_edit
+    #   i <- info$row
+    #   # Add one to the column to shift for id
+    #   j <- info$col + 1
+    #   v <- info$value
+    #   
+    #   # Update visNetwork data via proxy
+    #   graph_data$edges[i, j] <<- DT::coerceValue(
+    #     v, graph_data$edges[i, j, with = F]
+    #   )
+    #   replaceData(proxy_visEdges, graph_data$edges, resetPaging = FALSE)
+    # })
+    # 
+    # # Update graph when a cell is edited in the visNodes datatable
+    # proxy_visNodes <- dataTableProxy("graphOutput_visNodes")
+    # observeEvent(input$graphOutput_visNodes_cell_edit, {
+    #   info <- input$graphOutput_visNodes_cell_edit
+    #   i <- info$row
+    #   # Add one to column to shift for id
+    #   j <- info$col + 1
+    #   v <- info$value
+    #   
+    #   # Update visNetwork data via proxy
+    #   graph_data$nodes[i, j] <<- DT::coerceValue(
+    #     v, graph_data$nodes[i, j, with = F]
+    #   )
+    #   replaceData(proxy_visNodes, graph_data$nodes, resetPaging = FALSE)
+    # })
+    # 
+    
+    #----------------------------------------------------------------------
+    
+    # Render the table showing all the nodes in the graph.
+    output$all_nodes = renderTable({
+      graph_data$nodes
+    })
+    
+    # Render the table showing all the edges in the graph.
+    output$all_edges = renderTable({
+      graph_data$edges
+    })
+    
+    # render table which on the right of graph
+    output$graphOutput_visEdges <- DT::renderDT(
+      {
+        graph_data$edges[,c("from","to","propagation")]
+      },
+      editable = TRUE,
+      options = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+    )
+    
+    output$graphOutput_visNodes <- DT::renderDT(
+      {
+        graph_data$nodes[,c("Test","weight","pvalue")]
+      },
+      editable = TRUE,
+      options = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+    )
+    
     output$nodes_all = renderTable({
-      graph_data$nodes[,c("Hypothesis","weight","pvalue")]
+      graph_data$nodes[,c("Test","weight","pvalue")]
+      # DT::datatable(tab_nodes,options = list(searching = FALSE,
+      #                                    paging = FALSE))
     })
     output$edges_all = renderTable({
       graph_data$edges[,c("from","to","propagation")]
     })
     
     
-    # --- try 1019 ---
-
     
     output$nodes_data_from_shiny <- DT::renderDataTable({
       if(!is.null(input$ini_network_nodes)){
         nodes <- data.frame(input$ini_network_nodes)
-       # info <- nodes[,c("Hypothesis","weight","pvalue")]
+       # info <- nodes[,c("Test","weight","pvalue")]
         # colnames(info) <- lapply(1:num, function(i) {
         #   paste0("H", i)
         # })
@@ -538,20 +635,12 @@ server <- function(input, output,session) {
     #   print(input$current_edges_selection)
     # })
     
-    observeEvent(input$getNodes,{
-      visNetworkProxy("ini_network") %>%
-        visGetNodes()
-    })
-
-    observeEvent(input$getEdges, {
-      visNetworkProxy("ini_network") %>%
-        visGetEdges()
-    })
+   
     
-    output$shiny_return <- renderPrint({
-      input$current_node_weight
-    })
-    
+    # output$shiny_return <- renderPrint({
+    #   input$current_node_weight
+    # })
+    # 
     # output$nodes_data_from_shiny <- renderDataTable( {
     #   if (!is.null(input$current_node_id) && !is.null(input$ini_network_nodes)) {
     #     info <- data.frame(matrix(unlist(input$ini_network_nodes), 
