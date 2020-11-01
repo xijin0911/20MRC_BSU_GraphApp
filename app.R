@@ -45,8 +45,15 @@ ui <- fluidPage(
                 h2("Settings"),
                 hr(),
                 useShinyalert(),
-                p("You may want to specify the number of hypotheses for testing:"),
-                actionButton("spec", "Specification of Hypotheses"),
+                selectInput(inputId = "Weighting_Strategy",
+                            label = "Weighting Strategy",
+                            choices = c("Specify ...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
+                            selected = "Specify ..."),
+                hr(),
+                p("It must be specified if you specify the weighting strategy"),
+                actionButton("spec", "Number of Hypotheses"),
+                # verbatimTextOutput("print2"),
+                
                 hr(),
                 # numericInput(inputId="Number_Hypotheses2",
                 #              label="Number of Hypotheses:",
@@ -54,16 +61,12 @@ ui <- fluidPage(
                 numericInput(inputId = "alpha2", 
                              label = HTML("&alpha;"),
                              value = 0.05,step = 0.001,min = 0),
-                hr(),
-                selectInput(inputId = "Weighting_Strategy",
-                            label = "Weighting Strategy",
-                            choices = c("Specify ...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                            selected = "Specify ..."),
-                br()),
+                hr()
+                ),
               column(5,
                      h2("Graph"),
                      actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
-                     visNetworkOutput("ini_network")),
+                     visNetworkOutput("graph")),
               column(4,
                 h2("Details"),
                 hr(),
@@ -146,185 +149,248 @@ init.edges.df = data.frame(from = character(),
 server <- function(input, output,session) { 
   # pop-up for the specification of the number of hypotheses
   values <- reactiveValues()
+  values$num <- 3
   observeEvent(input$spec, {
     shinyalert("Number of hypotheses", 
                type = "input",
                inputType = "number",
-               inputValue = "",
-               inputId = "num_hypo",
-               inputPlaceholder = "3",
+               inputValue = "3",
+               inputId = "num_alert",
+               inputPlaceholder = "",
                confirmButtonText = "Yes", 
                # showCancelButton = TRUE,cancelButtonText = "No", 
                callbackR = modalCallback)
   })
   modalCallback <- function(value) {
-    value$num <- input$num_hypo
+    value$num <- input$num_alert
   }
   # initial values
+  
     graph_data = reactiveValues(
     nodes = init.nodes.df,
     edges = init.edges.df
   )
+    
+    # output$ini_network <- generate_graph(graph_data,
+    #                               Weighting_Strategy = input$Weighting_Strategy,
+    #                               num_hypotheses = input$num_alert)
+    
+    # output$print2 <- renderPrint({
+    #   input$num_alert
+    # })
+    
+    output$graph <- renderVisNetwork({
+      Weighting_Strategy = input$Weighting_Strategy
+      num_hypotheses = as.numeric(input$num_alert)
+      generate_graph(graph_data,Weighting_Strategy,
+                     num_hypotheses)
+    }) 
+    
+    # ini_network <-  eventReactive(input$refreshGraph,{
+    #   switch(input$Weighting_Strategy,
+    #          "Specify ..."= visNetwork(graph_data$nodes, graph_data$edges,
+    #                                    width="100%", height="800px") %>%
+    #            visExport() %>%
+    #            visEdges(arrows = 'to') %>%
+    #            visOptions(manipulation = list(enabled = T,
+    #                                           editEdgeCols = c("propagation"),
+    #                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
+    #            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+    #                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE), 
+    #          
+    #          "Bonferroni-Holm procedure" = visNetwork(graph_data$nodes, graph_data$edges,
+    #                                                   width="100%", height="800px") %>%
+    #            visExport() %>%
+    #            visEdges(arrows = 'to') %>%
+    #            visOptions(manipulation = list(enabled = T,
+    #                                           editEdgeCols = c("propagation"),
+    #                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
+    #            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+    #                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE),
+    #          
+    #          "Fixed sequence test" = visNetwork(graph_data$nodes, graph_data$edges,
+    #                                             width="100%", height="800px") %>%
+    #            visExport() %>%
+    #            visEdges(arrows = 'to') %>%
+    #            visOptions(manipulation = list(enabled = T,
+    #                                           editEdgeCols = c("propagation"),
+    #                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
+    #            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+    #                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE),
+    #          
+    #          "Fallback procedure" = visNetwork(graph_data$nodes, graph_data$edges,
+    #                                            width="100%", height="800px") %>%
+    #            visExport() %>%
+    #            visEdges(arrows = 'to') %>%
+    #            visOptions(manipulation = list(enabled = T,
+    #                                           editEdgeCols = c("propagation"),
+    #                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
+    #            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+    #                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
+    #   )
+    # })
+ 
+    
   
-  output$ini_network <- renderVisNetwork({
-    input$refreshGraph
-        if(input$Weighting_Strategy == "Specify ..."){
-          netplot <-  visNetwork(graph_data$nodes, graph_data$edges, 
-                                 width="100%", height="800px") %>%
-            visExport() %>%
-            visEdges(arrows = 'to') %>% 
-            visOptions(manipulation = list(enabled = T,
-                                             editEdgeCols = c("propagation"),
-                                             editNodeCols = c("Test", "weight", "pvalue")
-                                             # addNodeCols = c("label","title","shape",
-                                             #                 "Test", "weight", "pvalue"),
-                                             # addEdgeCols=c("propagation","title","from","to")
-                                           )) %>%
-            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
-        }
-        if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
-          num <- 3
-          names <- as.matrix(lapply(1:num, function(i) {
-            paste0("H", i)
-          }))
-          nodes <- data.frame(id = names)
-          nodes$label <- as.character(names)
-          nodes$shape <- "circle"
-          nodes$Test <- names
-          nodes$weight <- round(rep(1/num,num),digits = 2)
-          nodes$pvalue <- rep(0.01,num)
-          nodes$title  <- lapply(1:num, function(i) {
-            paste(paste0(nodes$id[i],":"),
-                  paste0("weight= ", round(nodes$weight[i],digits = 2)),
-                  paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
-          })
-          graph_data$nodes <- nodes
-          
-          # -- initial setting for edges based on weighting strategy --
-          df <- (1-diag(num))/(num-1)  
-          rownames(df) <- names
-          colnames(df) <- names
-          net <- network(df,   
-                         directed = TRUE,
-                         names.eval = "weights",
-                         ignore.eval = FALSE)
-          edges <- melt(df)
-          colnames(edges) <- c("from","to","propagation")
-          edges <- edges[which(edges$propagation!=0),] 
-          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
-          edges$label <- edges$propagation
-          edges$label <- as.character(edges$label)
-          graph_data$edges <- edges
-          
-          netplot <-  visNetwork(graph_data$nodes, graph_data$edges, 
-                                 width="100%", height="800px") %>%
-            visExport() %>%
-            visEdges(arrows = 'to',label = label) %>% 
-            visOptions(manipulation = list(enabled = T,
-                                           editEdgeCols = c("label"),
-                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
-            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
-            visLayout(randomSeed = 8)
-        }
-        if(input$Weighting_Strategy == "Fixed sequence test"){
-          num <- 3
-          names <- as.matrix(lapply(1:num, function(i) {
-            paste0("H", i)
-          }))
-          nodes <- data.frame(id = names)
-          nodes$label <- as.character(names)
-          nodes$shape <- "circle"
-          nodes$Test <- names
-          nodes$weight <- rep(0,num)
-          nodes$weight[1] <- 1 
-          nodes$pvalue <- rep(0.01,num)
-          nodes$title  <- lapply(1:num, function(i) {
-            paste(paste0(nodes$id[i],":"),
-                  paste0("weight= ", round(nodes$weight[i],digits = 2)),
-                  paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
-          })
-          graph_data$nodes <- nodes
-          
-          df <- matrix(0, nrow = num, ncol = num)
-          rownames(df) <- names
-          colnames(df) <- names
-          for (i in 1:(num-1)){
-            df[i,i+1] <- 1
-          }
-          net <- network(df,   
-                         directed = TRUE,
-                         names.eval = "weights",
-                         ignore.eval = FALSE)
-          edges <- melt(df)
-          colnames(edges) <- c("from","to","propagation")
-          edges <- edges[which(edges$propagation!=0),] 
-          edges$label <- edges$propagation
-          edges$label <- as.character(edges$label)
-          edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
-          graph_data$edges <- edges
-          
-          netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
-                     width="100%", height="800px") %>%
-            visExport() %>%
-            visEdges(arrows = 'to') %>%
-            visOptions(manipulation = list(enabled = T,
-                                           editEdgeCols = c("label"),
-                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
-           visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                          dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
-            visLayout(randomSeed = 12)
-        }
-        if(input$Weighting_Strategy == "Fallback procedure"){
-          num <- 3
-          names <- as.matrix(lapply(1:num, function(i) {
-            paste0("H", i)
-          }))
-          nodes <- data.frame(id = names)
-          nodes$Test <- names
-          nodes$label <- as.character(names)
-          nodes$shape <- "circle"
-          nodes$weight <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
-          nodes$pvalue <- rep(0.01,num)
-          nodes$title  <- lapply(1:num, function(i) {
-            paste(paste0(nodes$id[i],":"),
-                  paste0("weight= ", round(nodes$weight[i],digits = 2)),
-                  paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
-          })
-          graph_data$nodes <- nodes
-          
-          df <- matrix(0, nrow = num, ncol = num)
-          rownames(df) <- names
-          colnames(df) <- names
-          for (i in 1:(num-1)){
-            df[i,i+1] <- 1
-          }
-          net <- network(df,   
-                         directed = TRUE,
-                         names.eval = "weights",
-                         ignore.eval = FALSE)
-          edges <- melt(df)
-          colnames(edges) <- c("from","to","propagation")
-          edges <- edges[which(edges$propagation!=0),] 
-          edges$label <- edges$propagation
-          edges$label <- as.character(edges$label)
-          # edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
-          graph_data$edges <- edges
-          
-          netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
-                                 width="100%", height="800px") %>%
-            visEdges(arrows = 'to',shadow = FALSE) %>%
-            visOptions(manipulation = list(enabled = T,
-                                           editEdgeCols = c("label"),
-                                           editNodeCols = c("Test", "weight", "pvalue"))) %>%
-            visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
-                           dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
-            visExport() %>%
-            visLayout(randomSeed = 12)
-        }
-        netplot
-    })
+  # output$ini_network <- renderVisNetwork({
+  #   input$refreshGraph
+        # if(input$Weighting_Strategy == "Specify ..."){
+        #   netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
+        #                          width="100%", height="800px") %>%
+        #     visExport() %>%
+        #     visEdges(arrows = 'to') %>%
+        #     visOptions(manipulation = list(enabled = T,
+        #                                      editEdgeCols = c("propagation"),
+        #                                      editNodeCols = c("Test", "weight", "pvalue")
+        #                                      # addNodeCols = c("label","title","shape",
+        #                                      #                 "Test", "weight", "pvalue"),
+        #                                      # addEdgeCols=c("propagation","title","from","to")
+        #                                    )) %>%
+        #     visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+        #                    dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
+        # }
+        # if(input$Weighting_Strategy == "Bonferroni-Holm procedure"){
+        #   num <- 3
+        #   names <- as.matrix(lapply(1:num, function(i) {
+        #     paste0("H", i)
+        #   }))
+        #   nodes <- data.frame(id = names)
+        #   nodes$label <- as.character(names)
+        #   nodes$shape <- "circle"
+        #   nodes$Test <- names
+        #   nodes$weight <- round(rep(1/num,num),digits = 2)
+        #   nodes$pvalue <- rep(0.01,num)
+        #   nodes$title  <- lapply(1:num, function(i) {
+        #     paste(paste0(nodes$id[i],":"),
+        #           paste0("weight= ", round(nodes$weight[i],digits = 2)),
+        #           paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
+        #   })
+        #   graph_data$nodes <- nodes
+        # 
+        #   # -- initial setting for edges based on weighting strategy --
+        #   df <- (1-diag(num))/(num-1)
+        #   rownames(df) <- names
+        #   colnames(df) <- names
+        #   net <- network(df,
+        #                  directed = TRUE,
+        #                  names.eval = "weights",
+        #                  ignore.eval = FALSE)
+        #   edges <- melt(df)
+        #   colnames(edges) <- c("from","to","propagation")
+        #   edges <- edges[which(edges$propagation!=0),]
+        #   edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+        #   edges$label <- edges$propagation
+        #   edges$label <- as.character(edges$label)
+        #   graph_data$edges <- edges
+        # 
+        #   netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
+        #                          width="100%", height="800px") %>%
+        #     visExport() %>%
+        #     visEdges(arrows = 'to',label = label) %>%
+        #     visOptions(manipulation = list(enabled = T,
+        #                                    editEdgeCols = c("label"),
+        #                                    editNodeCols = c("Test", "weight", "pvalue"))) %>%
+        #     visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+        #                    dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
+        #     visLayout(randomSeed = 8)
+        # }
+        # if(input$Weighting_Strategy == "Fixed sequence test"){
+        #   num <- 3
+        #   names <- as.matrix(lapply(1:num, function(i) {
+        #     paste0("H", i)
+        #   }))
+        #   nodes <- data.frame(id = names)
+        #   nodes$label <- as.character(names)
+        #   nodes$shape <- "circle"
+        #   nodes$Test <- names
+        #   nodes$weight <- rep(0,num)
+        #   nodes$weight[1] <- 1
+        #   nodes$pvalue <- rep(0.01,num)
+        #   nodes$title  <- lapply(1:num, function(i) {
+        #     paste(paste0(nodes$id[i],":"),
+        #           paste0("weight= ", round(nodes$weight[i],digits = 2)),
+        #           paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
+        #   })
+        #   graph_data$nodes <- nodes
+        # 
+        #   df <- matrix(0, nrow = num, ncol = num)
+        #   rownames(df) <- names
+        #   colnames(df) <- names
+        #   for (i in 1:(num-1)){
+        #     df[i,i+1] <- 1
+        #   }
+        #   net <- network(df,
+        #                  directed = TRUE,
+        #                  names.eval = "weights",
+        #                  ignore.eval = FALSE)
+        #   edges <- melt(df)
+        #   colnames(edges) <- c("from","to","propagation")
+        #   edges <- edges[which(edges$propagation!=0),]
+        #   edges$label <- edges$propagation
+        #   edges$label <- as.character(edges$label)
+        #   edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+        #   graph_data$edges <- edges
+        # 
+        #   netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
+        #              width="100%", height="800px") %>%
+        #     visExport() %>%
+        #     visEdges(arrows = 'to') %>%
+        #     visOptions(manipulation = list(enabled = T,
+        #                                    editEdgeCols = c("label"),
+        #                                    editNodeCols = c("Test", "weight", "pvalue"))) %>%
+        #    visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+        #                   dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
+        #     visLayout(randomSeed = 12)
+        # }
+  #       if(input$Weighting_Strategy == "Fallback procedure"){
+  #         num <- 3
+  #         names <- as.matrix(lapply(1:num, function(i) {
+  #           paste0("H", i)
+  #         }))
+  #         nodes <- data.frame(id = names)
+  #         nodes$Test <- names
+  #         nodes$label <- as.character(names)
+  #         nodes$shape <- "circle"
+  #         nodes$weight <- round(matrix(1/num,nrow=num,ncol=1),digits=2) 
+  #         nodes$pvalue <- rep(0.01,num)
+  #         nodes$title  <- lapply(1:num, function(i) {
+  #           paste(paste0(nodes$id[i],":"),
+  #                 paste0("weight= ", round(nodes$weight[i],digits = 2)),
+  #                 paste0("p-value= ", nodes$pvalue[i]),sep="<br/>")
+  #         })
+  #         graph_data$nodes <- nodes
+  #         
+  #         df <- matrix(0, nrow = num, ncol = num)
+  #         rownames(df) <- names
+  #         colnames(df) <- names
+  #         for (i in 1:(num-1)){
+  #           df[i,i+1] <- 1
+  #         }
+  #         net <- network(df,   
+  #                        directed = TRUE,
+  #                        names.eval = "weights",
+  #                        ignore.eval = FALSE)
+  #         edges <- melt(df)
+  #         colnames(edges) <- c("from","to","propagation")
+  #         edges <- edges[which(edges$propagation!=0),] 
+  #         edges$label <- edges$propagation
+  #         edges$label <- as.character(edges$label)
+  #         # edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+  #         graph_data$edges <- edges
+  #         
+  #         netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
+  #                                width="100%", height="800px") %>%
+  #           visEdges(arrows = 'to',shadow = FALSE) %>%
+  #           visOptions(manipulation = list(enabled = T,
+  #                                          editEdgeCols = c("label"),
+  #                                          editNodeCols = c("Test", "weight", "pvalue"))) %>%
+  #           visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
+  #                          dragNodes = TRUE, dragView = TRUE, zoomView = TRUE) %>%
+  #           visExport() %>%
+  #           visLayout(randomSeed = 12)
+  #       }
+  #       netplot
+  #   })
   
   
   # # Respond to a change in the visNetwork plot (via manipulation)
