@@ -13,6 +13,7 @@ library(network)
 library(shinythemes)
 library(ggnetwork)
 library(ggpubr)
+library(shinyalert)
 library(DT)
 library(DiagrammeR)
 library(dagitty)
@@ -33,6 +34,8 @@ source("R/components.R")
 source("R/functions.R")
 source("R/func/gMCP_xc2.R")
 source("R/func/modify_Visnetwork.R")
+source("R/func/generate_graph.R")
+
 
 # -----------------------------------------------------
 ui <- fluidPage(
@@ -165,98 +168,70 @@ server <- function(input, output,session) {
   modalCallback <- function(value) {
     value$num <- input$num_alert
   }
-  # initial values
   
+  # initial values
     graph_data = reactiveValues(
     nodes = init.nodes.df,
     edges = init.edges.df
   )
     
     output$graph <- renderVisNetwork({
-      # Hard refresh when the user asks, or when dummy value is updated
       input$refreshGraph
-      
-      Weighting_Strategy = input$Weighting_Strategy
+      Strategy = input$Weighting_Strategy
       num_hypotheses = as.numeric(input$num_alert)
-      generate_graph(graph_data,Weighting_Strategy,
+      generate_graph(graph_data,Weighting_Strategy=Strategy,
                      num_hypotheses)
     }) 
-    
     observeEvent(input$graph_Change, {
       event <- input$graph_Change
       graph_data <- modify_visNetwork(event,graph_data)
     })
-    
-  # # Respond to a change in the visNetwork plot (via manipulation)
-  # observeEvent(input$ini_network_graphChange, {
-  #   event <- input$ini_network_graphChange
-  #   gfpop_data$graphdata_visNetwork <- modify_visNetwork(
-  #     event,
-  #     gfpop_data$graphdata_visNetwork,
-  #   )
-  #   
-  #   # Ensure that graphdata stays in sync with visNetwork data
-  #   gfpop_data$graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
-  # })
   
-    # reaction after editing the graph
-    
     #----------------------------------------------------------------------
     
     # Update graph when a cell is edited in the visEdges datatable
-    proxy_visEdges <- dataTableProxy("edges_all")
-    observeEvent(input$edges_all_cell_edit, {
-      info <- input$edges_all_cell_edit
-      i <- info$row
-      # Add one to column to shift for id
-      j <- info$col + 1
-      v <- info$value
-      
-      # Update visNetwork data via proxy
-      graph_data$edges[i, j] <<- DT::coerceValue(
-        v, graph_data$edges[i, j, with = F]
-      )
-      replaceData(proxy_visEdges, graph_data$edges, resetPaging = FALSE)
-      
-      # Make sure the main graphdata stays up-to-date
-      # graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
-    })
+    # proxy_visEdges <- dataTableProxy("graphOutput_visEdges")
+    # observeEvent(input$graphOutput_visEdges_cell_edit, {
+    #   info <- input$graphOutput_visEdges_cell_edit
+    #   i <- info$row
+    #   # Add one to column to shift for id
+    #   j <- info$col + 1
+    #   v <- info$value
+    #   
+    #   # Update visNetwork data via proxy
+    #   graph_data$edges[i, j] <<- DT::coerceValue(
+    #     v, graph_data$edges[i, j, with = F]
+    #   )
+    #   replaceData(proxy_visEdges, graph_data$edges, resetPaging = FALSE)
+    #   
+    #   # Make sure the main graphdata stays up-to-date
+    #   # graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
+    # })
     
     
     # Update graph when a cell is edited in the visNodes datatable
-    proxy_visNodes <- dataTableProxy("nodes_all")
-    observeEvent(input$nodes_all_cell_edit, {
-      info <- input$nodes_all_cell_edit
-      i <- info$row
-      # Add one to column to shift for id
-      j <- info$col + 1
-      v <- info$value
-      
-      # Update visNetwork data via proxy
-      graph_data$nodes[i, j] <<- DT::coerceValue(
-        v, graph_data$nodes[i, j, with = F]
-      )
-      replaceData(proxy_visNodes, graph_data$nodes, resetPaging = FALSE)
-      
-      # Make sure the main graphdata stays up-to-date
-      # graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
-    })
+    # proxy_visNodes <- dataTableProxy("graphOutput_visNodes")
+    # observeEvent(input$graphOutput_visNodes_cell_edit, {
+    #   info <- input$graphOutput_visNodes_cell_edit
+    #   i <- info$row
+    #   # Add one to column to shift for id
+    #   j <- info$col + 1
+    #   v <- info$value
+    #   
+    #   # Update visNetwork data via proxy
+    #   graph_data$nodes[i, j] <<- DT::coerceValue(
+    #     v, graph_data$nodes[i, j, with = F]
+    #   )
+    #   replaceData(proxy_visNodes, graph_data$nodes, resetPaging = FALSE)
+    #   
+    #   # Make sure the main graphdata stays up-to-date
+    #   # graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
+    # })
     
     
-    # Render the table showing all the nodes in the graph.
-    output$all_nodes = renderTable({
-      graph_data$nodes
-    })
-    
-    # Render the table showing all the edges in the graph.
-    output$all_edges = renderTable({
-      graph_data$edges
-    })
-    
-    # render table which on the right of graph
     output$graphOutput_visEdges <- DT::renderDT(
       {
-        graph_data$edges[,c("from","to","label")]
+        graph_data$edges[,c("from","to","label","propagation")]
       },
       editable = TRUE,
       options = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
@@ -271,7 +246,8 @@ server <- function(input, output,session) {
     )
     
     output$nodes_all = renderTable({
-      graph_data$nodes[,c("Test","weight","pvalue")]
+      graph_data$nodes
+      # [,c("Test","weight","pvalue")]
       # DT::datatable(tab_nodes,options = list(searching = FALSE,
       #                                    paging = FALSE))
     })

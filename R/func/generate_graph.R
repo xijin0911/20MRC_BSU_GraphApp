@@ -21,7 +21,7 @@ generate_graph <- function(graph_data,
     edges = init.edges.df
   )
   
-  if(is.null(Weighting_Strategy)){
+  if(Weighting_Strategy == "Specify ..."){
     netplot <-  visNetwork(graph_data$nodes, graph_data$edges,
                            width="100%", height="800px") %>%
       visExport() %>%
@@ -126,7 +126,7 @@ generate_graph <- function(graph_data,
                      dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
       visLayout(randomSeed = 12)
   }else
-  if(Weighting_Strategy == "Fixed sequence test"){
+  if(Weighting_Strategy == "Fallback procedure"){
     num <- num_hypotheses
     names <- as.matrix(lapply(1:num, function(i) {
       paste0("H", i)
