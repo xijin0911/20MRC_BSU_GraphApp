@@ -55,9 +55,36 @@ ui <- fluidPage(
                             label = "Weighting Strategy",
                             choices = c("Specify ...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
                             selected = "Specify ..."),
+                conditionalPanel(
+                  condition = "input.Weighting_Strategy == 'Bonferroni-Holm procedure'",
+                                       div(strong("Note:"), "All hypothesese have the same weights.", style = "color:blue"),
+                              # tabPanel("Literature",
+                              #         p("Holm, S. (1979). A Simple Sequentially Rejective Multiple Test Procedure. Scandinavian Journal of Statistics, 6(2), 65-70. Retrieved November 2, 2020, from http://www.jstor.org/stable/4615733"))
+                ),
+                conditionalPanel(
+                  condition = "input.Weighting_Strategy == 'Fixed sequence test'",
+                  tabsetPanel(type = "tabs",
+                              tabPanel("Description",
+                                       div(strong("Note:"), "The subsequent tests will not be performed unless the previous hypothesis is tested significantly", style = "color:blue")),
+                              tabPanel("Literature",
+                                       p(("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. Drug Information Journal, 34(2), 591–597. https://doi.org/10.1177/009286150003400227")),
+                                       p(("Westfall, PH, & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. Journal of Statistical Planning and Inference , 99 (1), 25-40."))
+                              ))),
+                
+                conditionalPanel(
+                  condition = "input.Weighting_Strategy == 'Fallback procedure'",
+                  tabsetPanel(type = "tabs",
+                              tabPanel("Description",
+                                       div(strong("Note:"), "All hypotheses with same weights have a priori testing orde", style = "color:blue")),
+                              tabPanel("Literature",
+                                       p(("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry , 2 (3), 211-215."),
+                                         p(("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. Statistics in Medicine 2009; 28:586-604.")))
+                                       ))),
                 hr(),
-                p("It must be specified if you specify the weighting strategy"),
                 actionButton("spec", "Number of Hypotheses"),
+                bsTooltip("spec", "It must be specified if you specify the weighting strategy",
+                          "right", options = list(container = "body")),
+                
                 # verbatimTextOutput("print2"),
                 
                 hr(),
@@ -67,7 +94,7 @@ ui <- fluidPage(
                 numericInput(inputId = "alpha2", 
                              label = HTML("&alpha;"),
                              value = 0.05,step = 0.001,min = 0),
-                hr()
+                hr(),
                 ),
               column(5,
                      h2("Graph"),
@@ -264,7 +291,6 @@ server <- function(input, output,session) {
       edges = init.edges.df
     )
     
-    
     output$visGraph <- renderVisNetwork({
       input$refreshGraph
       Strategy = input$Weighting_Strategy
@@ -273,19 +299,16 @@ server <- function(input, output,session) {
                      num_hypotheses)
     }) 
     
-   
-    
-    
     observeEvent(input$visGraph_graphChange, {
       # If the user added a node, add it to the data frame of nodes.
       if(input$visGraph_graphChange$cmd == "addNode") {
         temp = bind_rows(
           graph_data$nodes,
           data.frame(
-            # id = input$visGraph_graphChange$id,
-            #          label = input$visGraph_graphChange$label,
-            #          title = input$visGraph_graphChange$title,
-            #          shape = input$visGraph_graphChange$shape,
+            id = input$visGraph_graphChange$id,
+            label = input$visGraph_graphChange$label,
+            title = input$visGraph_graphChange$title,
+            shape = input$visGraph_graphChange$shape,
             Test = input$visGraph_graphChange$Test,
             weight = input$visGraph_graphChange$weight,
             pvalue = input$visGraph_graphChange$pvalue,
@@ -343,12 +366,6 @@ server <- function(input, output,session) {
       }
     })
     
-    
-    # observeEvent(input$visGraph_graphChange, {
-    #   event <- input$visGraph_graphChange
-    #   graph_data <- modify_visNetwork(event = event,
-    #                                   graphdata_visNetwork = graph_data)
-    # })
   
     #----------------------------------------------------------------------
     
@@ -400,11 +417,11 @@ server <- function(input, output,session) {
     
     output$graphOutput_visEdges <- DT::renderDT(
       {
-        Strategy = input$Weighting_Strategy
-        num_hypotheses = as.numeric(input$num_alert)
-        dat = generate_data(graph_data,Weighting_Strategy=Strategy,
-                            num_hypotheses)
-        data.frame(dat$edges[,c("from","to","propagation")])
+        # Strategy = input$Weighting_Strategy
+        # num_hypotheses = as.numeric(input$num_alert)
+        # graph_data = generate_data(graph_data,Weighting_Strategy=Strategy,
+        #                     num_hypotheses)
+        data.frame(graph_data$edges[,c("from","to","propagation")])
       },
       editable = TRUE,
       options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F)
@@ -412,18 +429,15 @@ server <- function(input, output,session) {
     
     output$graphOutput_visNodes <- DT::renderDT(
       {
-        Strategy = input$Weighting_Strategy
-        num_hypotheses = as.numeric(input$num_alert)
-        dat = generate_data(graph_data,Weighting_Strategy=Strategy,
-                            num_hypotheses)
-        data.frame(dat$nodes[,c("Test","weight","pvalue")])
+        # Strategy = input$Weighting_Strategy
+        # num_hypotheses = as.numeric(input$num_alert)
+        # graph_data = generate_data(graph_data,Weighting_Strategy=Strategy,
+        #                     num_hypotheses)
+        data.frame(graph_data$nodes[,c("Test","weight","pvalue")])
       },
       editable = TRUE,
       options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F)
     )
-    
-    
-    
     
     output$nodes_data_from_shiny <- DT::renderDataTable({
       if(!is.null(input$ini_network_nodes)){
