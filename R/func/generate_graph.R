@@ -10,10 +10,11 @@ generate_graph <- function(graph_data,
                              weight=numeric(),
                              pvalue=numeric(),
                              stringsAsFactors=FALSE)
-  init.edges.df = data.frame(from = character(), 
+  init.edges.df = data.frame(id = character(),
+                             label = character(),
+                             from = character(), 
                              to = character(),
                              title = character(),
-                             label = character(),
                              propagation = numeric(),
                              stringsAsFactors = F)
   graph_data = list(
@@ -135,8 +136,7 @@ generate_graph <- function(graph_data,
     nodes$label <- as.character(names)
     nodes$shape <- "circle"
     nodes$Test <- names
-    nodes$weight <- rep(0,num)
-    nodes$weight[1] <- 1
+    nodes$weight <- round(rep(1/num,num),digits = 2)
     nodes$pvalue <- rep(0.01,num)
     nodes$title  <- lapply(1:num, function(i) {
       paste(paste0(nodes$id[i],":"),

@@ -22,6 +22,7 @@ library(shinyAce)
 library(shinyBS)
 library(ggdag)
 library(reshape2)
+library(data.table)
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
@@ -33,8 +34,9 @@ source("R/node.R")
 source("R/components.R")
 source("R/functions.R")
 source("R/func/gMCP_xc2.R")
-source("R/func/modify_Visnetwork.R")
+source("R/func/modify_visNetwork.R")
 source("R/func/generate_graph.R")
+source("R/func/generate_data.R")
 
 
 # -----------------------------------------------------
@@ -70,16 +72,20 @@ ui <- fluidPage(
               column(5,
                      h2("Graph"),
                      actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
-                     visNetworkOutput("graph")),
+                     visNetworkOutput("visGraph")),
               column(4,
                 h2("Details"),
                 hr(),
                 # actionButton("getNodes", "Nodes for Hypotheses:"),
-                # tableOutput("all_nodes"),
+                # tableOutput("nodes_all"),
+                hr(),
                 dataTableOutput("graphOutput_visNodes"),
+                hr(),
                 # actionButton("getEdges", "Edges for Transition:"),
-                # tableOutput("all_edges")
+                # tableOutput("edges_all"),
                 dataTableOutput("graphOutput_visEdges")
+                # verbatimTextOutput("print1")
+                
               )),
             a(id = "toggleAdvanced", "More"),
             hidden(
@@ -135,20 +141,6 @@ ui <- fluidPage(
              )
     ))
 
-init.nodes.df = data.frame(id=character(),
-                           label=character(),
-                           title = character(),
-                           shape = character(),
-                           Test=character(),
-                           weight=numeric(),
-                           pvalue=numeric(),
-                           stringsAsFactors=FALSE)
-init.edges.df = data.frame(from = character(), 
-                           to = character(),
-                           title = character(),
-                           label = character(),
-                           propagation = numeric(),
-                           stringsAsFactors = F)
 
 server <- function(input, output,session) { 
   # pop-up for the specification of the number of hypotheses
@@ -169,23 +161,194 @@ server <- function(input, output,session) {
     value$num <- input$num_alert
   }
   
-  # initial values
+    # graph_data initial setting -----------------------
+  
+  
+  init.nodes.df = data.frame(id=character(),
+                             label=character(),
+                             title = character(),
+                             shape = character(),
+                             Test=character(),
+                             weight=numeric(),
+                             pvalue=numeric(),
+                             stringsAsFactors=FALSE)
+  init.edges.df = data.frame(from = character(), 
+                             to = character(),
+                             title = character(),
+                             label = character(),
+                             propagation = numeric(),
+                             stringsAsFactors = F)
+  
+  # init_setting <- reactive({
+  #   switch(input$Weighting_Strategy,
+  #          "Specify ..." = list(
+  #            init.nodes.df = data.frame(id=character(),
+  #                                       label=character(),
+  #                                       title = character(),
+  #                                       shape = character(),
+  #                                       Test=character(),
+  #                                       weight=numeric(),
+  #                                       pvalue=numeric(),
+  #                                       stringsAsFactors=FALSE),
+  #            init.edges.df = data.frame(from = character(), 
+  #                                       to = character(),
+  #                                       title = character(),
+  #                                       label = character(),
+  #                                       propagation = numeric(),
+  #                                       stringsAsFactors = F)),
+  #          "Bonferroni-Holm procedure"= list(
+  #            init.nodes.df = data.frame(id=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       label=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       title = lapply(1:input$num_alert, function(i) {
+  #                                         paste(paste0(nodes$id[i],":"),
+  #                                               paste0("weight= ", round(round(rep(1/input$num_alert,input$num_alert),digits = 2)[i],digits = 2)),
+  #                                               paste0("p-value= ", rep(0.01,input$num_alert)[i]),sep="<br/>")
+  #                                       }),
+  #                                       shape = "circle",
+  #                                       Test=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       weight=round(rep(1/input$num_alert,input$num_alert),digits = 2),
+  #                                       pvalue=rep(0.01,input$num_alert),
+  #                                       stringsAsFactors=FALSE),
+  #            init.edges.df = data.frame(from = character(), 
+  #                                       to = character(),
+  #                                       title = character(),
+  #                                       label = character(),
+  #                                       propagation = numeric(),
+  #                                       stringsAsFactors = F)),
+  #          "Fixed sequence test" = list(
+  #            init.nodes.df = data.frame(id=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       label=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       title = lapply(1:input$num_alert, function(i) {
+  #                                         paste(paste0(nodes$id[i],":"),
+  #                                               paste0("weight= ", round(round(rep(1/input$num_alert,input$num_alert),digits = 2)[i],digits = 2)),
+  #                                               paste0("p-value= ", rep(0.01,input$num_alert)[i]),sep="<br/>")
+  #                                       }),
+  #                                       shape = "circle",
+  #                                       Test=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       weight=round(c(1,rep(0,input$num_alert-1)),digits = 2),
+  #                                       pvalue=rep(0.01,input$num_alert),
+  #                                       stringsAsFactors=FALSE),
+  #            init.edges.df = data.frame(from = character(), 
+  #                                       to = character(),
+  #                                       title = character(),
+  #                                       label = character(),
+  #                                       propagation = numeric(),
+  #                                       stringsAsFactors = F)),
+  #          "Fallback procedure" = list(
+  #            init.nodes.df = data.frame(id=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       label=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       title = lapply(1:input$num_alert, function(i) {
+  #                                         paste(paste0(nodes$id[i],":"),
+  #                                               paste0("weight= ", round(round(rep(1/input$num_alert,input$num_alert),digits = 2)[i],digits = 2)),
+  #                                               paste0("p-value= ", rep(0.01,input$num_alert)[i]),sep="<br/>")
+  #                                       }),
+  #                                       shape = "circle",
+  #                                       Test=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
+  #                                       weight=round(rep(1/input$num_alert,input$num_alert),digits = 2),
+  #                                       pvalue=rep(0.01,input$num_alert),
+  #                                       stringsAsFactors=FALSE),
+  #            init.edges.df = data.frame(from = character(), 
+  #                                       to = character(),
+  #                                       title = character(),
+  #                                       label = character(),
+  #                                       propagation = numeric(),
+  #                                       stringsAsFactors = F)),
+  #   )
+  # })
+  
+  
+    # graph_data initial setting -----------------------
+  
     graph_data = reactiveValues(
-    nodes = init.nodes.df,
-    edges = init.edges.df
-  )
+      nodes = init.nodes.df,
+      edges = init.edges.df
+    )
     
-    output$graph <- renderVisNetwork({
+    
+    output$visGraph <- renderVisNetwork({
       input$refreshGraph
       Strategy = input$Weighting_Strategy
       num_hypotheses = as.numeric(input$num_alert)
       generate_graph(graph_data,Weighting_Strategy=Strategy,
                      num_hypotheses)
     }) 
-    observeEvent(input$graph_Change, {
-      event <- input$graph_Change
-      graph_data <- modify_visNetwork(event,graph_data)
+    
+   
+    
+    
+    observeEvent(input$visGraph_graphChange, {
+      # If the user added a node, add it to the data frame of nodes.
+      if(input$visGraph_graphChange$cmd == "addNode") {
+        temp = bind_rows(
+          graph_data$nodes,
+          data.frame(
+            # id = input$visGraph_graphChange$id,
+            #          label = input$visGraph_graphChange$label,
+            #          title = input$visGraph_graphChange$title,
+            #          shape = input$visGraph_graphChange$shape,
+            Test = input$visGraph_graphChange$Test,
+            weight = input$visGraph_graphChange$weight,
+            pvalue = input$visGraph_graphChange$pvalue,
+            stringsAsFactors = F)
+        )
+        graph_data$nodes = temp
+      }
+      # If the user added an edge, add it to the data frame of edges.
+      else if(input$visGraph_graphChange$cmd == "addEdge") {
+        temp = bind_rows(
+          graph_data$edges,
+          data.frame(
+            from = input$visGraph_graphChange$from,
+            title = input$visGraph_graphChange$title,
+            to = input$visGraph_graphChange$to,
+            label = input$visGraph_graphChange$label,
+            propagation = input$visGraph_graphChange$propagation,
+            stringsAsFactors = F)
+        )
+        graph_data$edges = temp
+      }
+      # If the user edited a node, update that record.
+      else if(input$visGraph_graphChange$cmd == "editNode") {
+        temp = graph_data$nodes
+        temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
+        temp$shape[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$shape
+        temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
+        temp$Test[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$Test
+        temp$weight[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$weight
+        temp$pvalue[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$pvalue
+        graph_data$nodes = temp
+      }
+      # If the user edited an edge, update that record.
+      else if(input$visGraph_graphChange$cmd == "editEdge") {
+        temp = graph_data$edges
+        temp$from[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$from
+        temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
+        temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
+        temp$to[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$to
+        temp$propagation[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$propagation
+        graph_data$edges = temp
+      }
+      # If the user deleted something, remove those records.
+      else if(input$visGraph_graphChange$cmd == "deleteElements") {
+        for(node.id in input$visGraph_graphChange$nodes) {
+          temp = graph_data$nodes
+          temp = temp[temp$id != node.id,]
+          graph_data$nodes = temp
+        }
+        for(edge.id in input$visGraph_graphChange$edges) {
+          temp = graph_data$edges
+          temp = temp[temp$id != edge.id,]
+          graph_data$edges = temp
+        }
+      }
     })
+    
+    
+    # observeEvent(input$visGraph_graphChange, {
+    #   event <- input$visGraph_graphChange
+    #   graph_data <- modify_visNetwork(event = event,
+    #                                   graphdata_visNetwork = graph_data)
+    # })
   
     #----------------------------------------------------------------------
     
@@ -197,13 +360,13 @@ server <- function(input, output,session) {
     #   # Add one to column to shift for id
     #   j <- info$col + 1
     #   v <- info$value
-    #   
+    # 
     #   # Update visNetwork data via proxy
     #   graph_data$edges[i, j] <<- DT::coerceValue(
     #     v, graph_data$edges[i, j, with = F]
     #   )
     #   replaceData(proxy_visEdges, graph_data$edges, resetPaging = FALSE)
-    #   
+    # 
     #   # Make sure the main graphdata stays up-to-date
     #   # graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
     # })
@@ -217,43 +380,48 @@ server <- function(input, output,session) {
     #   # Add one to column to shift for id
     #   j <- info$col + 1
     #   v <- info$value
-    #   
+    # 
     #   # Update visNetwork data via proxy
     #   graph_data$nodes[i, j] <<- DT::coerceValue(
     #     v, graph_data$nodes[i, j, with = F]
     #   )
     #   replaceData(proxy_visNodes, graph_data$nodes, resetPaging = FALSE)
-    #   
+    # 
     #   # Make sure the main graphdata stays up-to-date
     #   # graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
     # })
+    # output$print1 <- renderPrint({
+    #   graph_data$edges[,c("from","to","propagation")]
+    # })
+    
+    # Render the table showing all the nodes in the graph.
+
     
     
     output$graphOutput_visEdges <- DT::renderDT(
       {
-        graph_data$edges[,c("from","to","label","propagation")]
+        Strategy = input$Weighting_Strategy
+        num_hypotheses = as.numeric(input$num_alert)
+        dat = generate_data(graph_data,Weighting_Strategy=Strategy,
+                            num_hypotheses)
+        data.frame(dat$edges[,c("from","to","propagation")])
       },
       editable = TRUE,
-      options = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+      options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F)
     )
     
     output$graphOutput_visNodes <- DT::renderDT(
       {
-        graph_data$nodes[,c("Test","weight","pvalue")]
+        Strategy = input$Weighting_Strategy
+        num_hypotheses = as.numeric(input$num_alert)
+        dat = generate_data(graph_data,Weighting_Strategy=Strategy,
+                            num_hypotheses)
+        data.frame(dat$nodes[,c("Test","weight","pvalue")])
       },
       editable = TRUE,
-      options = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+      options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F)
     )
     
-    output$nodes_all = renderTable({
-      graph_data$nodes
-      # [,c("Test","weight","pvalue")]
-      # DT::datatable(tab_nodes,options = list(searching = FALSE,
-      #                                    paging = FALSE))
-    })
-    output$edges_all = renderTable({
-      graph_data$edges[,c("from","to","propagation")]
-    })
     
     
     
@@ -364,10 +532,6 @@ server <- function(input, output,session) {
       )
     })
     
-    
-    output$fin_network <- renderVisNetwork(
-      finalPlot()
-    )
     
     output$uioutput_Tmatrix <- renderUI({
         num <- as.integer(input$Number_Hypotheses)
