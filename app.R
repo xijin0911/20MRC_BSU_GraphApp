@@ -208,7 +208,7 @@ ui <- fluidPage(
 
 server <- function(input, output,session) { 
   shinyjs::onclick("Moreinformation",
-                   shinyjs::toggle(id = "Moreinfor", anim = TRUE))
+                   shinyjs::toggle(id = "moreinfor", anim = TRUE))
   # pop-up for the specification of the number of hypotheses
   values <- reactiveValues()
   values$num <- 3
