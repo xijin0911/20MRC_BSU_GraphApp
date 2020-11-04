@@ -38,9 +38,11 @@ source("R/func/modify_visNetwork.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
 source("R/func/function_matrix.R")
+source("R/func/graph_create.R")
 source("R/module/tabTweak.R")
 source("R/module/tabGraph.R")
 source("R/module/tabExample.R")
+
 
 
 # -----------------------------------------------------
@@ -77,101 +79,67 @@ server <- function(input, output,session) {
     # graph_data initial setting -----------------------
   
   
-  init.nodes.df = data.frame(id=character(),
-                             label=character(),
-                             title = character(),
-                             shape = character(),
-                             Test=character(),
-                             weight=numeric(),
-                             pvalue=numeric(),
-                             stringsAsFactors=FALSE)
-  init.edges.df = data.frame(from = character(), 
-                             to = character(),
-                             title = character(),
-                             label = character(),
-                             propagation = numeric(),
-                             stringsAsFactors = F)
+  # init.nodes.df = data.frame(id=character(),
+  #                            label=character(),
+  #                            title = character(),
+  #                            shape = character(),
+  #                            Test=character(),
+  #                            weight=numeric(),
+  #                            pvalue=numeric(),
+  #                            stringsAsFactors=FALSE)
+  # init.edges.df = data.frame(from = character(), 
+  #                            to = character(),
+  #                            title = character(),
+  #                            label = character(),
+  #                            propagation = numeric(),
+  #                            stringsAsFactors = F)
   
-  # init_setting <- reactive({
-  #   switch(input$Weighting_Strategy,
-  #          "Specify ..." = list(
-  #            init.nodes.df = data.frame(id=character(),
-  #                                       label=character(),
-  #                                       title = character(),
-  #                                       shape = character(),
-  #                                       Test=character(),
-  #                                       weight=numeric(),
-  #                                       pvalue=numeric(),
-  #                                       stringsAsFactors=FALSE),
-  #            init.edges.df = data.frame(from = character(), 
-  #                                       to = character(),
-  #                                       title = character(),
-  #                                       label = character(),
-  #                                       propagation = numeric(),
-  #                                       stringsAsFactors = F)),
-  #          "Bonferroni-Holm procedure"= list(
-  #            init.nodes.df = data.frame(id=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       label=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       title = lapply(1:input$num_alert, function(i) {
-  #                                         paste(paste0(nodes$id[i],":"),
-  #                                               paste0("weight= ", round(round(rep(1/input$num_alert,input$num_alert),digits = 2)[i],digits = 2)),
-  #                                               paste0("p-value= ", rep(0.01,input$num_alert)[i]),sep="<br/>")
-  #                                       }),
-  #                                       shape = "circle",
-  #                                       Test=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       weight=round(rep(1/input$num_alert,input$num_alert),digits = 2),
-  #                                       pvalue=rep(0.01,input$num_alert),
-  #                                       stringsAsFactors=FALSE),
-  #            init.edges.df = data.frame(from = character(), 
-  #                                       to = character(),
-  #                                       title = character(),
-  #                                       label = character(),
-  #                                       propagation = numeric(),
-  #                                       stringsAsFactors = F)),
-  #          "Fixed sequence test" = list(
-  #            init.nodes.df = data.frame(id=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       label=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       title = lapply(1:input$num_alert, function(i) {
-  #                                         paste(paste0(nodes$id[i],":"),
-  #                                               paste0("weight= ", round(round(rep(1/input$num_alert,input$num_alert),digits = 2)[i],digits = 2)),
-  #                                               paste0("p-value= ", rep(0.01,input$num_alert)[i]),sep="<br/>")
-  #                                       }),
-  #                                       shape = "circle",
-  #                                       Test=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       weight=round(c(1,rep(0,input$num_alert-1)),digits = 2),
-  #                                       pvalue=rep(0.01,input$num_alert),
-  #                                       stringsAsFactors=FALSE),
-  #            init.edges.df = data.frame(from = character(), 
-  #                                       to = character(),
-  #                                       title = character(),
-  #                                       label = character(),
-  #                                       propagation = numeric(),
-  #                                       stringsAsFactors = F)),
-  #          "Fallback procedure" = list(
-  #            init.nodes.df = data.frame(id=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       label=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       title = lapply(1:input$num_alert, function(i) {
-  #                                         paste(paste0(nodes$id[i],":"),
-  #                                               paste0("weight= ", round(round(rep(1/input$num_alert,input$num_alert),digits = 2)[i],digits = 2)),
-  #                                               paste0("p-value= ", rep(0.01,input$num_alert)[i]),sep="<br/>")
-  #                                       }),
-  #                                       shape = "circle",
-  #                                       Test=as.matrix(lapply(1:input$num_alert, function(i) {paste0("H", i)})),
-  #                                       weight=round(rep(1/input$num_alert,input$num_alert),digits = 2),
-  #                                       pvalue=rep(0.01,input$num_alert),
-  #                                       stringsAsFactors=FALSE),
-  #            init.edges.df = data.frame(from = character(), 
-  #                                       to = character(),
-  #                                       title = character(),
-  #                                       label = character(),
-  #                                       propagation = numeric(),
-  #                                       stringsAsFactors = F)),
-  #   )
-  # })
   
   
     # graph_data initial setting -----------------------
   
+  # -----------------------------------------------------
+  nodes <- reactive({
+    switch(input$Weighting_Strategy2,
+           "Specify ..." = node_create(input$spec,"Specify ..."),
+           # Bonferroni-Holm test
+           "Bonferroni-Holm procedure" = node_create(input$spec,"Bonferroni-Holm procedure"),
+           # Fixed sequence test
+           "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
+           # Fallback procedure
+           "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure")
+    )
+  })
+  # 
+  # wp_create <- reactive({
+  #   switch(input$Weighting_Strategy2,
+  #          # Bonferroni-Holm test
+  #          "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
+  #          # Fixed sequence test
+  #          "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
+  #          # Fallback procedure
+  #          "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
+  #   )
+  # })
+  
+  
+  init.edges.df = data.frame(from = c("a","b","c"), 
+                             to = c("c","a","b"),
+                             title = c("c","a","b"),
+                             label = c("c","a","b"),
+                             propagation = c(0.1,0.1,0.3),
+                             stringsAsFactors = F)
+  
+  # TODO: The problem is that:
+  # there the init.nodes.df cannot be used in the render below
+  # Consider: whether the matrix input works 
+  # Matrixinput in a Render: lead to (reactive table) + (use nodes())
+  
+  init.nodes.df = renderUI({
+    nodes()
+  }) 
+  
+
     graph_data = reactiveValues(
       nodes = init.nodes.df,
       edges = init.edges.df

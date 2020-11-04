@@ -41,7 +41,6 @@ tabgraph <- tabPanel("graph",
                                   ))),
                     
                     # verbatimTextOutput("print2"),
-                    
                     hr(),
                     # numericInput(inputId="Number_Hypotheses2",
                     #              label="Number of Hypotheses:",
