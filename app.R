@@ -37,172 +37,19 @@ source("R/func/gMCP_xc2.R")
 source("R/func/modify_visNetwork.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
+source("R/func/function_matrix.R")
+source("R/module/tabTweak.R")
+source("R/module/tabGraph.R")
+source("R/module/tabExample.R")
 
 
 # -----------------------------------------------------
 ui <- fluidPage(
       theme = shinytheme("cerulean"),
       navbarPage(id = "tabs",title = "GraphApp",collapsible = TRUE,
-        #--- graph --
-        tabPanel("graph",                
-          fluidPage(
-            fluidRow(
-              column(3,style = "background-color: skyblue;",
-                h2("Settings"),
-                hr(),
-                useShinyalert(),
-                
-                actionButton("spec", "Number of Hypotheses"),
-                bsTooltip("spec", "It must be specified if you specify the weighting strategy",
-                          "right", options = list(container = "body")),
-                hr(),
-                selectInput(inputId = "Weighting_Strategy",
-                            label = "Weighting Strategy",
-                            choices = c("Specify ...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                            selected = "Specify ..."),
-                conditionalPanel(
-                  condition = "input.Weighting_Strategy == 'Bonferroni-Holm procedure'",
-                                       div(strong("Note:"), "All hypothesese have the same weights.", style = "color:blue"),
-                              # tabPanel("Literature",
-                              #         p("Holm, S. (1979). A Simple Sequentially Rejective Multiple Test Procedure. Scandinavian Journal of Statistics, 6(2), 65-70. Retrieved November 2, 2020, from http://www.jstor.org/stable/4615733"))
-                ),
-                conditionalPanel(
-                  condition = "input.Weighting_Strategy == 'Fixed sequence test'",
-                  tabsetPanel(type = "tabs",
-                              tabPanel("Description",
-                                       div(strong("Note:"), "The subsequent tests will not be performed unless the previous hypothesis is tested significantly", style = "color:blue")),
-                              tabPanel("Literature",
-                                       p(("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. Drug Information Journal, 34(2), 591–597.")),
-                                       p(("Westfall, PH, & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. Journal of Statistical Planning and Inference , 99 (1), 25-40."))
-                              ))),
-                
-                conditionalPanel(
-                  condition = "input.Weighting_Strategy == 'Fallback procedure'",
-                  tabsetPanel(type = "tabs",
-                              tabPanel("Description",
-                                       div(strong("Note:"), "All hypotheses with same weights have a priori testing orde", style = "color:blue")),
-                              tabPanel("Literature",
-                                       p(("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry , 2 (3), 211-215."),
-                                         p(("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. Statistics in Medicine 2009; 28:586-604.")))
-                                       ))),
-                
-                # verbatimTextOutput("print2"),
-                
-                hr(),
-                # numericInput(inputId="Number_Hypotheses2",
-                #              label="Number of Hypotheses:",
-                #              value=3,step = 1,min = 1),
-                numericInput(inputId = "alpha2", 
-                             label = HTML("&alpha;"),
-                             value = 0.05,step = 0.001,min = 0),
-                hr(),
-                ),
-              column(5,
-                     h2("Graph"),
-                     actionButton(inputId = "refreshGraph", label = "Refresh Graph"),
-                     visNetworkOutput("visGraph")),
-              column(4,
-                h2("Details"),
-                hr(),
-                # actionButton("getNodes", "Nodes for Hypotheses:"),
-                # tableOutput("nodes_all"),
-                hr(),
-                dataTableOutput("graphOutput_visNodes"),
-                hr(),
-                # actionButton("getEdges", "Edges for Transition:"),
-                # tableOutput("edges_all"),
-                dataTableOutput("graphOutput_visEdges")
-                # verbatimTextOutput("print1")
-              )),
-            shinyjs::useShinyjs(),
-            a(id = "toggleAdvanced", "More"),
-            hidden(
-              div(id = "advanced",
-                  box(width=6,
-                      numericInput("age", "Weight Matrix", 30)),
-                  box(width=6,
-                      textInput("company", "Transition Matrix", "")
-                  ))
-            )
-          )
-        ),
-        #--- tweak --
-        tabPanel("tweak", 
-              ## 1. hypotheses & alpha 
-              column(3,style = "background-color: skyblue;",
-                     h2("Settings"),
-                     br(),
-                     collapsible = FALSE,solidHeader = TRUE,collapsed = TRUE,
-                     numericInput(inputId="Number_Hypotheses",
-                                  label="Number of Hypotheses:",
-                                  value=3,step = 1,min = 1),
-                     br(),
-                     numericInput(inputId = "alpha", 
-                                  label = HTML("&alpha;"),
-                                  value = 0.05,step = 0.001,min = 0),
-                     br(),
-              selectInput(inputId = "Weighting_Strategy2",
-                          label = "Weighting Strategy",
-                          choices = c("Specify ...","Bonferroni-Holm procedure","Fixed sequence test","Fallback procedure"),
-                          selected = "Specify ..."),
-              conditionalPanel(
-                condition = "input.Weighting_Strategy2 == 'Bonferroni-Holm procedure'",
-                div(strong("Note:"), "All hypothesese have the same weights.", style = "color:blue"),
-                # tabPanel("Literature",
-                #         p("Holm, S. (1979). A Simple Sequentially Rejective Multiple Test Procedure. Scandinavian Journal of Statistics, 6(2), 65-70. Retrieved November 2, 2020, from http://www.jstor.org/stable/4615733"))
-              ),
-              conditionalPanel(
-                condition = "input.Weighting_Strategy2 == 'Fixed sequence test'",
-                tabsetPanel(type = "tabs",
-                            div(strong("Note:"), "The subsequent tests will not be performed unless the previous hypothesis is tested significantly", style = "color:blue")
-                            # tabPanel("Literature",
-                            #          p(("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. Drug Information Journal, 34(2), 591–597.")),
-                            #          p(("Westfall, PH, & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. Journal of Statistical Planning and Inference , 99 (1), 25-40."))
-                            # )
-                            )),
-              
-              conditionalPanel(
-                condition = "input.Weighting_Strategy2 == 'Fallback procedure'",
-                tabsetPanel(type = "tabs",
-                            div(strong("Note:"), "All hypotheses with same weights have a priori testing orde", style = "color:blue")
-                            # tabPanel("Literature",
-                            #          p(("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry , 2 (3), 211-215."),
-                            #            p(("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. Statistics in Medicine 2009; 28:586-604.")))
-                            # )
-                            ))),
-              column(9,
-                  uiOutput("uioutput_Tmatrix"),
-                  box(width=10,
-                      actionButton("TestButton", "Testing!"),
-                      conditionalPanel(condition = "input.TestButton != 0",
-                                       plotOutput("ResultPlot")),
-                      br(),br(),
-                      p("Initial and final graph"))),
-              br(),
-              
-              shinyjs::useShinyjs(),
-              a(id = "Moreinformation",
-                "More information about the result"),
-              shinyjs::hidden(
-                div(id = "moreinfor",
-                    box(width=3,"Resulting weights",
-                        tableOutput("extend1")),
-                    box(width=6,"Resulting Transition Matrix",
-                        tableOutput("extend2")),
-                    box(width=3,"Resulting Adjusted p-values",
-                        tableOutput("extend3")))
-                )
-              ),
-        #--- examples --
-    tabPanel("examples",
-             tags$script(src = "net.js"),
-             box("Examples",width = "16 col-md-8"),
-             box(width = "8 col-md-4",
-                 components$examples$team
-                )
-             )
-    
-    
+        tabgraph,
+        tabtweak,
+        tabexample
     ))
 
 
@@ -497,57 +344,123 @@ server <- function(input, output,session) {
       }
     })
  
+# -----------------------------------------------------
+    df_create <- reactive({
+      switch(input$Weighting_Strategy2,
+             # Bonferroni-Holm test
+             "Bonferroni-Holm procedure" = (1-diag(input$Number_Hypotheses))/(input$Number_Hypotheses-1),
+             # Fixed sequence test
+             "Fixed sequence test" = dfcreate(input$Number_Hypotheses),
+             # Fallback procedure
+             "Fallback procedure" = dfcreate(input$Number_Hypotheses)
+      )
+    })
+    
+    wp_create <- reactive({
+      switch(input$Weighting_Strategy2,
+             # Bonferroni-Holm test
+             "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
+             # Fixed sequence test
+             "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
+             # Fallback procedure
+             "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
+      )
+    })
+    
+    
+    
     
     output$uioutput_Tmatrix <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
-      df <- (1-diag(num))/(num-1)
+      df <- df_create()
       rownames(df) <- lapply(1:num, function(i) {
         paste0("H", i)
       })
       colnames(df) <- rownames(df)
-      box(width = 6,
+       
+      wp <- wp_create()
+      
+      box(width = 9,
           box(title = "Transition matrix",
               status = "primary", 
-              # solidHeader = TRUE,
-              width = 6, 
-              # collapsible = TRUE,collapsed = TRUE,
+              solidHeader = TRUE,
+              width = 6, collapsible = TRUE,collapsed = TRUE,
               helpText(""),
               matrixInput(inputId = "TransitionMatrixG",
                           value = df,class = "numeric",
                           cols = list(
-                            names = TRUE,
-                            # extend = FALSE,
-                            editableNames = FALSE,
-                            delta = 2),
+                            names = TRUE,extend = FALSE,
+                            editableNames = TRUE,delta = 2),
                           rows = list(
-                            names = TRUE, 
-                            # extend = FALSE,
-                            editableNames = FALSE,
-                            delta = 1),
+                            names = TRUE, extend = FALSE,
+                            editableNames = TRUE,delta = 1),
                           copy = TRUE,paste = TRUE)),
           box(title = "Weights and P-values",
-              status = "primary",
-              # solidHeader = TRUE,
-              width = 6,
-              # collapsible = TRUE,collapsed = TRUE,
+              status = "primary",solidHeader = TRUE,
+              width = 6,collapsible = TRUE,collapsed = TRUE,
               matrixInput(inputId = "WeightPvalue",
-                          value = matrix(cbind(
-                            (lapply(1:num, function(i) {
-                              paste0("H", i)
-                            })),rep(1/num,num),rep(0.01,num)),
-                            nrow = num, ncol = 3,
-                            dimnames = list(NULL, c("Hypotheses", "Weights",'P-values'))),
-                          cols = list(names = TRUE, 
-                                      # extend = FALSE,
+                          value = wp,
+                          cols = list(names = TRUE, extend = FALSE,
                                       editableNames = FALSE, delta = 2),
                           rows = list(
-                            names = FALSE, 
-                            # extend = FALSE,
-                            editableNames = FALSE, delta = 1),
+                            names = FALSE, extend = FALSE,
+                            editableNames = TRUE, delta = 1),
                           copy = TRUE, paste = TRUE)
-          ),
+          )
       )
     })
+    
+    
+    # output$uioutput_Tmatrix <- renderUI({
+    #   num <- as.integer(input$Number_Hypotheses)
+    #   df <- df_create()
+    #   rownames(df) <- lapply(1:num, function(i) {
+    #     paste0("H", i)
+    #   })
+    #   colnames(df) <- rownames(df)
+    #   box(width = 10,
+    #       box(title = "Transition matrix",
+    #           status = "primary", 
+    #           # solidHeader = TRUE,
+    #           width = 10, 
+    #           # collapsible = TRUE,collapsed = TRUE,
+    #           helpText(""),
+    #           matrixInput(inputId = "TransitionMatrixG",
+    #                       value = df,class = "numeric",
+    #                       cols = list(
+    #                         names = TRUE,
+    #                         # extend = FALSE,
+    #                         editableNames = FALSE,
+    #                         delta = 2),
+    #                       rows = list(
+    #                         names = TRUE, 
+    #                         # extend = FALSE,
+    #                         editableNames = FALSE,
+    #                         delta = 1),
+    #                       copy = TRUE,paste = TRUE)),
+    #       box(title = "Weights and P-values",
+    #           status = "primary",
+    #           # solidHeader = TRUE,
+    #           width = 10,
+    #           # collapsible = TRUE,collapsed = TRUE,
+    #           matrixInput(inputId = "WeightPvalue",
+    #                       value = matrix(cbind(
+    #                         (lapply(1:num, function(i) {
+    #                           paste0("H", i)
+    #                         })),rep(1/num,num),rep(0.01,num)),
+    #                         nrow = num, ncol = 3,
+    #                         dimnames = list(NULL, c("Hypotheses", "Weights",'P-values'))),
+    #                       cols = list(names = TRUE, 
+    #                                   # extend = FALSE,
+    #                                   editableNames = FALSE, delta = 2),
+    #                       rows = list(
+    #                         names = FALSE, 
+    #                         # extend = FALSE,
+    #                         editableNames = FALSE, delta = 1),
+    #                       copy = TRUE, paste = TRUE)
+    #       ),
+    #   )
+    # })
     
     # Render the table showing all the nodes in the graph.
     output$all_nodes = renderUI({
@@ -595,47 +508,6 @@ server <- function(input, output,session) {
     })
     
     
-    output$uioutput_Tmatrix <- renderUI({
-        num <- as.integer(input$Number_Hypotheses)
-        df <- (1-diag(num))/(num-1)
-        rownames(df) <- lapply(1:num, function(i) {
-            paste0("H", i)
-        })
-        colnames(df) <- rownames(df)
-        box(width = 9,
-            box(title = "Transition matrix",
-                status = "primary", 
-                solidHeader = TRUE,
-                width = 6, collapsible = TRUE,collapsed = TRUE,
-                helpText(""),
-                matrixInput(inputId = "TransitionMatrixG",
-                            value = df,class = "numeric",
-                            cols = list(
-                                names = TRUE,extend = FALSE,
-                                editableNames = TRUE,delta = 2),
-                            rows = list(
-                                names = TRUE, extend = FALSE,
-                                editableNames = TRUE,delta = 1),
-                            copy = TRUE,paste = TRUE)),
-            box(title = "Weights and P-values",
-                status = "primary",solidHeader = TRUE,
-                width = 6,collapsible = TRUE,collapsed = TRUE,
-                matrixInput(inputId = "WeightPvalue",
-                            value = matrix(cbind(
-                                        (lapply(1:num, function(i) {
-                                          paste0("H", i)
-                                        })),rep(1/num,num),rep(0.01,num)),
-                                        nrow = num, ncol = 3,
-                                        dimnames = list(NULL, c("Hypotheses", "Weights",'P-values'))),
-                            cols = list(names = TRUE, extend = FALSE,
-                                        editableNames = FALSE, delta = 2),
-                            rows = list(
-                                      names = FALSE, extend = FALSE,
-                                      editableNames = TRUE, delta = 1),
-                            copy = TRUE, paste = TRUE)
-                    ),
-            )
-    })
     
     twoPlots <- eventReactive(input$TestButton,
                               {
