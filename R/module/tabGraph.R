@@ -56,15 +56,14 @@ tabgraph <- tabPanel("graph",
                     visNetworkOutput("visGraph")),
              column(4,
                     h2("Details"),
-                    hr(),
                     # actionButton("getNodes", "Nodes for Hypotheses:"),
                     # tableOutput("nodes_all"),
-                    hr(),
-                    dataTableOutput("graphOutput_visNodes"),
+                    DTOutput("graph_data"),
+                    # dataTableOutput("graphOutput_visNodes"),
                     hr(),
                     # actionButton("getEdges", "Edges for Transition:"),
                     # tableOutput("edges_all"),
-                    dataTableOutput("graphOutput_visEdges")
+                    # dataTableOutput("graphOutput_visEdges")
                     # verbatimTextOutput("print1")
              )),
            shinyjs::useShinyjs(),

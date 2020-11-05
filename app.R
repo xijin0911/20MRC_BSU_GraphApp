@@ -100,27 +100,13 @@ server <- function(input, output,session) {
   
   # -----------------------------------------------------
   nodes <- reactive({
-    switch(input$Weighting_Strategy2,
+    switch(input$Weighting_Strategy,
            "Specify ..." = node_create(input$spec,"Specify ..."),
-           # Bonferroni-Holm test
            "Bonferroni-Holm procedure" = node_create(input$spec,"Bonferroni-Holm procedure"),
-           # Fixed sequence test
-           "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
-           # Fallback procedure
-           "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure")
+           "Fixed sequence test" = node_create(input$spec,"Fixed sequence test"),
+           "Fallback procedure" = node_create(input$spec,"Fallback procedure")
     )
-  })
-  # 
-  # wp_create <- reactive({
-  #   switch(input$Weighting_Strategy2,
-  #          # Bonferroni-Holm test
-  #          "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
-  #          # Fixed sequence test
-  #          "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
-  #          # Fallback procedure
-  #          "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
-  #   )
-  # })
+  })     
   
   
   init.edges.df = data.frame(from = c("a","b","c"), 
@@ -135,15 +121,60 @@ server <- function(input, output,session) {
   # Consider: whether the matrix input works 
   # Matrixinput in a Render: lead to (reactive table) + (use nodes())
   
-  init.nodes.df = renderUI({
-    nodes()
-  }) 
+  output$graph_data <- renderDT({
+    # Part 1: nodes
+    nodes()[,c("Test","weight","pvalue")]
+    
+  })
+  
+  
+  # output$graph_data <- renderUI({
+  #   init.nodes.df <- nodes()
+  #   init.edges.df
+  #   
+  #   box(width = 10,
+  #       box(title = "nodes matrix",
+  #           status = "primary", 
+  #           solidHeader = TRUE,
+  #           width = 12, 
+  #           # collapsible = TRUE,collapsed = TRUE,
+  #           matrixInput(inputId = "nodesMatrix",
+  #                       value = as.matrix(init.nodes.df[,c("Test","weight","pvalue")]),class = "numeric",
+  #                       cols = list(names = TRUE, extend = FALSE,
+  #                                   editableNames = FALSE, delta = 2),
+  #                       rows = list(
+  #                         names = FALSE, extend = FALSE,
+  #                         editableNames = TRUE, delta = 1),
+  #                       copy = TRUE, paste = TRUE)),
+  #       box(title = "edges matrix",
+  #           status = "primary",
+  #           solidHeader = TRUE,
+  #           width = 12,
+  #           # collapsible = TRUE,
+  #           # collapsed = TRUE,
+  #           matrixInput(inputId = "edgesMatrix",
+  #                       value = as.matrix(init.edges.df),
+  #                       cols = list(names = TRUE, extend = FALSE,
+  #                                   editableNames = FALSE, delta = 2),
+  #                       rows = list(
+  #                         names = FALSE, extend = FALSE,
+  #                         editableNames = TRUE, delta = 1),
+  #                       copy = TRUE, paste = TRUE)
+  #       )
+  #   )
+  # })
+  
+  
+  
+  # init.nodes.df = renderUI({
+  #   nodes()
+  # }) 
   
 
-    graph_data = reactiveValues(
-      nodes = init.nodes.df,
-      edges = init.edges.df
-    )
+    # graph_data = reactiveValues(
+    #   nodes = init.nodes.df,
+    #   edges = init.edges.df
+    # )
     
     output$visGraph <- renderVisNetwork({
       input$refreshGraph

@@ -29,3 +29,5 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
                    "P-values" = pvalues)
   return(as.matrix(re))
 }
+
+
