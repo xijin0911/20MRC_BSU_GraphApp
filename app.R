@@ -121,9 +121,11 @@ server <- function(input, output,session) {
   # Consider: whether the matrix input works 
   # Matrixinput in a Render: lead to (reactive table) + (use nodes())
   
+  
   output$graph_data <- renderDT({
     # Part 1: nodes
-    nodes()[,c("Test","weight","pvalue")]
+    init.nodes.df <- nodes()
+    init.nodes.df[,c("Test","weight","pvalue")]
     
   })
   

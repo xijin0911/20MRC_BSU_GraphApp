@@ -1,5 +1,3 @@
-
-
 node_create <- function(num, method = "Specify..."){
   names <- as.matrix(lapply(1:num, function(i) {paste0("H", i)}))
   if(method == "Specify..."){
@@ -41,8 +39,11 @@ node_create <- function(num, method = "Specify..."){
                         pvalue=rep(0.01,num),
                         stringsAsFactors=FALSE)
   }
-  return(as.matrix(nodes))
+  return((nodes))
 }
+
+
+
 title_create <- function(num,names){
   tit <- lapply(1:num, function(i) {
     paste(paste0(names[i],":"),
