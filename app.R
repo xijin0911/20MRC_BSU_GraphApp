@@ -77,13 +77,6 @@ server <- function(input, output,session) {
   }
   
     # graph_data initial setting -----------------------
-  # init.edges.df = data.frame(from = character(), 
-  #                            to = character(),
-  #                            title = character(),
-  #                            label = character(),
-  #                            propagation = numeric(),
-  #                            stringsAsFactors = F)
-  
   
   nodes <- reactive({
     switch(input$Weighting_Strategy,
@@ -114,8 +107,23 @@ server <- function(input, output,session) {
     init.edges.df[,c("from","to","propagation")]
   })
   
+  # init.edges.df = data.frame(from = character(),
+  #                            to = character(),
+  #                            title = character(),
+  #                            label = character(),
+  #                            propagation = numeric(),
+  #                            stringsAsFactors = F)
+  # init.nodes.df = data.frame(id = character(),
+  #                            label = character(),
+  #                            title = character(),
+  #                            shape = "circle",
+  #                            Test = character(),
+  #                            weight = numeric(),
+  #                            pvalue = numeric(),
+  #                            stringsAsFactors = F)
+  
     # graph_data = reactiveValues(
-    #   nodes = nodes(),
+    #   nodes = init.nodes.df,
     #   edges = init.edges.df
     # )
     
@@ -135,8 +143,8 @@ server <- function(input, output,session) {
           data.frame(
             id = input$visGraph_graphChange$id,
             label = input$visGraph_graphChange$label,
-            title = input$visGraph_graphChange$title,
             shape = input$visGraph_graphChange$shape,
+            title = input$visGraph_graphChange$title,
             Test = input$visGraph_graphChange$Test,
             weight = input$visGraph_graphChange$weight,
             pvalue = input$visGraph_graphChange$pvalue,
@@ -289,28 +297,18 @@ server <- function(input, output,session) {
 # -----------------------------------------------------
     df_create <- reactive({
       switch(input$Weighting_Strategy2,
-             # Bonferroni-Holm test
              "Bonferroni-Holm procedure" = (1-diag(input$Number_Hypotheses))/(input$Number_Hypotheses-1),
-             # Fixed sequence test
              "Fixed sequence test" = dfcreate(input$Number_Hypotheses),
-             # Fallback procedure
              "Fallback procedure" = dfcreate(input$Number_Hypotheses)
       )
     })
-    
     wp_create <- reactive({
       switch(input$Weighting_Strategy2,
-             # Bonferroni-Holm test
              "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
-             # Fixed sequence test
              "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
-             # Fallback procedure
              "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
       )
     })
-    
-    
-    
     
     output$uioutput_Tmatrix <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
@@ -319,9 +317,7 @@ server <- function(input, output,session) {
         paste0("H", i)
       })
       colnames(df) <- rownames(df)
-       
       wp <- wp_create()
-      
       box(width = 10,
           box(title = "Transition matrix",
               status = "primary", 

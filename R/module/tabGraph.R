@@ -7,7 +7,7 @@ tabgraph <- tabPanel("graph",
                     useShinyalert(),
                     actionButton("spec", "Number of Hypotheses"),
                     
-                    bsTooltip("spec", "It must be specified if you specify the weighting strategy",
+                    bsTooltip("spec", "It must be specified",
                               "right", options = list(container = "body")),
                     hr(),
                     selectInput(inputId = "Weighting_Strategy",
