@@ -101,10 +101,10 @@ server <- function(input, output,session) {
   # -----------------------------------------------------
   nodes <- reactive({
     switch(input$Weighting_Strategy,
-           "Specify ..." = node_create(input$spec,"Specify ..."),
-           "Bonferroni-Holm procedure" = node_create(input$spec,"Bonferroni-Holm procedure"),
-           "Fixed sequence test" = node_create(input$spec,"Fixed sequence test"),
-           "Fallback procedure" = node_create(input$spec,"Fallback procedure")
+           "Specify ..." = node_create(as.numeric(input$num_alert),"Specify ..."),
+           "Bonferroni-Holm procedure" = node_create(as.numeric(input$num_alert),"Bonferroni-Holm procedure"),
+           "Fixed sequence test" = node_create(as.numeric(input$num_alert),"Fixed sequence test"),
+           "Fallback procedure" = node_create(as.numeric(input$num_alert),"Fallback procedure")
     )
   })     
   

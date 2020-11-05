@@ -5,8 +5,8 @@ tabgraph <- tabPanel("graph",
                     h2("Settings"),
                     hr(),
                     useShinyalert(),
-                    
                     actionButton("spec", "Number of Hypotheses"),
+                    
                     bsTooltip("spec", "It must be specified if you specify the weighting strategy",
                               "right", options = list(container = "body")),
                     hr(),
@@ -58,9 +58,8 @@ tabgraph <- tabPanel("graph",
                     h2("Details"),
                     # actionButton("getNodes", "Nodes for Hypotheses:"),
                     # tableOutput("nodes_all"),
-                    DTOutput("graph_data"),
+                    DTOutput("graph_data")
                     # dataTableOutput("graphOutput_visNodes"),
-                    hr(),
                     # actionButton("getEdges", "Edges for Transition:"),
                     # tableOutput("edges_all"),
                     # dataTableOutput("graphOutput_visEdges")
