@@ -92,7 +92,7 @@ server <- function(input, output,session) {
            "Fixed sequence test" = node_create(as.numeric(input$num_alert),"Fixed sequence test"),
            "Fallback procedure" = node_create(as.numeric(input$num_alert),"Fallback procedure")
     )
-  })     
+  })
   
   
   edges <- reactive({

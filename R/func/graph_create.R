@@ -1,11 +1,13 @@
 node_create <- function(num, method = "Specify ..."){
   names <- as.matrix(lapply(1:num, function(i) {paste0("H", i)}))
   if(method == "Specify ..."){
-    nodes <- data.frame(from = character(),
-                        to = character(),
+    nodes <- data.frame(id=character(),
+                        label=character(),
                         title = character(),
-                        label = character(),
-                        propagation = numeric())
+                        shape = character(),
+                        Test=character(),
+                        weight=numeric(),
+                        pvalue=numeric())
   }
   if(method == "Bonferroni-Holm procedure"){
     nodes <- data.frame(id=(names),
@@ -43,14 +45,11 @@ node_create <- function(num, method = "Specify ..."){
 edge_create <- function(num, method = "Specify ..."){
   names <- as.matrix(lapply(1:num, function(i) {paste0("H", i)}))
   if(method == "Specify ..."){
-    edges <- data.frame(id=character(),
-                        label=character(),
+    edges <- data.frame(from = character(),
+                        to = character(),
                         title = character(),
-                        shape = character(),
-                        Test=character(),
-                        weight=numeric(),
-                        pvalue=numeric())
-    
+                        label = character(),
+                        propagation = numeric())
   }
   if(method == "Bonferroni-Holm procedure"){
     df <- (1-diag(num))/(num-1)
