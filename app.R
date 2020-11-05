@@ -44,7 +44,6 @@ source("R/module/tabGraph.R")
 source("R/module/tabExample.R")
 
 
-
 # -----------------------------------------------------
 ui <- fluidPage(
       theme = shinytheme("cerulean"),
@@ -53,6 +52,7 @@ ui <- fluidPage(
         tabtweak,
         tabexample
     ))
+# -----------------------------------------------------
 
 
 server <- function(input, output,session) { 
@@ -77,16 +77,6 @@ server <- function(input, output,session) {
   }
   
     # graph_data initial setting -----------------------
-  
-  
-  # init.nodes.df = data.frame(id=character(),
-  #                            label=character(),
-  #                            title = character(),
-  #                            shape = character(),
-  #                            Test=character(),
-  #                            weight=numeric(),
-  #                            pvalue=numeric(),
-  #                            stringsAsFactors=FALSE)
   # init.edges.df = data.frame(from = character(), 
   #                            to = character(),
   #                            title = character(),
@@ -95,13 +85,9 @@ server <- function(input, output,session) {
   #                            stringsAsFactors = F)
   
   
-  
-    # graph_data initial setting -----------------------
-  
-  # -----------------------------------------------------
   nodes <- reactive({
     switch(input$Weighting_Strategy,
-           "Specify ..." = node_create(as.numeric(input$num_alert),"Specify ..."),
+           "Specify ..." = node_create(as.numeric(input$num_alert), "Specify ..."),
            "Bonferroni-Holm procedure" = node_create(as.numeric(input$num_alert),"Bonferroni-Holm procedure"),
            "Fixed sequence test" = node_create(as.numeric(input$num_alert),"Fixed sequence test"),
            "Fallback procedure" = node_create(as.numeric(input$num_alert),"Fallback procedure")
@@ -109,72 +95,27 @@ server <- function(input, output,session) {
   })     
   
   
-  init.edges.df = data.frame(from = c("a","b","c"), 
-                             to = c("c","a","b"),
-                             title = c("c","a","b"),
-                             label = c("c","a","b"),
-                             propagation = c(0.1,0.1,0.3),
-                             stringsAsFactors = F)
+  edges <- reactive({
+    switch(input$Weighting_Strategy,
+           "Specify ..." = edge_create(as.numeric(input$num_alert), "Specify ..."),
+           "Bonferroni-Holm procedure" = edge_create(as.numeric(input$num_alert),"Bonferroni-Holm procedure"),
+           "Fixed sequence test" = edge_create(as.numeric(input$num_alert),"Fixed sequence test"),
+           "Fallback procedure" = edge_create(as.numeric(input$num_alert),"Fallback procedure")
+    )
+  })  
   
-  # TODO: The problem is that:
-  # there the init.nodes.df cannot be used in the render below
-  # Consider: whether the matrix input works 
-  # Matrixinput in a Render: lead to (reactive table) + (use nodes())
-  
-  
-  output$graph_data <- renderDT({
-    # Part 1: nodes
+  output$graph_data_node <- renderDT({
     init.nodes.df <- nodes()
     init.nodes.df[,c("Test","weight","pvalue")]
-    
   })
   
+  output$graph_data_edge <- renderDT({
+    init.edges.df <- edges()
+    init.edges.df[,c("from","to","propagation")]
+  })
   
-  # output$graph_data <- renderUI({
-  #   init.nodes.df <- nodes()
-  #   init.edges.df
-  #   
-  #   box(width = 10,
-  #       box(title = "nodes matrix",
-  #           status = "primary", 
-  #           solidHeader = TRUE,
-  #           width = 12, 
-  #           # collapsible = TRUE,collapsed = TRUE,
-  #           matrixInput(inputId = "nodesMatrix",
-  #                       value = as.matrix(init.nodes.df[,c("Test","weight","pvalue")]),class = "numeric",
-  #                       cols = list(names = TRUE, extend = FALSE,
-  #                                   editableNames = FALSE, delta = 2),
-  #                       rows = list(
-  #                         names = FALSE, extend = FALSE,
-  #                         editableNames = TRUE, delta = 1),
-  #                       copy = TRUE, paste = TRUE)),
-  #       box(title = "edges matrix",
-  #           status = "primary",
-  #           solidHeader = TRUE,
-  #           width = 12,
-  #           # collapsible = TRUE,
-  #           # collapsed = TRUE,
-  #           matrixInput(inputId = "edgesMatrix",
-  #                       value = as.matrix(init.edges.df),
-  #                       cols = list(names = TRUE, extend = FALSE,
-  #                                   editableNames = FALSE, delta = 2),
-  #                       rows = list(
-  #                         names = FALSE, extend = FALSE,
-  #                         editableNames = TRUE, delta = 1),
-  #                       copy = TRUE, paste = TRUE)
-  #       )
-  #   )
-  # })
-  
-  
-  
-  # init.nodes.df = renderUI({
-  #   nodes()
-  # }) 
-  
-
     # graph_data = reactiveValues(
-    #   nodes = init.nodes.df,
+    #   nodes = nodes(),
     #   edges = init.edges.df
     # )
     
@@ -510,7 +451,7 @@ server <- function(input, output,session) {
       )
     })
     
-    
+    # ---------------- Tweak Page output ----------------
     
     twoPlots <- eventReactive(input$TestButton,
                               {

@@ -1,13 +1,11 @@
-node_create <- function(num, method = "Specify..."){
+node_create <- function(num, method = "Specify ..."){
   names <- as.matrix(lapply(1:num, function(i) {paste0("H", i)}))
-  if(method == "Specify..."){
-    nodes <- data.frame(id=character(),
-                        label=character(),
+  if(method == "Specify ..."){
+    nodes <- data.frame(from = character(),
+                        to = character(),
                         title = character(),
-                        shape = character(),
-                        Test=character(),
-                        weight=numeric(),
-                        pvalue=numeric())
+                        label = character(),
+                        propagation = numeric())
   }
   if(method == "Bonferroni-Holm procedure"){
     nodes <- data.frame(id=(names),
@@ -39,9 +37,62 @@ node_create <- function(num, method = "Specify..."){
                         pvalue=rep(0.01,num),
                         stringsAsFactors=FALSE)
   }
-  return((nodes))
+  return(nodes)
 }
 
+edge_create <- function(num, method = "Specify ..."){
+  names <- as.matrix(lapply(1:num, function(i) {paste0("H", i)}))
+  if(method == "Specify ..."){
+    edges <- data.frame(id=character(),
+                        label=character(),
+                        title = character(),
+                        shape = character(),
+                        Test=character(),
+                        weight=numeric(),
+                        pvalue=numeric())
+    
+  }
+  if(method == "Bonferroni-Holm procedure"){
+    df <- (1-diag(num))/(num-1)
+    rownames(df) <- names
+    colnames(df) <- names
+    edges <- reshape2::melt(df)
+    colnames(edges) <- c("from","to","propagation")
+    edges <- edges[which(edges$propagation!=0),]
+    edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+    edges$label <- round(edges$propagation,digits = 2)
+    edges$label <- as.character(edges$label)
+  }
+  if(method == "Fixed sequence test"){
+    df <- matrix(0, nrow = num, ncol = num)
+    rownames(df) <- names
+    colnames(df) <- names
+    for (i in 1:(num-1)){
+      df[i,i+1] <- 1
+    }
+    edges <- reshape2::melt(df)
+    colnames(edges) <- c("from","to","propagation")
+    edges <- edges[which(edges$propagation!=0),]
+    edges$label <- round(edges$propagation,digits = 2)
+    edges$label <- as.character(edges$label)
+    edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+  }
+  if(method == "Fallback procedure"){
+    df <- matrix(0, nrow = num, ncol = num)
+    rownames(df) <- names
+    colnames(df) <- names
+    for (i in 1:(num-1)){
+      df[i,i+1] <- 1
+    }
+    edges <- reshape2::melt(df)
+    colnames(edges) <- c("from","to","propagation")
+    edges <- edges[which(edges$propagation!=0),]
+    edges$label <- round(edges$propagation,digits = 2)
+    edges$label <- as.character(edges$label)
+    edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
+  }
+  return(edges)
+}
 
 
 title_create <- function(num,names){

@@ -60,7 +60,7 @@ generate_graph <- function(graph_data,
                    directed = TRUE,
                    names.eval = "weights",
                    ignore.eval = FALSE)
-    edges <- melt(df)
+    edges <- reshape2::melt(df)
     colnames(edges) <- c("from","to","propagation")
     edges <- edges[which(edges$propagation!=0),]
     edges$title <- paste0(edges$from, " -> ",edges$to, ":","<br>",edges$propagation)
@@ -108,7 +108,7 @@ generate_graph <- function(graph_data,
                    directed = TRUE,
                    names.eval = "weights",
                    ignore.eval = FALSE)
-    edges <- melt(df)
+    edges <- reshape2::melt(df)
     colnames(edges) <- c("from","to","propagation")
     edges <- edges[which(edges$propagation!=0),]
     edges$label <- round(edges$propagation,digits = 2)
@@ -155,7 +155,7 @@ generate_graph <- function(graph_data,
                    directed = TRUE,
                    names.eval = "weights",
                    ignore.eval = FALSE)
-    edges <- melt(df)
+    edges <- reshape2::melt(df)
     colnames(edges) <- c("from","to","propagation")
     edges <- edges[which(edges$propagation!=0),]
     edges$label <- round(edges$propagation,digits = 2)
