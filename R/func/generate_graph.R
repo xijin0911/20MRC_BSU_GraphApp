@@ -29,7 +29,8 @@ generate_graph <- function(graph_data,
       visEdges(arrows = 'to') %>%
       visOptions(manipulation = list(enabled = T,
                                      editEdgeCols = c("propagation"),
-                                     editNodeCols = c("Test", "weight", "pvalue")
+                                     editNodeCols = c("label", "weight", "pvalue"),
+                                     addNodeCols = c("label","weight", "pvalue")
       )) %>%
       visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                      dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)
@@ -74,7 +75,9 @@ generate_graph <- function(graph_data,
       visEdges(arrows = 'to',label = label) %>%
       visOptions(manipulation = list(enabled = T,
                                      editEdgeCols = c("label"),
-                                     editNodeCols = c("Test", "weight", "pvalue"))) %>%
+                                     editNodeCols = c("Test", "weight", "pvalue"),
+                                     addNodeCols = c("label", "weight", "pvalue")
+                                     )) %>%
       visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                      dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
       visLayout(randomSeed = 3)
@@ -122,7 +125,9 @@ generate_graph <- function(graph_data,
       visEdges(arrows = 'to') %>%
       visOptions(manipulation = list(enabled = T,
                                      editEdgeCols = c("label"),
-                                     editNodeCols = c("Test", "weight", "pvalue"))) %>%
+                                     editNodeCols = c("Test", "weight", "pvalue"),
+                                     addNodeCols = c("label","weight", "pvalue")
+      )) %>%
       visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                      dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
       visLayout(randomSeed = 12)
@@ -169,7 +174,9 @@ generate_graph <- function(graph_data,
       visEdges(arrows = 'to') %>%
       visOptions(manipulation = list(enabled = T,
                                      editEdgeCols = c("label"),
-                                     editNodeCols = c("Test", "weight", "pvalue"))) %>%
+                                     editNodeCols = c("Test", "weight", "pvalue"),
+                                     addNodeCols = c("label","weight", "pvalue")
+      )) %>%
       visInteraction(navigationButtons = TRUE,hideEdgesOnDrag = TRUE,
                      dragNodes = TRUE, dragView = TRUE, zoomView = TRUE)%>%
       visLayout(randomSeed = 12)

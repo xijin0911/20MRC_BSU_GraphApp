@@ -27,7 +27,6 @@ library(data.table)
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
 # library(networkD3)
-
 source("R/module/clickpad.R")
 source("R/columns.R")
 source("R/node.R")
@@ -39,6 +38,7 @@ source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
 source("R/func/function_matrix.R")
 source("R/func/graph_create.R")
+# ui output
 source("R/module/tabTweak.R")
 source("R/module/tabGraph.R")
 source("R/module/tabExample.R")
@@ -107,25 +107,29 @@ server <- function(input, output,session) {
     init.edges.df[,c("from","to","propagation")]
   })
   
-  # init.edges.df = data.frame(from = character(),
-  #                            to = character(),
-  #                            title = character(),
-  #                            label = character(),
-  #                            propagation = numeric(),
-  #                            stringsAsFactors = F)
-  # init.nodes.df = data.frame(id = character(),
-  #                            label = character(),
-  #                            title = character(),
-  #                            shape = "circle",
-  #                            Test = character(),
-  #                            weight = numeric(),
-  #                            pvalue = numeric(),
-  #                            stringsAsFactors = F)
+  # graph_data initial setting -----------------------
+  init.nodes.df = data.frame(id=character(),
+                             label=character(),
+                             title = character(),
+                             shape = character(),
+                             Test=character(),
+                             weight=numeric(),
+                             pvalue=numeric(),
+                             stringsAsFactors=FALSE)
+  init.edges.df = data.frame(id = character(),
+                             label = character(),
+                             from = character(), 
+                             to = character(),
+                             title = character(),
+                             propagation = numeric(),
+                             stringsAsFactors = F)
   
-    # graph_data = reactiveValues(
-    #   nodes = init.nodes.df,
-    #   edges = init.edges.df
-    # )
+  
+  # NOTE: Must be here, or the changes to the visNetwork cannot be saved in the graph
+    graph_data = reactiveValues(
+      nodes = init.nodes.df,
+      edges = init.edges.df
+    )
     
     output$visGraph <- renderVisNetwork({
       input$refreshGraph
@@ -133,74 +137,74 @@ server <- function(input, output,session) {
       num_hypotheses = as.numeric(input$num_alert)
       generate_graph(graph_data,Weighting_Strategy=Strategy,
                      num_hypotheses)
-    }) 
-    
-    observeEvent(input$visGraph_graphChange, {
-      # If the user added a node, add it to the data frame of nodes.
-      if(input$visGraph_graphChange$cmd == "addNode") {
-        temp = bind_rows(
-          graph_data$nodes,
-          data.frame(
-            id = input$visGraph_graphChange$id,
-            label = input$visGraph_graphChange$label,
-            shape = input$visGraph_graphChange$shape,
-            title = input$visGraph_graphChange$title,
-            Test = input$visGraph_graphChange$Test,
-            weight = input$visGraph_graphChange$weight,
-            pvalue = input$visGraph_graphChange$pvalue,
-            stringsAsFactors = F)
-        )
-        graph_data$nodes = temp
-      }
-      # If the user added an edge, add it to the data frame of edges.
-      else if(input$visGraph_graphChange$cmd == "addEdge") {
-        temp = bind_rows(
-          graph_data$edges,
-          data.frame(
-            from = input$visGraph_graphChange$from,
-            title = input$visGraph_graphChange$title,
-            to = input$visGraph_graphChange$to,
-            label = input$visGraph_graphChange$label,
-            propagation = input$visGraph_graphChange$propagation,
-            stringsAsFactors = F)
-        )
-        graph_data$edges = temp
-      }
-      # If the user edited a node, update that record.
-      else if(input$visGraph_graphChange$cmd == "editNode") {
-        temp = graph_data$nodes
-        temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
-        temp$shape[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$shape
-        temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
-        temp$Test[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$Test
-        temp$weight[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$weight
-        temp$pvalue[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$pvalue
-        graph_data$nodes = temp
-      }
-      # If the user edited an edge, update that record.
-      else if(input$visGraph_graphChange$cmd == "editEdge") {
-        temp = graph_data$edges
-        temp$from[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$from
-        temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
-        temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
-        temp$to[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$to
-        temp$propagation[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$propagation
-        graph_data$edges = temp
-      }
-      # If the user deleted something, remove those records.
-      else if(input$visGraph_graphChange$cmd == "deleteElements") {
-        for(node.id in input$visGraph_graphChange$nodes) {
-          temp = graph_data$nodes
-          temp = temp[temp$id != node.id,]
-          graph_data$nodes = temp
-        }
-        for(edge.id in input$visGraph_graphChange$edges) {
-          temp = graph_data$edges
-          temp = temp[temp$id != edge.id,]
-          graph_data$edges = temp
-        }
-      }
     })
+    
+    # observeEvent(input$visGraph_graphChange, {
+    #   # If the user added a node, add it to the data frame of nodes.
+    #   if(input$visGraph_graphChange$cmd == "addNode") {
+    #     temp = bind_rows(
+    #       graph_data$nodes,
+    #       data.frame(
+    #         id = input$visGraph_graphChange$id,
+    #         label = input$visGraph_graphChange$label,
+    #         shape = input$visGraph_graphChange$shape,
+    #         title = input$visGraph_graphChange$title,
+    #         Test = input$visGraph_graphChange$Test,
+    #         weight = input$visGraph_graphChange$weight,
+    #         pvalue = input$visGraph_graphChange$pvalue,
+    #         stringsAsFactors = F)
+    #     )
+    #     graph_data$nodes = temp
+    #   }
+    #   # If the user added an edge, add it to the data frame of edges.
+    #   else if(input$visGraph_graphChange$cmd == "addEdge") {
+    #     temp = bind_rows(
+    #       graph_data$edges,
+    #       data.frame(
+    #         from = input$visGraph_graphChange$from,
+    #         title = input$visGraph_graphChange$title,
+    #         to = input$visGraph_graphChange$to,
+    #         label = input$visGraph_graphChange$label,
+    #         propagation = input$visGraph_graphChange$propagation,
+    #         stringsAsFactors = F)
+    #     )
+    #     graph_data$edges = temp
+    #   }
+    #   # If the user edited a node, update that record.
+    #   else if(input$visGraph_graphChange$cmd == "editNode") {
+    #     temp = graph_data$nodes
+    #     temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
+    #     temp$shape[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$shape
+    #     temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
+    #     temp$Test[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$Test
+    #     temp$weight[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$weight
+    #     temp$pvalue[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$pvalue
+    #     graph_data$nodes = temp
+    #   }
+    #   # If the user edited an edge, update that record.
+    #   else if(input$visGraph_graphChange$cmd == "editEdge") {
+    #     temp = graph_data$edges
+    #     temp$from[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$from
+    #     temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
+    #     temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
+    #     temp$to[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$to
+    #     temp$propagation[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$propagation
+    #     graph_data$edges = temp
+    #   }
+    #   # If the user deleted something, remove those records.
+    #   else if(input$visGraph_graphChange$cmd == "deleteElements") {
+    #     for(node.id in input$visGraph_graphChange$nodes) {
+    #       temp = graph_data$nodes
+    #       temp = temp[temp$id != node.id,]
+    #       graph_data$nodes = temp
+    #     }
+    #     for(edge.id in input$visGraph_graphChange$edges) {
+    #       temp = graph_data$edges
+    #       temp = temp[temp$id != edge.id,]
+    #       graph_data$edges = temp
+    #     }
+    #   }
+    # })
     
   
     #----------------------------------------------------------------------
