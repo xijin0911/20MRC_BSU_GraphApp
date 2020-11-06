@@ -126,7 +126,7 @@ server <- function(input, output,session) {
   
   
   # NOTE: Must be here, or the changes to the visNetwork cannot be saved in the graph
-    graph_data = reactiveValues(
+    graph_data = list(
       nodes = init.nodes.df,
       edges = init.edges.df
     )
