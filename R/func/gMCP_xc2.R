@@ -57,7 +57,7 @@ gMCP_xc2 <- function(matrix,weights,
     }
   }
   # adjusted p-values 
-  adjPValues <- p.adjust(pvalues,method="holm")
+  adjPValues <- (p.adjust(pvalues,method="holm"))
   # rejetions
   h <- as.logical(h)
   names(h) <- paste0("H", 1:n)

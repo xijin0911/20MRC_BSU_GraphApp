@@ -49,19 +49,23 @@ tabtweak <- tabPanel("tweak",
                     conditionalPanel(condition = "input.TestButton != 0",
                                      plotOutput("ResultPlot")),
                     br(),br(),
-                    p("Initial and final graph"))),
+                    p("Initial and final graph")),
          br(),
-         
-         shinyjs::useShinyjs(),
+         br(),br(),
+         shinyjs::useShinyjs()),
+         column(3),
+         column(9,
          a(id = "Moreinformation",
-           "More information about the result"),
+           "More information about the resulting Transition Matrix and Wights"),
          shinyjs::hidden(
            div(id = "moreinfor",
-               box(width=3,"Resulting weights",
+               box(width=4,
                    tableOutput("extend1")),
-               box(width=6,"Resulting Transition Matrix",
-                   tableOutput("extend2")),
-               box(width=3,"Resulting Adjusted p-values",
-                   tableOutput("extend3")))
-         )
+               box(width=4,
+                   tableOutput("extend2"))
+               # ,
+               # box(width=3,"Resulting Adjusted p-values",
+               #     tableOutput("extend3"))
+               )
+         )),
 )

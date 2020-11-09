@@ -23,6 +23,8 @@ library(shinyBS)
 library(ggdag)
 library(reshape2)
 library(data.table)
+library(ggplot2)
+library(gridExtra)
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
@@ -75,9 +77,8 @@ server <- function(input, output,session) {
   modalCallback <- function(value) {
     value$num <- input$num_alert
   }
-  
-    # graph_data initial setting -----------------------
-  
+   # graph_data initial setting -----------------------
+   # NOTE: It seems that my functions (node_create and edge_create) can not be used in observeEvent function 
   nodes <- reactive({
     switch(input$Weighting_Strategy,
            "Specify ..." = node_create(as.numeric(input$num_alert), "Specify ..."),
@@ -106,7 +107,7 @@ server <- function(input, output,session) {
     init.edges.df <- edges()
     init.edges.df[,c("from","to","propagation")]
   })
-  
+# 80 - 110: the depending initial setting for matrix 
   # graph_data initial setting -----------------------
   init.nodes.df = data.frame(id=character(),
                              label=character(),
@@ -466,7 +467,7 @@ server <- function(input, output,session) {
                                   geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                                              color = "grey50",
                                              curvature = 0.15) +
-                                  geom_nodes(aes(x, y),color = "grey", size = 8) +
+                                  geom_nodes(aes(x, y),color = "grey", size = 12) +
                                   geom_nodetext(aes(label = vertex.names)) +
                                   geom_edgetext_repel(aes(label = weights), color = "white", fill = "grey25",
                                                       box.padding = unit(0.25, "line")) +
@@ -487,11 +488,15 @@ server <- function(input, output,session) {
                                 res_weights <- round(res$weights,digits = 2)
                                 res_G <- round(res$G,digits = 2)
                                 
+                                res_adj <- data.frame("Hypotheses" = paste0("H", 1:input$Number_Hypotheses),
+                                                      "Adjusted p-values" = res$adjpvalues)
+                              
                                 res_net <- network(res_G,directed = TRUE,
                                                    names.eval = "weights",ignore.eval = FALSE)
                                 res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
                                 e <- network.edgecount(res_net)
                                 res_net %v% "Rejection" <- res$rejected
+                                
                                 b <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
                                   geom_edges(arrow = arrow(length = unit(15, "pt"), type = "closed"),
                                              color = "grey50",
@@ -499,7 +504,9 @@ server <- function(input, output,session) {
                                   geom_nodes(aes(x, y,color = Rejection), size = 12) +
                                   geom_nodetext(aes(label = vertex.names)) +
                                   scale_color_brewer(palette = "Set2") +
-                                  theme_blank()
+                                  theme_blank()+ 
+                                  annotation_custom(tableGrob(res_adj, rows=NULL), 
+                                                    xmin=0.8, xmax=1, ymin=0.8, ymax=1)
                                 ggarrange(a,b,
                                           ncol = 2, nrow = 1)
                               })
@@ -508,7 +515,7 @@ server <- function(input, output,session) {
       twoPlots()
     )
     
-     output$extend1 <- renderTable(
+     output$extend2 <- renderTable(
         {
             net <- network(input$TransitionMatrixG,
                            directed = TRUE,
@@ -518,9 +525,10 @@ server <- function(input, output,session) {
                      weights = as.numeric(input$WeightPvalue[,2]),
                      pvalues = as.numeric(input$WeightPvalue[,3]),
                      alpha = input$alpha,fweights = F)
-            data.frame(weights = res$weights)
+            data.frame(Hypotheses = paste0("H", 1:input$Number_Hypotheses),
+                       Weights = res$weights)
         })
-     output$extend2 <- renderTable(
+     output$extend1 <- renderTable(
          {
              net <- network(input$TransitionMatrixG,
                             directed = TRUE,
@@ -532,8 +540,9 @@ server <- function(input, output,session) {
                              alpha = input$alpha,fweights = F)
              result <- data.frame(res$G)
              colnames(result) <- rownames(input$TransitionMatrixG)
+             rownames(result) <- rownames(input$TransitionMatrixG)
              result
-         })
+         }, caption = "Notes: 0 means no trasition.", caption.placement = "bottom")
      output$extend3 <- renderTable(
          {
              net <- network(input$TransitionMatrixG,
