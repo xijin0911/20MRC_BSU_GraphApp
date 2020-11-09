@@ -1,24 +1,44 @@
 
 
 components <- list(toolbar = list())
-# Components - examples ----
-components$examples <- list()
-components$examples$team <- tagList(
-  h3("Development Team"),
-  tags$ul(
-    tags$li(tags$a(href = "https://www.mrc-bsu.cam.ac.uk/people/in-alphabetical-order/n-to-s/david-robertson/",
-                   "David Robertson")),
-    tags$li("Xijin Chen")
+# Components - footer ----
+
+components$foot <- tags$footer(
+  tagList(
+    p("All code and detailed instructions for usage is available on",
+      tags$a(
+        href = "https://github.com/xijin0911","GitHub")
+    ),
+    p(
+      "If you have any questions or comments, you can email us at ",
+      tags$a(href = "chenxijin2017@gmail.com", "chenxijin2017@gmail.com"),
+    )
   ),
-  p("All code and detailed instructions for usage is available on GitHub",
-    tags$a(
-      href = "https://github.com/xijin0911")
-  ),
-  p(
-    "If you have any questions or comments, we would love to hear them.",
-    "You can email us at ",
-    tags$a(href = "chenxijin2017@gmail.com", "chenxijin2017@gmail.com"),
-  )
+  align = "center",
+  style = "
+      * {
+    margin: 0;
+  }
+  html, body {
+    height: 100%;
+    width:100%;
+  }
+  .wrapper {
+    min-height: 100%;
+    height: auto !important; /* This line and the next line are not necessary unless you need IE6 support */
+    height: 100%;
+    margin: 0 auto -155px; /* the bottom margin is the negative value of the footer's height */
+  }
+  .footer, .push {
+    height: 155px; /* .push must be the same height as .footer */
+  }
+
+  /*
+
+  Sticky Footer by Ryan Fait
+  http://ryanfait.com/
+
+  */"
 )
 
 # Components - Build ----

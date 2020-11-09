@@ -67,16 +67,16 @@ tabgraph <- tabPanel("graph",
                     # tableOutput("edges_all"),
                     # dataTableOutput("graphOutput_visEdges")
                     # verbatimTextOutput("print1")
-             )),
-           shinyjs::useShinyjs(),
-           a(id = "toggleAdvanced", "More"),
-           hidden(
-             div(id = "advanced",
-                 box(width=6,
-                     numericInput("age", "Weight Matrix", 30)),
-                 box(width=6,
-                     textInput("company", "Transition Matrix", "")
-                 ))
-           )
+             ))
+           # shinyjs::useShinyjs(),
+           # a(id = "toggleAdvanced", "More"),
+           # hidden(
+           #   div(id = "advanced",
+           #       box(width=6,
+           #           numericInput("age", "Weight Matrix", 30)),
+           #       box(width=6,
+           #           textInput("company", "Transition Matrix", "")
+           #       ))
+           # )
          )
 )

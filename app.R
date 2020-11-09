@@ -35,7 +35,7 @@ source("R/node.R")
 source("R/components.R")
 source("R/functions.R")
 source("R/func/gMCP_xc2.R")
-source("R/func/modify_visNetwork.R")
+# source("R/func/modify_visNetwork.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
 source("R/func/function_matrix.R")
@@ -47,13 +47,17 @@ source("R/module/tabExample.R")
 
 
 # -----------------------------------------------------
-ui <- fluidPage(
+ui <- tagList(
+  fluidPage(
       theme = shinytheme("cerulean"),
       navbarPage(id = "tabs",title = "GraphApp",collapsible = TRUE,
         tabgraph,
-        tabtweak,
-        tabexample
-    ))
+        tabtweak
+        # tabexample
+    )),
+  br(),br(),br(),
+  components$foot
+)
 # -----------------------------------------------------
 
 
@@ -542,7 +546,7 @@ server <- function(input, output,session) {
              colnames(result) <- rownames(input$TransitionMatrixG)
              rownames(result) <- rownames(input$TransitionMatrixG)
              result
-         }, caption = "Notes: 0 means no trasition.", caption.placement = "bottom")
+         }, caption = "Zero value means no trasition.", caption.placement = "bottom")
      output$extend3 <- renderTable(
          {
              net <- network(input$TransitionMatrixG,
