@@ -43,7 +43,6 @@ source("R/func/graph_create.R")
 # ui output
 source("R/module/tabTweak.R")
 source("R/module/tabGraph.R")
-source("R/module/tabExample.R")
 
 
 # -----------------------------------------------------
@@ -493,7 +492,7 @@ server <- function(input, output,session) {
                                 res_G <- round(res$G,digits = 2)
                                 
                                 res_adj <- data.frame("Hypotheses" = paste0("H", 1:input$Number_Hypotheses),
-                                                      "Adjusted p-values" = res$adjpvalues)
+                                                      "Adjusted" = res$adjpvalues)
                               
                                 res_net <- network(res_G,directed = TRUE,
                                                    names.eval = "weights",ignore.eval = FALSE)
