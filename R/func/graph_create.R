@@ -1,3 +1,17 @@
+
+
+# the theme for the Grobtable in the final graph in Example Tab
+grobtheme <- gridExtra::ttheme_default(
+  core = list(fg_params=list(cex = 0.9)
+              # bg_params=list(alpha = rep(c(0.5,0.8), each=3))
+              ),
+  colhead = list(fg_params=list(cex = 0.9)),
+  rowhead = list(fg_params=list(cex = 0.9)))
+
+
+
+
+
 node_create <- function(num, method = "Specify ..."){
   names <- as.matrix(lapply(1:num, function(i) {paste0("H", i)}))
   if(method == "Specify ..."){

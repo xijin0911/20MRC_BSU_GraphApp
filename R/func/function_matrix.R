@@ -45,9 +45,9 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
     weight = c(0.5,0.5,0,0)
     pvalues = rep(0.01,num)
   }
-  re <- data.frame("Hypotheses" =name,
+  re <- data.frame("Hypothesis" = name,
                    "Weights" = weight,
-                   "P-values" = pvalues)
+                   "P-values" = pvalues, check.names = FALSE)
   return(as.matrix(re))
 }
 
