@@ -49,7 +49,12 @@ source("R/module/tabDraw.R")
 ui <- tagList(
   fluidPage(
       theme = shinytheme("cerulean"),
-      navbarPage(id = "tabs",title = "GraphApp",collapsible = TRUE,
+      navbarPage(id = "tabs",
+                 # tags$head(
+                 #   tags$script(src = "custom.js")
+                 # ),
+                 title = "GraphApp",
+                 collapsible = TRUE,
         tabDraw,
         tabtweak
     )),
@@ -62,7 +67,6 @@ ui <- tagList(
 server <- function(input, output,session) { 
   shinyjs::onclick("Moreinformation",
                    shinyjs::toggle(id = "moreinfor", anim = TRUE))
-  # pop-up for the specification of the number of hypotheses
   values <- reactiveValues()
   values$num <- 3
   observeEvent(input$spec, {
@@ -328,25 +332,20 @@ server <- function(input, output,session) {
       colnames(df) <- rownames(df)
       wp <- wp_create()
       box(width = 10,
-          box(title = "Transition matrix",
-              status = "primary", 
-              solidHeader = TRUE,
-              width = 6, 
-              # collapsible = TRUE,collapsed = TRUE,
-              helpText(""),
+          box(title = div(HTML("Transition matrix <em>G</em>")),
+              status = "primary",solidHeader = TRUE,width = 6, 
+              withMathJax(helpText("The propagation of significance levels")),
+              # helpText(" "),
               matrixInput(inputId = "TransitionMatrixG",
                           value = df,class = "numeric",
                           cols = list(names = TRUE,extend = FALSE,
-                            editableNames = TRUE,delta = 2),
+                                      editableNames = TRUE,delta = 2),
                           rows = list(names = TRUE, extend = FALSE,
-                            editableNames = TRUE,delta = 1),
+                                      editableNames = TRUE,delta = 1),
                           copy = TRUE,paste = TRUE)),
-          box(title = "Weights and P-values",
-              status = "primary",
-              solidHeader = TRUE,
-              width = 6,
-              # collapsible = TRUE,
-              # collapsed = TRUE,
+          box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
+              status = "primary",solidHeader = TRUE,width = 6,
+              helpText(div(HTML("The specification of initial weights and <em>p</em>-values"))),
               matrixInput(inputId = "WeightPvalue",
                           value = wp,
                           cols = list(names = TRUE, extend = FALSE,
@@ -355,10 +354,10 @@ server <- function(input, output,session) {
                             names = FALSE, extend = FALSE,
                             editableNames = TRUE, delta = 1),
                           copy = TRUE, paste = TRUE)
-          )
+          ),
+          helpText("Please click corresponding cell to edit.")
       )
-    })
-    
+    })    
     
     # output$uioutput_Tmatrix <- renderUI({
     #   num <- as.integer(input$Number_Hypotheses)

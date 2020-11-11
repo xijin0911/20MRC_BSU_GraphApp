@@ -1,5 +1,4 @@
 tabtweak <- tabPanel("Example", icon=icon("cog", lib = "glyphicon"),  
-         ## 1. hypotheses & alpha 
          column(3,style = "background-color: skyblue;",
                 h2("Settings"),
                 br(),
@@ -36,7 +35,6 @@ tabtweak <- tabPanel("Example", icon=icon("cog", lib = "glyphicon"),
                   condition = "input.Weighting_Strategy2 == 'Simple successive procedure'",
                   div(strong("Note:"), "The number of hypotheses is fixed, you must set it as 4", style = "color:red")
                 ),
-                
                 hr(),
                 conditionalPanel(
                   condition = "input.Weighting_Strategy2 == 'Bonferroni-Holm procedure'",
@@ -81,9 +79,6 @@ tabtweak <- tabPanel("Example", icon=icon("cog", lib = "glyphicon"),
                    tableOutput("extend1")),
                box(width=4,
                    tableOutput("extend2"))
-               # ,
-               # box(width=3,"Resulting Adjusted p-values",
-               #     tableOutput("extend3"))
                )
          )),
 )
