@@ -7,11 +7,13 @@ components$foot <- tags$footer(
   tagList(
     p("All code and detailed instructions for usage is available on",
       tags$a(
-        href = "https://github.com/xijin0911","GitHub")
+        href = "https://github.com/xijin0911","GitHub"),
+      style="font-size:100%; font-family:Arial; line-height:.8rem;"
     ),
     p(
       "If you have any questions or comments, you can email us at ",
       tags$a(href = "chenxijin2017@gmail.com", "chenxijin2017@gmail.com"),
+      style="font-size:100%; font-family:Arial; line-height:.8rem;"
     )
   ),
   align = "center",

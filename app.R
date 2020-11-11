@@ -42,7 +42,7 @@ source("R/func/function_matrix.R")
 source("R/func/graph_create.R")
 # ui output
 source("R/module/tabTweak.R")
-source("R/module/tabGraph.R")
+source("R/module/tabDraw.R")
 
 
 # -----------------------------------------------------
@@ -50,9 +50,8 @@ ui <- tagList(
   fluidPage(
       theme = shinytheme("cerulean"),
       navbarPage(id = "tabs",title = "GraphApp",collapsible = TRUE,
-        tabgraph,
+        tabDraw,
         tabtweak
-        # tabexample
     )),
   br(),br(),br(),
   components$foot
@@ -508,7 +507,10 @@ server <- function(input, output,session) {
                                   geom_nodetext(aes(label = vertex.names)) +
                                   scale_color_brewer(palette = "Set2") +
                                   theme_blank()+ 
-                                  annotation_custom(tableGrob(res_adj, rows=NULL), 
+                                  annotation_custom(tableGrob(res_adj, rows=NULL
+                                                              # ,
+                                                              # h.odd.alpha=1, h.even.alpha=1, v.odd.alpha=1, v.even.alpha=1
+                                                              ), 
                                                     xmin=0.8, xmax=1, ymin=0.8, ymax=1)
                                 ggarrange(a,b,
                                           ncol = 2, nrow = 1)

@@ -1,4 +1,4 @@
-tabgraph <- tabPanel("graph",                
+tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),      
          fluidPage(
            fluidRow(
              column(3,style = "background-color: skyblue;",

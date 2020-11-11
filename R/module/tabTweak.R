@@ -1,4 +1,4 @@
-tabtweak <- tabPanel("tweak", 
+tabtweak <- tabPanel("Example", icon=icon("cog", lib = "glyphicon"),  
          ## 1. hypotheses & alpha 
          column(3,style = "background-color: skyblue;",
                 h2("Settings"),
