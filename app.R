@@ -304,16 +304,18 @@ server <- function(input, output,session) {
 # -----------------------------------------------------
     df_create <- reactive({
       switch(input$Weighting_Strategy2,
-             "Bonferroni-Holm procedure" = (1-diag(input$Number_Hypotheses))/(input$Number_Hypotheses-1),
-             "Fixed sequence test" = dfcreate(input$Number_Hypotheses),
-             "Fallback procedure" = dfcreate(input$Number_Hypotheses)
+             "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
+             "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
+             "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure"),
+             "Simple successive procedure" = dfcreate(input$Number_Hypotheses,"Simple successive procedure")
       )
     })
     wp_create <- reactive({
       switch(input$Weighting_Strategy2,
              "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
-             "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
+             "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure"),
+             "Simple successive procedure" = wpcreat(input$Number_Hypotheses,"Simple successive procedure")
       )
     })
     
