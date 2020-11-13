@@ -41,6 +41,7 @@ source("R/func/generate_data.R")
 source("R/func/function_matrix.R")
 source("R/func/graph_create.R")
 # ui output
+source("R/module/tabHome.R")
 source("R/module/tabExample.R")
 source("R/module/tabDraw.R")
 
@@ -49,14 +50,21 @@ source("R/module/tabDraw.R")
 ui <- tagList(
   fluidPage(setBackgroundColor("AliceBlue"),
       theme = shinytheme("cerulean"),
+      list(tags$head(
+                     tags$style(HTML("
+      .navbar .navbar-nav {float: right; 
+                           color: white; 
+                           font-size: 10px; 
+                            } 
+      .navbar .navbar-header {float: left; } 
+
+  ")))),
       navbarPage(id = "tabs",
-                 # tags$head(
-                 #   tags$script(src = "custom.js")
-                 # ),
-                 title = "GraphApp",
+                 title=tags$em("GraphApp"),
                  collapsible = TRUE,
-        tabDraw,
-        tabExample
+                 tabHome,
+                 tabDraw,
+                 tabExample
     )),
   br(),br(),br(),
   components$foot
@@ -311,6 +319,7 @@ server <- function(input, output,session) {
              "Simple successive procedure" = dfcreate(input$Number_Hypotheses,"Simple successive procedure")
       )
     })
+    
     wp_create <- reactive({
       switch(input$Weighting_Strategy2,
              "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
@@ -330,28 +339,30 @@ server <- function(input, output,session) {
       wp <- wp_create()
       box(width = 10, style = "background-color: white;",
           box(title = div(HTML("Transition matrix <em>G</em>")),
-              status = "primary",solidHeader = TRUE,width = 6, 
+              status = "primary", solidHeader = TRUE,width = 6, 
               withMathJax(helpText("The propagation of significance levels")),
               matrixInput(inputId = "TransitionMatrixG",
                           value = df,class = "numeric",
                           cols = list(names = TRUE,extend = FALSE,
-                                      editableNames = TRUE,delta = 2),
+                                      editableNames = FALSE,delta = 2),
                           rows = list(names = TRUE, extend = FALSE,
-                                      editableNames = TRUE,delta = 1),
-                          copy = TRUE,paste = TRUE)),
+                                      editableNames = FALSE,delta = 1),
+                          copy = TRUE,paste = TRUE),
+              helpText("The values should be between 0 and 1.")
+              ),
           
           box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
               status = "primary",solidHeader = TRUE,width = 6,
               helpText(div(HTML("The specification of initial weights and <em>p</em>-values"))),
               matrixInput(inputId = "WeightPvalue",
-                          value = wp,
+                          value = wp, class = "numeric",
                           cols = list(names = TRUE, extend = FALSE,
                                       editableNames = FALSE, delta = 2),
-                          rows = list(
-                            names = FALSE, extend = FALSE,
-                            editableNames = TRUE, delta = 1),
-                          copy = TRUE, paste = TRUE)),
-          
+                          rows = list(names = TRUE, extend = FALSE,
+                                      editableNames = FALSE, delta = 1),
+                          copy = TRUE, paste = TRUE),
+              helpText("The sum of weights should be no more than 1.")),
+          br(),
           helpText("Please click corresponding cell to edit before testing.")
       )
     })    
@@ -482,8 +493,8 @@ server <- function(input, output,session) {
                                         plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
                                   
                                 res <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                                                weights=as.numeric(input$WeightPvalue[,2]),
-                                                pvalues=as.numeric(input$WeightPvalue[,3]),
+                                                weights=as.numeric(input$WeightPvalue[,"Weights"]),
+                                                pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
                                                 alpha = input$alpha,fweights = F)
                                 res_pvalues <- res$pvalues
                                 res_weights <- round(res$weights,digits = 2)
@@ -561,7 +572,14 @@ server <- function(input, output,session) {
                              alpha = input$alpha,fweights = F)
              data.frame("Adjusted p-values" = res$adjpvalues)
          })
-    
+     
+     output$downloadData <- downloadHandler(
+       filename = "file1.pdf",
+       content = function(file) {
+         file.copy("www/file1.pdf", file)
+       }
+     )
+     
     # result <- eventReactive(input$TestButton,{
     #     resultG <- gMCP_xc2(matrix = input$TransitionMatrixG,
     #                         weights = rep(num,1/num),

@@ -2,6 +2,9 @@
 
 dfcreate <- function(num,test="Bonferroni-Holm procedure"){
   df <- matrix(0,ncol=num,nrow=num)
+  name <- as.matrix(lapply(1:num, function(i) {
+    paste0("H", i)
+  }))
   if(test == "Bonferroni-Holm procedure"){
     df <- (1-diag(num))/(num-1)
   }
@@ -21,7 +24,9 @@ dfcreate <- function(num,test="Bonferroni-Holm procedure"){
                 c(0.5,0,0,0.5),
                 c(0,1,0,0),
                 c(1,0,0,0))
-                }
+  }
+  colnames(df) <- name
+  rownames(df) <- name
   return(df)
 }
 
@@ -45,9 +50,11 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
     weight = c(0.5,0.5,0,0)
     pvalues = rep(0.01,num)
   }
-  re <- data.frame("Hypothesis" = name,
+  re <- data.frame(
+    # "Hypothesis" = name,
                    "Weights" = weight,
                    "P-values" = pvalues, check.names = FALSE)
+  rownames(re) <- name
   return(as.matrix(re))
 }
 

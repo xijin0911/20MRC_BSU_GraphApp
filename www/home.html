@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<style>
+  h5 {
+    font-weight: bold;
+  }
+</style>
+
+<style> 
+
+#algo {
+  border: 1px solid;
+  padding: 10px;
+  box-shadow: 10px 10px 10px blue;
+}
+</style>
+        
+
+
+<br><br>
+<h3>Overview</h3>
+<p>Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
+Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. <b>The graphical approach to hypothesis testing</b>, in this Shiny app is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.</p>
+
+<h3>Method</h3>
+
+The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. The key idea is to express the resulting multiple test procedures by directed, weighted graph, where <em>vertices</em> correspond to elementary hypotheses: <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em> with associated weights denoting the local significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em>. In addition, any two vertices <em>H<sub>i</sub></em> and <em>H<sub>j</sub></em> are connected through directed <em>edges</em>, and the associated weights <em>g<sub>ij</sub></em> indicates the fraction of the local significance level <em>&alpha;<sub>i</sub></em> that is propagated to <em>H<sub>j</sub></em> once <em>H<sub>i</sub></em> has been rejected. A weight <em>g<sub>ij</sub></em>=0 indicates that no propagation of the significance level is foreseen and the edge is dopped for convenience.
+
+
+
+
+<br><br>
+
+<h5>1. Weighting strategy</h5>
+The weighting strategies can reflect the given study objectives, which can be communicated to the clinical team. Weighting strategies are formally defined through the weights <em>&omega;<sub>i</sub>(I),i&#8712;I</em>, for the global null hypothesis <em>H<sub>I</sub></em> and the transition matrix <em>G=(g<sub>ij</sub>)</em>, where <em>0&le;g<sub>ij</sub>&le;1</em>,<em>g<sub>ii</sub></em>=0, and <em>&sum;g<sub>ij</sub>&le;1</em> for all <em>i,j&#8712;I</em>. We additionally need to determine how the graph is updated once a vertex is removed. This can be achieved by tailoring Algotithm 1 as below to the graphical weighting strategy.   
+
+
+<br><br>
+<div id="algo">
+  <dt>Algorithm 1</dt>
+  <p>Define multiple shadows with blur effect.</p>
+</div>
+
+
+<br><br>
+
+
+<h5>2. Test procedure</h5>
+Different test procedures can account for the inherent logical relationships between the test statistics.
+<dt>Bonferroni-Holm procedure:</dt> 
+
+<br>
+<dt>Fixed Sequence tests:</dt> 
+<br>
+<dt>Fallback procedures:</dt> 
+<br>
+<dt>Fixed Sequence tests:</dt> 
+<br>
+
+<br><br>
+
+
+<h3>2. Using this application</h3>
+<br><br>
+<b>Home</b>:
+General description of this Shiny App and some learning materials.
+<br><br>
+<b>Draw</b>:
+<br><br>
+<b>Example</b>:
+With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
