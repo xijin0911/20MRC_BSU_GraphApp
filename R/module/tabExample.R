@@ -75,9 +75,9 @@ tabExample <- tabPanel("Example", icon=icon("cog", lib = "glyphicon"),
          shinyjs::hidden(
            div(id = "moreinfor",
                box(width=4,
-                   tableOutput("extend1")),
+                   tableOutput("extend_G")),
                box(width=4,
-                   tableOutput("extend2"))
+                   tableOutput("extend_weights"))
                )
          ))
 )

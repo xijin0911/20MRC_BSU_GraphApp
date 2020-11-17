@@ -27,7 +27,7 @@ generate_graph <- function(graph_data,
                            width="100%", height="800px") %>%
       visExport() %>%
       visEdges(arrows = 'to') %>%
-      visOptions(manipulation = list(enabled = T,
+      visOptions(manipulation = list(enabled = TRUE,
                                      editEdgeCols = c("propagation"),
                                      editNodeCols = c("label", "weight", "pvalue"),
                                      addNodeCols = c("label","weight", "pvalue")

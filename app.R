@@ -44,6 +44,15 @@ source("R/func/graph_create.R")
 source("R/module/tabHome.R")
 source("R/module/tabExample.R")
 source("R/module/tabDraw.R")
+# new added
+library(gfpop)
+library(htmlwidgets)
+source("R/module/tabDrawer.R")
+source("R/func/fct_visNetwork_helpers.R")
+source("R/func/golem_utils_server.R")
+source("R/func/golem_utils_ui.R")
+source("R/func/fct_graph_helpers.R")
+source("R/func/utils_general.R")
 
 
 # -----------------------------------------------------
@@ -59,12 +68,20 @@ ui <- tagList(
       .navbar .navbar-header {float: left; } 
 
   ")))),
+      tags$head(
+        tags$style(HTML("
+      .shiny-output-error-myClass {
+        color: red;
+      }
+    "))
+      ),
       navbarPage(id = "tabs",
                  title=tags$em("GraphApp"),
                  collapsible = TRUE,
                  tabHome,
                  tabDraw,
-                 tabExample
+                 tabExample,
+                 tabDrawer
     )),
   br(),br(),br(),
   components$foot
@@ -94,20 +111,31 @@ server <- function(input, output,session) {
    # graph_data initial setting -----------------------
    # NOTE: It seems that my functions (node_create and edge_create) can not be used in observeEvent function 
   nodes <- reactive({
-    switch(input$Weighting_Strategy,
+    # validate(
+    #   need(input$num_alert != "",
+    #        "Please specify the number of hypotheses for the nodes"),
+    #   errorClass = "myClass")
+    # get(
+      switch(input$Weighting_Strategy,
            "Specify ..." = node_create(as.numeric(input$num_alert), "Specify ..."),
            "Bonferroni-Holm procedure" = node_create(as.numeric(input$num_alert),"Bonferroni-Holm procedure"),
            "Fixed sequence test" = node_create(as.numeric(input$num_alert),"Fixed sequence test"),
            "Fallback procedure" = node_create(as.numeric(input$num_alert),"Fallback procedure")
     )
+    # )
   })
+  
   edges <- reactive({
-    switch(input$Weighting_Strategy,
+    validate(
+      need(input$num_alert != "", 
+           "Please specify the number of hypotheses for the edges"),
+      errorClass = "myClass")
+    (switch(input$Weighting_Strategy,
            "Specify ..." = edge_create(as.numeric(input$num_alert), "Specify ..."),
            "Bonferroni-Holm procedure" = edge_create(as.numeric(input$num_alert),"Bonferroni-Holm procedure"),
            "Fixed sequence test" = edge_create(as.numeric(input$num_alert),"Fixed sequence test"),
            "Fallback procedure" = edge_create(as.numeric(input$num_alert),"Fallback procedure")
-    )
+    ))
   })  
   
   output$graph_data_node <- renderDT({
@@ -144,79 +172,86 @@ server <- function(input, output,session) {
     )
     
     output$visGraph <- renderVisNetwork({
-      input$refreshGraph
       Strategy = input$Weighting_Strategy
       num_hypotheses = as.numeric(input$num_alert)
       generate_graph(graph_data,Weighting_Strategy=Strategy,
                      num_hypotheses)
     })
     
-    # observeEvent(input$visGraph_graphChange, {
-    #   # If the user added a node, add it to the data frame of nodes.
-    #   if(input$visGraph_graphChange$cmd == "addNode") {
-    #     temp = bind_rows(
-    #       graph_data$nodes,
-    #       data.frame(
-    #         id = input$visGraph_graphChange$id,
-    #         label = input$visGraph_graphChange$label,
-    #         shape = input$visGraph_graphChange$shape,
-    #         title = input$visGraph_graphChange$title,
-    #         Test = input$visGraph_graphChange$Test,
-    #         weight = input$visGraph_graphChange$weight,
-    #         pvalue = input$visGraph_graphChange$pvalue,
-    #         stringsAsFactors = F)
-    #     )
-    #     graph_data$nodes = temp
-    #   }
-    #   # If the user added an edge, add it to the data frame of edges.
-    #   else if(input$visGraph_graphChange$cmd == "addEdge") {
-    #     temp = bind_rows(
-    #       graph_data$edges,
-    #       data.frame(
-    #         from = input$visGraph_graphChange$from,
-    #         title = input$visGraph_graphChange$title,
-    #         to = input$visGraph_graphChange$to,
-    #         label = input$visGraph_graphChange$label,
-    #         propagation = input$visGraph_graphChange$propagation,
-    #         stringsAsFactors = F)
-    #     )
-    #     graph_data$edges = temp
-    #   }
-    #   # If the user edited a node, update that record.
-    #   else if(input$visGraph_graphChange$cmd == "editNode") {
-    #     temp = graph_data$nodes
-    #     temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
-    #     temp$shape[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$shape
-    #     temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
-    #     temp$Test[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$Test
-    #     temp$weight[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$weight
-    #     temp$pvalue[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$pvalue
-    #     graph_data$nodes = temp
-    #   }
-    #   # If the user edited an edge, update that record.
-    #   else if(input$visGraph_graphChange$cmd == "editEdge") {
-    #     temp = graph_data$edges
-    #     temp$from[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$from
-    #     temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
-    #     temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
-    #     temp$to[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$to
-    #     temp$propagation[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$propagation
-    #     graph_data$edges = temp
-    #   }
-    #   # If the user deleted something, remove those records.
-    #   else if(input$visGraph_graphChange$cmd == "deleteElements") {
-    #     for(node.id in input$visGraph_graphChange$nodes) {
-    #       temp = graph_data$nodes
-    #       temp = temp[temp$id != node.id,]
-    #       graph_data$nodes = temp
-    #     }
-    #     for(edge.id in input$visGraph_graphChange$edges) {
-    #       temp = graph_data$edges
-    #       temp = temp[temp$id != edge.id,]
-    #       graph_data$edges = temp
-    #     }
-    #   }
-    # })
+    observe({
+      visNetworkProxy(("visGraph")) %>%
+        visUpdateNodes(nodes = graph_data$nodes) %>%
+        visUpdateEdges(edges = graph_data$edges)
+    })
+    
+    observeEvent(input$visGraph_graphChange, {
+      # If the user added a node, add it to the data frame of nodes.
+      if(input$visGraph_graphChange$cmd == "addNode") {
+        temp = bind_rows(
+          graph_data$nodes,
+          data.frame(
+            id = input$visGraph_graphChange$id,
+            label = input$visGraph_graphChange$label,
+            shape = input$visGraph_graphChange$shape,
+            title = input$visGraph_graphChange$title,
+            Test = input$visGraph_graphChange$Test,
+            weight = input$visGraph_graphChange$weight,
+            pvalue = input$visGraph_graphChange$pvalue,
+            stringsAsFactors = F)
+        )
+        graph_data$nodes = temp
+      }
+      # If the user added an edge, add it to the data frame of edges.
+      else if(input$visGraph_graphChange$cmd == "addEdge") {
+        temp = bind_rows(
+          graph_data$edges,
+          data.frame(
+            id = input$visGraph_graphChange$id,
+            from = input$visGraph_graphChange$from,
+            title = "title",
+            to = input$visGraph_graphChange$to,
+            label = "label",
+            propagation = "propagation",
+            stringsAsFactors = F)
+        )
+        graph_data$edges = temp
+      }
+      # If the user edited a node, update that record.
+      else if(input$visGraph_graphChange$cmd == "editNode") {
+        temp = graph_data$nodes
+        temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
+        temp$shape[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$shape
+        temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
+        temp$Test[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$Test
+        temp$weight[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$weight
+        temp$pvalue[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$pvalue
+        graph_data$nodes = temp
+      }
+      # If the user edited an edge, update that record.
+      else if(input$visGraph_graphChange$cmd == "editEdge") {
+        temp = graph_data$edges
+        # temp$from[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$from
+        temp$title[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$title
+        temp$label[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$label
+        # temp$to[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$to
+        temp$propagation[temp$id == input$visGraph_graphChange$id] = input$visGraph_graphChange$propagation
+        graph_data$edges = temp
+      }
+      # If the user deleted something, remove those records.
+      else if(input$visGraph_graphChange$cmd == "deleteElements") {
+        for(node.id in input$visGraph_graphChange$nodes) {
+          temp = graph_data$nodes
+          temp = temp[temp$id != node.id,]
+          graph_data$nodes = temp
+        }
+        for(edge.id in input$visGraph_graphChange$edges) {
+          temp = graph_data$edges
+          temp = temp[temp$id != edge.id,]
+          graph_data$edges = temp
+        }
+      }
+      graph_data
+    })
     
   
     #----------------------------------------------------------------------
@@ -311,61 +346,6 @@ server <- function(input, output,session) {
     })
  
 # -----------------------------------------------------
-    df_create <- reactive({
-      switch(input$Weighting_Strategy2,
-             "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
-             "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
-             "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure"),
-             "Simple successive procedure" = dfcreate(input$Number_Hypotheses,"Simple successive procedure")
-      )
-    })
-    
-    wp_create <- reactive({
-      switch(input$Weighting_Strategy2,
-             "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
-             "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
-             "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure"),
-             "Simple successive procedure" = wpcreat(input$Number_Hypotheses,"Simple successive procedure")
-      )
-    })
-    
-    output$uioutput_Tmatrix <- renderUI({
-      num <- as.integer(input$Number_Hypotheses)
-      df <- df_create()
-      rownames(df) <- lapply(1:num, function(i) {
-        paste0("H", i)
-      })
-      colnames(df) <- rownames(df)
-      wp <- wp_create()
-      box(width = 10, style = "background-color: white;",
-          box(title = div(HTML("Transition matrix <em>G</em>")),
-              status = "primary", solidHeader = TRUE,width = 6, 
-              withMathJax(helpText("The propagation of significance levels")),
-              matrixInput(inputId = "TransitionMatrixG",
-                          value = df,class = "numeric",
-                          cols = list(names = TRUE,extend = FALSE,
-                                      editableNames = FALSE,delta = 2),
-                          rows = list(names = TRUE, extend = FALSE,
-                                      editableNames = FALSE,delta = 1),
-                          copy = TRUE,paste = TRUE),
-              helpText("The values should be between 0 and 1.")
-              ),
-          
-          box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
-              status = "primary",solidHeader = TRUE,width = 6,
-              helpText(div(HTML("The specification of initial weights and <em>p</em>-values"))),
-              matrixInput(inputId = "WeightPvalue",
-                          value = wp, class = "numeric",
-                          cols = list(names = TRUE, extend = FALSE,
-                                      editableNames = FALSE, delta = 2),
-                          rows = list(names = TRUE, extend = FALSE,
-                                      editableNames = FALSE, delta = 1),
-                          copy = TRUE, paste = TRUE),
-              helpText("The sum of weights should be no more than 1.")),
-          br(),
-          helpText("Please click corresponding cell to edit before testing.")
-      )
-    })    
     
     # output$uioutput_Tmatrix <- renderUI({
     #   num <- as.integer(input$Number_Hypotheses)
@@ -463,7 +443,63 @@ server <- function(input, output,session) {
       )
     })
     
-    # ---------------- Tweak Page output ----------------
+    # ---------------- Example Page output ----------------
+    df_create <- reactive({
+      switch(input$Weighting_Strategy2,
+             "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
+             "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
+             "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure"),
+             "Simple successive procedure" = dfcreate(input$Number_Hypotheses,"Simple successive procedure")
+      )
+    })
+    
+    wp_create <- reactive({
+      switch(input$Weighting_Strategy2,
+             "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
+             "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
+             "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure"),
+             "Simple successive procedure" = wpcreat(input$Number_Hypotheses,"Simple successive procedure")
+      )
+    })
+    
+    output$uioutput_Tmatrix <- renderUI({
+      num <- as.integer(input$Number_Hypotheses)
+      df <- df_create()
+      rownames(df) <- lapply(1:num, function(i) {
+        paste0("H", i)
+      })
+      colnames(df) <- rownames(df)
+      wp <- wp_create()
+      box(width = 10, style = "background-color: white;",
+          box(title = div(HTML("Transition matrix <em>G</em>")),
+              status = "primary", solidHeader = TRUE,width = 6, 
+              withMathJax(helpText("The propagation of significance levels")),
+              matrixInput(inputId = "TransitionMatrixG",
+                          value = df,class = "numeric",
+                          cols = list(names = TRUE,extend = FALSE,
+                                      editableNames = FALSE,delta = 2),
+                          rows = list(names = TRUE, extend = FALSE,
+                                      editableNames = FALSE,delta = 1),
+                          copy = TRUE,paste = TRUE),
+              helpText("The values are between 0 and 1.")
+          ),
+          
+          box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
+              status = "primary",solidHeader = TRUE,width = 6,
+              helpText(div(HTML("Initial weights and <em>p</em>-values"))),
+              matrixInput(inputId = "WeightPvalue",
+                          value = wp, class = "numeric",
+                          cols = list(names = TRUE, extend = FALSE,
+                                      editableNames = FALSE, delta = 2),
+                          rows = list(names = TRUE, extend = FALSE,
+                                      editableNames = FALSE, delta = 1),
+                          copy = TRUE, paste = TRUE),
+              helpText("The sum of weights are no more than 1.")),
+          br(),
+          helpText("Please click corresponding cell to edit before testing.")
+      )
+    })    
+    
     
     twoPlots <- eventReactive(input$TestButton,
                               {
@@ -524,7 +560,9 @@ server <- function(input, output,session) {
                                                                   margin = margin(10, 0, 10, 0)),
                                         plot.margin = margin(0.5,0.1,0.1,0.1))+
                                   annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme), 
-                                                    xmin=1.0, xmax=1.1, ymin=0.8, ymax=1)
+                                                    # ttheme_minimal() could be transparent
+                                                    xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
+                                
                                 ggarrange(a,b,ncol = 2, nrow = 1)
                               })
     
@@ -532,46 +570,36 @@ server <- function(input, output,session) {
       twoPlots()
     )
     
-     output$extend2 <- renderTable(
+     output$extend_weights <- renderTable(
         {
             net <- network(input$TransitionMatrixG,
                            directed = TRUE,
                            names.eval = "weights",
                            ignore.eval = FALSE)
             res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                     weights = as.numeric(input$WeightPvalue[,2]),
-                     pvalues = as.numeric(input$WeightPvalue[,3]),
+                            weights=as.numeric(input$WeightPvalue[,1]),
+                            pvalues=as.numeric(input$WeightPvalue[,2]),
                      alpha = input$alpha,fweights = F)
             data.frame(Hypothesis = paste0("H", 1:input$Number_Hypotheses),
                        Weights = res$weights)
         })
-     output$extend1 <- renderTable(
+     
+     output$extend_G <- renderTable(
          {
              net <- network(input$TransitionMatrixG,
                             directed = TRUE,
                             names.eval = "weights",
                             ignore.eval = FALSE)
              res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                             weights = as.numeric(input$WeightPvalue[,2]),
-                             pvalues = as.numeric(input$WeightPvalue[,3]),
+                             weights=as.numeric(input$WeightPvalue[,1]),
+                             pvalues=as.numeric(input$WeightPvalue[,2]),
                              alpha = input$alpha,fweights = F)
              result <- data.frame(res$G)
              colnames(result) <- rownames(input$TransitionMatrixG)
              rownames(result) <- rownames(input$TransitionMatrixG)
              result
-         }, caption = "Zero value means no trasition.", caption.placement = "bottom")
-     output$extend3 <- renderTable(
-         {
-             net <- network(input$TransitionMatrixG,
-                            directed = TRUE,
-                            names.eval = "p-values",
-                            ignore.eval = FALSE)
-             res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                             weights = as.numeric(input$WeightPvalue[,2]),
-                             pvalues = as.numeric(input$WeightPvalue[,3]),
-                             alpha = input$alpha,fweights = F)
-             data.frame("Adjusted p-values" = res$adjpvalues)
-         })
+         }, caption = "0 means no trasition.", caption.placement = "bottom")
+     
      
      output$downloadData <- downloadHandler(
        filename = "file1.pdf",
@@ -592,7 +620,140 @@ server <- function(input, output,session) {
     #     result()
     # }) 
 
-    
+     # ---------------- Drawer Page output ----------------
+     
+     gfpop_data = reactiveValues(
+       graphdata = gfpop::graph(penalty = as.double(15),
+                                type = "std"),
+       graphdata_visNetwork = graphdf_to_visNetwork(gfpop::graph(
+         penalty = as.double(15),type = "std"),
+         edge_ids = c("std_std_null", "std_std_std"))
+     )
+     
+     node_id_to_label <- reactiveValues(
+       main = list()
+     )
+     
+     dummy_graph_refresh <- reactiveValues(i = 0)
+     
+     output$gfpopGraph <- renderVisNetwork({
+       input$refreshGraph
+       dummy_graph_refresh$i
+       
+       generate_visNetwork(isolate(gfpop_data$graphdata_visNetwork))
+     })
+     
+     observe({
+       if (isTruthy(gfpop_data$graphdata_visNetwork$edges)) {
+         gfpop_data$graphdata_visNetwork$edges$label <- create_label(
+           gfpop_data$graphdata_visNetwork$edges,
+           colum = input$labels
+         )
+       }
+       # Update graph edges and nodes
+       visNetworkProxy(("gfpopGraph")) %>%
+         visUpdateNodes(nodes = gfpop_data$graphdata_visNetwork$nodes) %>%
+         visUpdateEdges(edges = gfpop_data$graphdata_visNetwork$edges)
+       # Update the mapping between node ids and labels
+       node_ids <- gfpop_data$graphdata_visNetwork$nodes$id
+       node_labels <- gfpop_data$graphdata_visNetwork$nodes$label
+       names(node_labels) <- node_ids
+       node_id_to_label$main <- node_labels
+     })
+     
+     
+     # Adjust whether null nodes are visible, after user clicks radio box.
+     observeEvent(eventExpr = input$showNull, {
+       gfpop_data$graphdata_visNetwork$edges$hidden <- sapply(
+         gfpop_data$graphdata_visNetwork$edges$type,
+         function(x) if (input$showNull) FALSE else (x == "null"))
+     })
+     
+     # Update Graph upon User Edit --------------------------------------------
+     
+     # Respond to a change in the visNetwork plot (via manipulation)
+     observeEvent(input$gfpopGraph_graphChange, {
+       event <- input$gfpopGraph_graphChange
+       gfpop_data$graphdata_visNetwork <- modify_visNetwork(
+         event,
+         gfpop_data$graphdata_visNetwork
+       )
+       # Eure that graphdata stays in sync with visNetwork data
+       gfpop_data$graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
+     })
+     
+     # Update graph when a cell is edited in the direct gfpop input datatable
+     # ------------------------------------------------------------------------------------------
+     # Update graph when a cell is edited in the visEdges datatable
+     proxy_visEdges <- dataTableProxy("graphOutput_visEdges")
+     observeEvent(input$graphOutput_visEdges_cell_edit, {
+       info <- input$graphOutput_visEdges_cell_edit
+       i <- info$row
+       # Add one to the column to shift for id
+       j <- info$col + 1
+       v <- info$value
+       
+       # Update visNetwork data via proxy
+       gfpop_data$graphdata_visNetwork$edges[i, j] <<- DT::coerceValue(
+         v, gfpop_data$graphdata_visNetwork$edges[i, j, with = F]
+       )
+       replaceData(proxy_visEdges, gfpop_data$graphdata_visNetwork$edges, resetPaging = FALSE)
+       
+       # Make sure main graphdata stays up-to-date
+       # gfpop_data$graphdata <- gfpop_data$graphdatavisNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
+     })
+     
+     # Update graph when a cell is edited in the visNodes datatable
+     proxy_visNodes <- dataTableProxy("graphOutput_visNodes")
+     observeEvent(input$graphOutput_visNodes_cell_edit, {
+       info <- input$graphOutput_visNodes_cell_edit
+       i <- info$row
+       # Add one to column to shift for id
+       j <- info$col + 1
+       v <- info$value
+       
+       gfpop_data$graphdata_visNetwork$nodes[i, j] <<- DT::coerceValue(
+         v, gfpop_data$graphdata_visNetwork$nodes[i, j, with = F]
+       )
+       replaceData(proxy_visNodes, gfpop_data$graphdata_visNetwork$nodes, resetPaging = FALSE)
+       
+     })
+     
+     # Render Graph DataTables ------------------------------------------------
+     output$graphOutput <- DT::renderDT(
+       {
+         gfpop_data$graphdata %>% select_graph_colum()
+       },
+       editable = TRUE,
+       optio = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+     )
+     
+     output$graphOutput_visEdges <- DT::renderDT(
+       {
+         gfpop_data$graphdata_visNetwork$edges[,c(
+           "label", 
+           "to", "from","parameter",
+           "type",  "penalty",
+           "K", "a", "min", "max", "selfReference.angle",
+           "selfReference.size", "hidden", "color"
+         )]
+       },
+       editable = TRUE,
+       optio = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+     )
+     
+     output$graphOutput_visNodes <- DT::renderDT(
+       {
+         gfpop_data$graphdata_visNetwork$nodes[,c(
+           "label", 
+           "size", "start"
+           # "end",
+           # "shape", "color.background", "color.border", "shadow"
+         )]
+       },
+       editable = TRUE,
+       optio = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
+     )
 }
 
 shinyApp(ui, server)
