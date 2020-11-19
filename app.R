@@ -45,14 +45,14 @@ source("R/module/tabHome.R")
 source("R/module/tabExample.R")
 source("R/module/tabDraw.R")
 # new added
-library(gfpop)
-library(htmlwidgets)
-source("R/module/tabDrawer.R")
-source("R/func/fct_visNetwork_helpers.R")
-source("R/func/golem_utils_server.R")
-source("R/func/golem_utils_ui.R")
-source("R/func/fct_graph_helpers.R")
-source("R/func/utils_general.R")
+# library(gfpop)
+# library(htmlwidgets)
+# source("R/module/tabDrawer.R")
+# source("R/func/fct_visNetwork_helpers.R")
+# source("R/func/golem_utils_server.R")
+# source("R/func/golem_utils_ui.R")
+# source("R/func/fct_graph_helpers.R")
+# source("R/func/utils_general.R")
 
 
 # -----------------------------------------------------
@@ -227,7 +227,7 @@ server <- function(input, output,session) {
   
   output$graphOutput_visNodes = DT::renderDT({
     nodes_result = graph_data$nodes[,c("id","weight","pvalue")]
-    colnames(nodes_result) = c("Test (id)","Weight","P-value")
+    colnames(nodes_result) = c("test (id)","weight","p-value")
     nodes_result
   },
   editable = TRUE,
@@ -238,22 +238,6 @@ server <- function(input, output,session) {
   },
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
-  
-  
-  # output$all_nodes = DT::renderDT({
-  #   nodes_result = graph_data$nodes[,c("id","weight","pvalue")]
-  #   colnames(nodes_result) = c("test (id)","weight","p-value")
-  #   nodes_result
-  # },
-  # editable = TRUE,
-  # options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
-  
-  # output$all_edges = DT::renderDT({
-  #   graph_data$edges[,c("from","to","propagation")]
-  # },
-  # editable = TRUE,
-  # options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
-  
   
     # ---------------- Example Page output ----------------
     df_create <- reactive({
@@ -420,18 +404,6 @@ server <- function(input, output,session) {
        }
      )
      
-    # result <- eventReactive(input$TestButton,{
-    #     resultG <- gMCP_xc2(matrix = input$TransitionMatrixG,
-    #                         weights = rep(num,1/num),
-    #                         pvalues= input$WeightPvalue[,3],
-    #                         alpha = input$alpha,fweights = F)
-    #     colnames(resultG$G) <- NULL
-    #     resultG$G
-    # })
-    # output$resultMatrixG <- renderTable({
-    #     result()
-    # }) 
-
      # ---------------- Drawer Page output ----------------
      
      # gfpop_data = reactiveValues(
