@@ -7,9 +7,9 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                       column(
                         width = 6,
                         h3("Nodes in the graph:"),
-                        DTOutput("all_nodes"),
+                        DTOutput("graphOutput_visNodes"),
                         h3("Edges in the graph:"),
-                        DTOutput("all_edges")
+                        DTOutput("graphOutput_visEdges")
                       )
                     )
 )
