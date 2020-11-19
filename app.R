@@ -96,7 +96,6 @@ init.nodes.df = data.frame(id = c("H1","H2","H3"),
 init.edges.df = data.frame(id = c("e1","e2"),
                            from = c("H1","H2"), 
                            to = c("H2","H3"),
-                           propagation = c("0.1","0.1"),
                            label = c("0.1","0.1"), # label should be the same as 'propagation'
                            stringsAsFactors = F)
 
@@ -130,7 +129,7 @@ server <- function(input, output,session) {
       visExport() %>%
       visEdges(arrows = 'to') %>%
       visOptions(manipulation = list(enabled = T,
-                                     editEdgeCols = c("propagation"),
+                                     editEdgeCols = c("label"),
                                      editNodeCols = c("id","weight", "pvalue"),
                                      addNodeCols = c("id","weight", "pvalue")
       ))
@@ -155,7 +154,7 @@ server <- function(input, output,session) {
           id = input$editable_network_graphChange$id,
           from = input$editable_network_graphChange$from,
           to = input$editable_network_graphChange$to,
-          propagation = "NULL",
+          # label = "NULL",
           label = "NULL",
           stringsAsFactors = F)
       )
@@ -171,8 +170,7 @@ server <- function(input, output,session) {
     }
     else if(input$editable_network_graphChange$cmd == "editEdge") {
       temp = graph_data$edges
-      temp$propagation[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$propagation
-      temp$label[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$propagation
+      temp$label[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$label
       
       graph_data$edges = temp
     }
@@ -234,7 +232,9 @@ server <- function(input, output,session) {
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
   output$graphOutput_visEdges = DT::renderDT({
-    graph_data$edges[,c("from","to","propagation")]
+    result <- graph_data$edges[,c("from","to","label")]
+    colnames(result) <- c("from","to","propagation")
+    result
   },
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
