@@ -1,6 +1,6 @@
 tabExample <- tabPanel("Example", icon=icon("cog", lib = "glyphicon"),  
          column(3,style = "background-color: skyblue;",
-                h3("Settings"),
+                h3("Settings", align = "center"),
                 br(),
                 collapsible = FALSE,solidHeader = TRUE,collapsed = TRUE,
                 numericInput(inputId="Number_Hypotheses",

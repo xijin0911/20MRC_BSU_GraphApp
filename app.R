@@ -45,14 +45,6 @@ source("R/module/tabHome.R")
 source("R/module/tabExample.R")
 source("R/module/tabDraw.R")
 # new added
-# library(gfpop)
-# library(htmlwidgets)
-# source("R/module/tabDrawer.R")
-# source("R/func/fct_visNetwork_helpers.R")
-# source("R/func/golem_utils_server.R")
-# source("R/func/golem_utils_ui.R")
-# source("R/func/fct_graph_helpers.R")
-# source("R/func/utils_general.R")
 
 
 # -----------------------------------------------------
@@ -84,8 +76,7 @@ ui <- tagList(
                  # tabDrawer
     )),
   br(),br(),br(),
-  components$foot
-)
+  components$foot)
 
 # graph_data initial setting -----------------------
 init.nodes.df = data.frame(id = c("H1","H2","H3"),
@@ -239,6 +230,68 @@ server <- function(input, output,session) {
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
+  output$res_Table1 <- renderTable({
+    num <- nrow(graph_data$nodes)
+    names <- lapply(1:num, function(i) {paste0("H", i)})
+    ini.matrix <- matrix(0,nrow=num,ncol=num)
+    colnames(ini.matrix) <- names
+    rownames(ini.matrix) <- names
+    for (i in 1:nrow(graph_data$edges)){
+      ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
+                 which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
+    }
+    result <- gMCP_xc2(matrix=ini.matrix,
+                       weights=as.numeric(graph_data$nodes[,"weight"]),
+                       pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
+                       alpha = input$alpha_draw,fweights = F)
+    result <- data.frame(result$rejected)
+    result <- cbind(as.character(names),result)
+    colnames(result) <- c("test","rejection")
+    result
+  })
+  
+  output$res_Table2 <- renderTable({
+    num <- nrow(graph_data$nodes)
+    names <- lapply(1:num, function(i) {paste0("H", i)})
+    ini.matrix <- matrix(0,nrow=num,ncol=num)
+    colnames(ini.matrix) <- names
+    rownames(ini.matrix) <- names
+    for (i in 1:nrow(graph_data$edges)){
+      ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
+                 which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
+    }
+    result <- gMCP_xc2(matrix=ini.matrix,
+                       weights=as.numeric(graph_data$nodes[,"weight"]),
+                       pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
+                       alpha = input$alpha_draw,fweights = F)
+    result <- data.frame(result$adjpvalues)
+    result <- cbind(as.character(names),result)
+    colnames(result) <- c("test","adjusted p-values")
+    result
+  })
+  
+  
+  output$extend_G <- renderTable(
+    {
+      result <- data.frame(res$G)
+      colnames(result) <- rownames(input$TransitionMatrixG)
+      rownames(result) <- rownames(input$TransitionMatrixG)
+      result
+    }, caption = "0 means no trasition.", caption.placement = "bottom")
+  
+  
+  # res_pvalues <- res$pvalues
+  # res_weights <- round(res$weights,digits = 2)
+  # res_G <- round(res$G,digits = 2)
+  # res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
+  #                       "Adjusted p-values" = res$adjpvalues,
+  #                       check.names = FALSE)
+  # 
+  # res_net <- network(res_G,directed = TRUE,
+  #                    names.eval = "weights",ignore.eval = FALSE)
+  # res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
+  # e <- network.edgecount(res_net)
+  # res_net %v% "Rejection" <- res$rejected
     # ---------------- Example Page output ----------------
     df_create <- reactive({
       switch(input$Weighting_Strategy2,
@@ -403,141 +456,6 @@ server <- function(input, output,session) {
          file.copy("www/file1.pdf", file)
        }
      )
-     
-     # ---------------- Drawer Page output ----------------
-     
-     # gfpop_data = reactiveValues(
-     #   graphdata = gfpop::graph(penalty = as.double(15),
-     #                            type = "std"),
-     #   graphdata_visNetwork = graphdf_to_visNetwork(gfpop::graph(
-     #     penalty = as.double(15),type = "std"),
-     #     edge_ids = c("std_std_null", "std_std_std"))
-     # )
-     # 
-     # node_id_to_label <- reactiveValues(
-     #   main = list()
-     # )
-     # 
-     # dummy_graph_refresh <- reactiveValues(i = 0)
-     # 
-     # output$gfpopGraph <- renderVisNetwork({
-     #   input$refreshGraph
-     #   dummy_graph_refresh$i
-     #   
-     #   generate_visNetwork(isolate(gfpop_data$graphdata_visNetwork))
-     # })
-     # 
-     # observe({
-     #   if (isTruthy(gfpop_data$graphdata_visNetwork$edges)) {
-     #     gfpop_data$graphdata_visNetwork$edges$label <- create_label(
-     #       gfpop_data$graphdata_visNetwork$edges,
-     #       colum = input$labels
-     #     )
-     #   }
-     #   # Update graph edges and nodes
-     #   visNetworkProxy(("gfpopGraph")) %>%
-     #     visUpdateNodes(nodes = gfpop_data$graphdata_visNetwork$nodes) %>%
-     #     visUpdateEdges(edges = gfpop_data$graphdata_visNetwork$edges)
-     #   # Update the mapping between node ids and labels
-     #   node_ids <- gfpop_data$graphdata_visNetwork$nodes$id
-     #   node_labels <- gfpop_data$graphdata_visNetwork$nodes$label
-     #   names(node_labels) <- node_ids
-     #   node_id_to_label$main <- node_labels
-     # })
-     # 
-     # 
-     # # Adjust whether null nodes are visible, after user clicks radio box.
-     # # observeEvent(eventExpr = input$showNull, {
-     # #   gfpop_data$graphdata_visNetwork$edges$hidden <- sapply(
-     # #     gfpop_data$graphdata_visNetwork$edges$type,
-     # #     function(x) if (input$showNull) FALSE else (x == "null"))
-     # # })
-     # 
-     # # Update Graph upon User Edit --------------------------------------------
-     # 
-     # # Respond to a change in the visNetwork plot (via manipulation)
-     # observeEvent(input$gfpopGraph_graphChange, {
-     #   event <- input$gfpopGraph_graphChange
-     #   gfpop_data$graphdata_visNetwork <- modify_visNetwork(
-     #     event,
-     #     gfpop_data$graphdata_visNetwork
-     #   )
-     #   # Eure that graphdata stays in sync with visNetwork data
-     #   gfpop_data$graphdata <- visNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
-     # })
-     # 
-     # # Update graph when a cell is edited in the direct gfpop input datatable
-     # # ------------------------------------------------------------------------------------------
-     # # Update graph when a cell is edited in the visEdges datatable
-     # proxy_visEdges <- dataTableProxy("graphOutput_visEdges")
-     # observeEvent(input$graphOutput_visEdges_cell_edit, {
-     #   info <- input$graphOutput_visEdges_cell_edit
-     #   i <- info$row
-     #   # Add one to the column to shift for id
-     #   j <- info$col + 1
-     #   v <- info$value
-     #   
-     #   # Update visNetwork data via proxy
-     #   gfpop_data$graphdata_visNetwork$edges[i, j] <<- DT::coerceValue(
-     #     v, gfpop_data$graphdata_visNetwork$edges[i, j, with = F]
-     #   )
-     #   replaceData(proxy_visEdges, gfpop_data$graphdata_visNetwork$edges, resetPaging = FALSE)
-     #   
-     #   # Make sure main graphdata stays up-to-date
-     #   # gfpop_data$graphdata <- gfpop_data$graphdatavisNetwork_to_graphdf(gfpop_data$graphdata_visNetwork)
-     # })
-     # 
-     # # Update graph when a cell is edited in the visNodes datatable
-     # proxy_visNodes <- dataTableProxy("graphOutput_visNodes")
-     # observeEvent(input$graphOutput_visNodes_cell_edit, {
-     #   info <- input$graphOutput_visNodes_cell_edit
-     #   i <- info$row
-     #   # Add one to column to shift for id
-     #   j <- info$col + 1
-     #   v <- info$value
-     #   
-     #   gfpop_data$graphdata_visNetwork$nodes[i, j] <<- DT::coerceValue(
-     #     v, gfpop_data$graphdata_visNetwork$nodes[i, j, with = F]
-     #   )
-     #   replaceData(proxy_visNodes, gfpop_data$graphdata_visNetwork$nodes, resetPaging = FALSE)
-     #   
-     # })
-     # 
-     # # Render Graph DataTables ------------------------------------------------
-     # output$graphOutput <- DT::renderDT(
-     #   {
-     #     gfpop_data$graphdata %>% select_graph_colum()
-     #   },
-     #   editable = TRUE,
-     #   optio = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
-     # )
-     # 
-     # output$graphOutput_visEdges <- DT::renderDT(
-     #   {
-     #     gfpop_data$graphdata_visNetwork$edges[,c(
-     #       "label", 
-     #       "to", "from","parameter",
-     #       "type",  "penalty",
-     #       "K", "a", "min", "max", "selfReference.angle",
-     #       "selfReference.size", "hidden", "color"
-     #     )]
-     #   },
-     #   editable = TRUE,
-     #   optio = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
-     # )
-     # 
-     # output$graphOutput_visNodes <- DT::renderDT(
-     #   {
-     #     gfpop_data$graphdata_visNetwork$nodes[,c(
-     #       "label", 
-     #       "size", "start"
-     #       # "end",
-     #       # "shape", "color.background", "color.border", "shadow"
-     #     )]
-     #   },
-     #   editable = TRUE,
-     #   optio = list("pageLength" = 5, dom = "tp", searching = F, scrollX = T)
-     # )
 }
 
 shinyApp(ui, server)
