@@ -5,20 +5,24 @@ tabTest <- tabPanel("Example test", icon=icon("picture", lib = "glyphicon"),
                   inputId = "exRadio",
                   label = "Click me!",
                   choices = c("Simple successive procedure",
-                              "Second", 
-                              "Third"),
+                              "Second"),
                   shape = "round",
                   fill = TRUE,
                   inline = TRUE
                 ),
-                
+                numericInput(inputId = "alpha_test", 
+                             label = HTML("&alpha;"),
+                             value = 0.05,step = 0.001,min = 0),
          ),
-         column(4,
+         column(5,
            h2("Details", align = "center"),
-           p("Please double click the cell to edit")
+           plotOutput("resPlots_ini"),
+           plotOutput("resPlots_final")
          ),
-         column(
+         column(width = 4,
            h2("Result", align = "center"),
-           width = 5
+           uiOutput("uioutput_Tmatrix_df"),
+           br(),
+           uiOutput("uioutput_Tmatrix_wp")
          ))
          

@@ -15,8 +15,8 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                                           label = "Weighting Strategy",
                                           choices = c("Bonferroni-Holm procedure",
                                                       "Fixed sequence test",
-                                                      "Fallback procedure",
-                                                      "Simple successive procedure"),
+                                                      "Fallback procedure"),
+                                          # ,"Simple successive procedure"
                                           selected = "Bonferroni-Holm procedure"),
                               conditionalPanel(
                                 condition = "input.Weighting_Strategy2 == 'Bonferroni-Holm procedure'",
@@ -31,10 +31,10 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                                 condition = "input.Weighting_Strategy2 == 'Fallback procedure'",
                                 div(strong("Note:"), "All hypotheses with same weights have a priori testing orde", style = "color:blue")
                               ),
-                              conditionalPanel(
-                                condition = "input.Weighting_Strategy2 == 'Simple successive procedure'",
-                                div(strong("Note:"), "The number of hypotheses is fixed, you must set it as 4", style = "color:red")
-                              ),
+                              # conditionalPanel(
+                              #   condition = "input.Weighting_Strategy2 == 'Simple successive procedure'",
+                              #   div(strong("Note:"), "The number of hypotheses is fixed, you must set it as 4", style = "color:red")
+                              # ),
                               hr(),
                               conditionalPanel(
                                 condition = "input.Weighting_Strategy2 == 'Bonferroni-Holm procedure'",
@@ -50,23 +50,22 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                                 condition = "input.Weighting_Strategy2 == 'Fallback procedure'",
                                 p(("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry , 2 (3), 211-215."),
                                   p(("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. Statistics in Medicine 2009; 28:586-604.")))
-                              ),
-                              
-                              conditionalPanel(
-                                condition = "input.Weighting_Strategy2 == 'Simple successive procedure'",
-                                p(("Maurer W., Glimm E., Bretz F.: Multiple and repeated testing of primary, co-primary and secondary hypotheses. Statistics in Biopharmaceutical Reserach 2011.")
-                                ))
+                              )
+                              # conditionalPanel(
+                              #   condition = "input.Weighting_Strategy2 == 'Simple successive procedure'",
+                              #   p(("Maurer W., Glimm E., Bretz F.: Multiple and repeated testing of primary, co-primary and secondary hypotheses. Statistics in Biopharmaceutical Reserach 2011.")
+                              #   ))
                        ),
                        column(9,# style = "background-color:#FFFAFA;",
                               uiOutput("uioutput_Tmatrix"),
-                              br()),
-                       column(3),
-                       column(9,
+                              # ),
+                       # column(9,
                               box(width=10,
                                   actionButton("TestButton", "Start testing procedure!"),
                                   br(),br(),
                                   conditionalPanel(condition = "input.TestButton != 0",
-                                                   plotOutput("ResultPlot"))),
+                                                   plotOutput("ResultPlot"))
+                                  ),
                               shinyjs::useShinyjs()),
                        column(3),
                        column(9,
