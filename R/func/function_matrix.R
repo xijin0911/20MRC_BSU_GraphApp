@@ -1,4 +1,12 @@
-# function for 
+
+f2n <- function(ff){
+  library(gsubfn)
+  calc <- function(s) {
+    x <- c(if (length(s) == 2) 0, as.numeric(s), 0:1)
+    x[1] + x[2] / x[3]
+  }
+  sapply(strapplyc(ff, "\\d+"), calc)
+}
 
 dfcreate <- function(num,test="Bonferroni-Holm procedure"){
   df <- matrix(0,ncol=num,nrow=num)
@@ -35,7 +43,7 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
       paste0("H", i)
   }))
     if(test=="Bonferroni-Holm procedure"){
-      weight = round(rep(1/num,num),digits=2)
+      weight = (rep(1/num,num))
       pvalues = rep(0.01,num)
     }
    if(test=="Fixed sequence test"){
@@ -43,7 +51,7 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
      pvalues = rep(0.01,num)
     }
   if(test == "Fallback procedure"){
-    weight = round(rep(1/num,num),digits=2)
+    weight = (rep(1/num,num))
     pvalues = rep(0.01,num)
   }
   if(test == "Simple successive procedure"){
@@ -51,7 +59,6 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
     pvalues = rep(0.01,num)
   }
   re <- data.frame(
-    # "Hypothesis" = name,
                    "Weights" = weight,
                    "P-values" = pvalues, check.names = FALSE)
   rownames(re) <- name

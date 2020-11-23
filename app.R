@@ -28,18 +28,17 @@ library(gridExtra)
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
-# library(networkD3)
 source("R/module/clickpad.R")
 source("R/columns.R")
 source("R/node.R")
 source("R/components.R")
 source("R/functions.R")
 source("R/func/gMCP_xc2.R")
-# source("R/func/modify_visNetwork.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
 source("R/func/function_matrix.R")
 source("R/func/graph_create.R")
+
 # ui output
 source("R/module/tabHome.R")
 source("R/module/tabDraw.R")
@@ -50,21 +49,18 @@ source("R/module/tabTest.R")
 ui <- tagList(
   fluidPage(setBackgroundColor("AliceBlue"),
       theme = shinytheme("cerulean"),
-      list(tags$head(
-                     tags$style(HTML("
+      list(tags$head(tags$style(HTML("
       .navbar .navbar-nav {float: right; 
                            color: white; 
                            font-size: 10px;} 
       .navbar .navbar-header {float: left;} 
 
   ")))),
-      tags$head(
-        tags$style(HTML("
+      tags$head(tags$style(HTML("
       .shiny-output-error-myClass {
         color: red;
       }
-    "))
-      ),
+    "))),
       navbarPage(id = "tabs",
                  title=tags$em("GraphApp"),
                  collapsible = TRUE,
@@ -79,7 +75,7 @@ ui <- tagList(
 # graph_data initial setting -----------------------
 init.nodes.df = data.frame(id = c("H1","H2","H3"),
                            label = c("H1","H2","H3"),  # label should be the same as 'id'
-                           weight = c("0.33", "0.33","0.33"),
+                           weight = c("1/3", "1/3","1/3"),
                            pvalue = c("0.01","0.01","0.01"),
                            stringsAsFactors = F)
 init.edges.df = data.frame(id = c("e1","e2"),
@@ -246,7 +242,7 @@ server <- function(input, output,session) {
                  which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
     }
     result <- gMCP_xc2(matrix=ini.matrix,
-                       weights=as.numeric(graph_data$nodes[,"weight"]),
+                       weights=f2n(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
     result <- data.frame(result$rejected)
@@ -267,7 +263,7 @@ server <- function(input, output,session) {
                  which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
     }
     result <- gMCP_xc2(matrix=ini.matrix,
-                       weights=as.numeric(graph_data$nodes[,"weight"]),
+                       weights=f2n(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
     result <- data.frame(result$adjpvalues)
@@ -299,7 +295,6 @@ server <- function(input, output,session) {
              "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
              "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
-             # "Simple successive procedure" = wpcreat(input$Number_Hypotheses,"Simple successive procedure")
       )
     })
     
@@ -370,7 +365,7 @@ server <- function(input, output,session) {
                                         plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
                                   
                                 res <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                                                weights=as.numeric(input$WeightPvalue[,"Weights"]),
+                                                weights=f2n(input$WeightPvalue[,"Weights"]),
                                                 pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
                                                 alpha = input$alpha,fweights = F)
                                 res_pvalues <- res$pvalues
@@ -417,7 +412,7 @@ server <- function(input, output,session) {
                            names.eval = "weights",
                            ignore.eval = FALSE)
             res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                            weights=as.numeric(input$WeightPvalue[,1]),
+                            weights=f2n(input$WeightPvalue[,1]),
                             pvalues=as.numeric(input$WeightPvalue[,2]),
                      alpha = input$alpha,fweights = F)
             data.frame(Hypothesis = paste0("H", 1:input$Number_Hypotheses),
@@ -431,8 +426,8 @@ server <- function(input, output,session) {
                             names.eval = "weights",
                             ignore.eval = FALSE)
              res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                             weights=as.numeric(input$WeightPvalue[,1]),
-                             pvalues=as.numeric(input$WeightPvalue[,2]),
+                             weights=f2n(input$WeightPvalue[,"Weights"]),
+                             pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
                              alpha = input$alpha,fweights = F)
              result <- data.frame(res$G)
              colnames(result) <- rownames(input$TransitionMatrixG)
@@ -445,7 +440,6 @@ server <- function(input, output,session) {
        switch(input$exRadio,
               "Simple successive procedure" = dfcreate(4,"Simple successive procedure"),
               "Second" = dfcreate(4,"Simple successive procedure")
-              # "Third" = dfcreate(4,"Simple successive procedure")
        )
      })
      
@@ -453,7 +447,6 @@ server <- function(input, output,session) {
        switch(input$exRadio,
               "Simple successive procedure" = wpcreat(4,"Simple successive procedure"),
               "Second" = wpcreat(4,"Simple successive procedure")
-              # "Third" = wpcreat(4,"Simple successive procedure")
        )
      })
      
@@ -501,6 +494,7 @@ server <- function(input, output,session) {
      })
      
      output$resPlots_ini <- renderPlot({
+       num <- 4
        df <- df_create_test()
        wp <- wp_create_test()
        names <- lapply(1:num, function(i) {paste0("H", i)})
@@ -532,11 +526,12 @@ server <- function(input, output,session) {
 
 
 output$resPlots_final <- renderPlot({
+  num <- 4
   df <- df_create_test()
   wp <- wp_create_test()
   names <- lapply(1:num, function(i) {paste0("H", i)})
   res <- gMCP_xc2(matrix=df,
-                  weights=as.numeric(wp[,"Weights"]),
+                  weights=f2n(wp[,"Weights"]),
                   pvalues=as.numeric(wp[,"P-values"]),
                   alpha = input$alpha_test,fweights = F)
   res_pvalues <- res$pvalues
@@ -569,14 +564,7 @@ output$resPlots_final <- renderPlot({
   annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
                     # ttheme_minimal() could be transparent
                     xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
-  
-  # tbl <- tableGrob(res_adj, rows=NULL,theme = grobtheme)
-   # grid.arrange(tbl,plt,nrow=1,as.table=TRUE,widths=c(1,3))
 })
 }
 
 shinyApp(ui, server)
-
-
-# Manipulate An Existing DataTables Instance
-# https://rstudio.github.io/DT/shiny.html
