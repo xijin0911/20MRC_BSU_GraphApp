@@ -25,14 +25,12 @@ library(reshape2)
 library(data.table)
 library(ggplot2)
 library(gridExtra)
+
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
-source("R/module/clickpad.R")
 source("R/columns.R")
-source("R/node.R")
 source("R/components.R")
-source("R/functions.R")
 source("R/func/gMCP_xc2.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
@@ -44,6 +42,7 @@ source("R/module/tabHome.R")
 source("R/module/tabDraw.R")
 source("R/module/tabProcedure.R")
 source("R/module/tabTest.R")
+
 
 # -----------------------------------------------------
 ui <- tagList(

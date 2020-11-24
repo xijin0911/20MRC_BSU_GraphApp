@@ -1,4 +1,5 @@
 
+
 f2n <- function(ff){
   library(gsubfn)
   calc <- function(s) {

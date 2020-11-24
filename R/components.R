@@ -84,12 +84,12 @@ components$build <- box(
       )
     )
   ),
-  fluidRow(
-    column(
-      width = 12,
-      clickpad_UI("clickpad", height = "600px", width = "100%")
-    )
-  ),
+  # fluidRow(
+  #   column(
+  #     width = 12,
+  #     clickpad_UI("clickpad", height = "600px", width = "100%")
+  #   )
+  # ),
   if (getOption("shinydag.debug", FALSE)) fluidRow(
     column(width = 12, shinyThings::undoHistoryUI_debug("undo_rv"))
   ),
