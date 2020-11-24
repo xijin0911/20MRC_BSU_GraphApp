@@ -8,6 +8,7 @@ f2n <- function(ff){
   sapply(strapplyc(ff, "\\d+"), calc)
 }
 
+
 dfcreate <- function(num,test="Bonferroni-Holm procedure"){
   df <- matrix(0,ncol=num,nrow=num)
   name <- as.matrix(lapply(1:num, function(i) {
