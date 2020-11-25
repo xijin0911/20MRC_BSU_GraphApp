@@ -5,8 +5,8 @@ account: xijin
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3296451
-bundleId: 3901328
+bundleId: 3903865
 url: https://xijin.shinyapps.io/graphapp/
-when: 1606249331.70133
+when: 1606299106.87251
 asMultiple: FALSE
 asStatic: FALSE

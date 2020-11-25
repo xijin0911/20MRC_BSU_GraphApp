@@ -21,8 +21,8 @@ tabTest <- tabPanel("Example test", icon=icon("picture", lib = "glyphicon"),
          ),
          column(width = 4,
            h2("Result", align = "center"),
-           uiOutput("uioutput_Tmatrix_df"),
+           tableOutput("uioutput_Tmatrix_df"),
            br(),
-           uiOutput("uioutput_Tmatrix_wp")
+           tableOutput("uioutput_Tmatrix_wp")
          ))
          

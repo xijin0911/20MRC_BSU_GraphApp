@@ -1,36 +1,33 @@
 ## app.R ##
-library(shiny)
-library(shinydashboard)
-library(shinyjs)
-library(shinycssloaders)  # load css 
-library(rintrojs) # introBox
-library(shinyMatrix) # transition matrix
-library(shinyThings)
-library(shinyWidgets)
-library(igraph)
-library(dplyr)
+# library(shiny)
+# library(shinycssloaders)  
+library(shinyMatrix)
 library(network)
 library(shinythemes)
 library(ggnetwork)
-library(ggpubr)
-library(shinyalert)
+# library(ggpubr)
 library(DT)
-library(DiagrammeR)
-library(dagitty)
-library(texPreview)
-library(shinyAce)
-library(shinyBS)
-library(ggdag)
-library(reshape2)
-library(data.table)
+# library(shinyAce)
 library(ggplot2)
 library(gridExtra)
-
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
-source("R/columns.R")
-source("R/components.R")
+
+# library(shinyBS)
+library(data.table)
+# library(reshape2)
+# library(shinyThings)
+library(shinyWidgets)
+# library(dplyr)
+# library(shinydashboard)
+# library(shinyjs)
+# library(rintrojs) # introBox
+# library(DiagrammeR)
+# library(shinyalert)
+
+
+source("R/footer.R")
 source("R/func/gMCP_xc2.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
@@ -38,10 +35,10 @@ source("R/func/function_matrix.R")
 source("R/func/graph_create.R")
 
 # ui output
-source("R/module/tabHome.R")
-source("R/module/tabDraw.R")
-source("R/module/tabProcedure.R")
-source("R/module/tabTest.R")
+source("R/module/tabhome.R")
+source("R/module/tabdraw.R")
+# source("R/module/tabprocedure.R")
+source("R/module/tabtest.R")
 
 
 # -----------------------------------------------------
@@ -65,11 +62,11 @@ ui <- tagList(
                  collapsible = TRUE,
                  tabHome,
                  tabDraw,
-                 tabProcedure,
+                 # tabProcedure,
                  tabTest
     )),
   br(),br(),br(),
-  components$foot)
+  foot)
 
 # graph_data initial setting -----------------------
 init.nodes.df = data.frame(id = c("H1","H2","H3"),
@@ -285,7 +282,6 @@ server <- function(input, output,session) {
              "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
              "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure")
-             # "Simple successive procedure" = dfcreate(input$Number_Hypotheses,"Simple successive procedure")
       )
     })
     
@@ -400,9 +396,9 @@ server <- function(input, output,session) {
                                 ggarrange(a,b,ncol = 2, nrow = 1)
                               })
     
-    output$ResultPlot <- renderPlot(
-      twoPlots()
-    )
+    # output$ResultPlot <- renderPlot(
+    #   twoPlots()
+    # )
     
      output$extend_weights <- renderTable(
         {
@@ -449,29 +445,29 @@ server <- function(input, output,session) {
        )
      })
      
-     output$uioutput_Tmatrix_df <- renderUI({
+     output$uioutput_Tmatrix_df <- renderTable({
        num <- 4
        df <- df_create_test()
        rownames(df) <- lapply(1:num, function(i) {
          paste0("H", i)
        })
        colnames(df) <- rownames(df)
-       wp <- wp_create_test()
-           box(title = div(HTML("Transition matrix <em>G</em>")),
-               status = "primary", solidHeader = TRUE,width = 10,
-               withMathJax(helpText("The propagation of significance levels")),
-               matrixInput(inputId = "TransitionMatrixG",
-                           value = df,class = "numeric",
-                           cols = list(names = TRUE,extend = FALSE,
-                                       editableNames = FALSE,delta = 2),
-                           rows = list(names = TRUE, extend = FALSE,
-                                       editableNames = FALSE,delta = 1),
-                           copy = TRUE,paste = TRUE),
-               helpText("The values are between 0 and 1.")
-           )
+       df
+           # box(title = div(HTML("Transition matrix <em>G</em>")),
+           #     status = "primary", solidHeader = TRUE,width = 10,
+           #     withMathJax(helpText("The propagation of significance levels")),
+           #     matrixInput(inputId = "TransitionMatrixG",
+           #                 value = df,class = "numeric",
+           #                 cols = list(names = TRUE,extend = FALSE,
+           #                             editableNames = FALSE,delta = 2),
+           #                 rows = list(names = TRUE, extend = FALSE,
+           #                             editableNames = FALSE,delta = 1),
+           #                 copy = TRUE,paste = TRUE),
+           #     helpText("The values are between 0 and 1.")
+           # )
            })
        
-       output$uioutput_Tmatrix_wp <- renderUI({
+       output$uioutput_Tmatrix_wp <- renderTable({
          num <- 4
          df <- df_create_test()
          rownames(df) <- lapply(1:num, function(i) {
@@ -479,17 +475,18 @@ server <- function(input, output,session) {
          })
          colnames(df) <- rownames(df)
          wp <- wp_create_test()
-           box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
-               status = "primary",solidHeader = TRUE,width = 10,
-               helpText(div(HTML("Initial weights and <em>p</em>-values"))),
-               matrixInput(inputId = "WeightPvalue",
-                           value = wp, class = "numeric",
-                           cols = list(names = TRUE, extend = FALSE,
-                                       editableNames = FALSE, delta = 2),
-                           rows = list(names = TRUE, extend = FALSE,
-                                       editableNames = FALSE, delta = 1),
-                           copy = TRUE, paste = TRUE),
-               helpText("The sum of weights are no more than 1."))
+         wp
+           # box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
+           #     status = "primary",solidHeader = TRUE,width = 10,
+           #     helpText(div(HTML("Initial weights and <em>p</em>-values"))),
+           #     matrixInput(inputId = "WeightPvalue",
+           #                 value = wp, class = "numeric",
+           #                 cols = list(names = TRUE, extend = FALSE,
+           #                             editableNames = FALSE, delta = 2),
+           #                 rows = list(names = TRUE, extend = FALSE,
+           #                             editableNames = FALSE, delta = 1),
+           #                 copy = TRUE, paste = TRUE),
+           #     helpText("The sum of weights are no more than 1."))
      })
      
      output$resPlots_ini <- renderPlot({
