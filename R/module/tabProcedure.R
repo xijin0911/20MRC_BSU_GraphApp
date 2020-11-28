@@ -16,7 +16,6 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                                           choices = c("Bonferroni-Holm procedure",
                                                       "Fixed sequence test",
                                                       "Fallback procedure"),
-                                          # ,"Simple successive procedure"
                                           selected = "Bonferroni-Holm procedure"),
                               conditionalPanel(
                                 condition = "input.Weighting_Strategy2 == 'Bonferroni-Holm procedure'",
@@ -48,27 +47,31 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                                   p(("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. Statistics in Medicine 2009; 28:586-604.")))
                               )
                        ),
-                       column(9,# style = "background-color:#FFFAFA;",
-                              uiOutput("uioutput_Tmatrix"),
-                              # ),
-                       # column(9,
-                              box(width=10,
-                                  actionButton("TestButton", "Start testing procedure!"),
-                                  br(),br(),
-                                  conditionalPanel(condition = "input.TestButton != 0",
-                                                   plotOutput("ResultPlot"))
-                                  ),
+                       column(4,# style = "background-color:#FFFAFA;",
+                              uiOutput("uioutput_Tmatrix1"),
+                              br(),br(),
+                              uiOutput("uioutput_Tmatrix2"),
+                              br(),
                               shinyjs::useShinyjs()),
-                       column(3),
-                       column(9,
+                       column(5,style = "background-color: AliceBlue;",
+                              h3("Results", align = "center"),
+                              # actionButton("TestButton", "Test!"),
+                              actionButton("TestButton", "Test!", icon("paper-plane"),
+                                           style="background-color: AliceBlue;
+                                            border-color: AliceBlue"),
+                              bsTooltip("TestButton", "Produce or update the initial and final graphs",
+                                        "right", options = list(container = "body")),
+                              conditionalPanel(condition = "input.TestButton != 0",
+                                               plotOutput("ResultPlot")),
+                              br(),br(),
                               a(id = "Moreinformation",
                                 div(HTML("More information about the resulting Transition matrix <em>G</em> and Weights <em>w</em>"))),
                               shinyjs::hidden(
                                 div(id = "moreinfor",
                                     box(width=4,
-                                        tableOutput("extend_G")),
-                                    box(width=4,
-                                        tableOutput("extend_weights"))
+                                        tableOutput("rejresult"))
+                                    # box(width=4,
+                                    #     tableOutput("extend_weights"))
                                 )
                               ))
 )

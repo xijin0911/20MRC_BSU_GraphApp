@@ -1,31 +1,29 @@
-## app.R ##
-# library(shiny)
-# library(shinycssloaders)  
-library(shinyMatrix)
-library(network)
-library(shinythemes)
-library(ggnetwork)
-# library(ggpubr)
-library(DT)
-# library(shinyAce)
-library(ggplot2)
-library(gridExtra)
+
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
-
-# library(shinyBS)
+library(shiny)
+library(shinyMatrix)
+library(network)
+library(shinythemes)
+library(DT)
+library(ggnetwork)
+library(ggplot2)
+library(gridExtra)
 library(data.table)
-# library(reshape2)
-# library(shinyThings)
 library(shinyWidgets)
-# library(dplyr)
-# library(shinydashboard)
-# library(shinyjs)
-# library(rintrojs) # introBox
-# library(DiagrammeR)
-# library(shinyalert)
-
+library(shinycssloaders)
+library(ggpubr)
+library(shinyAce)
+library(shinyBS)
+library(reshape2)
+library(shinyThings)
+library(dplyr)
+library(shinydashboard)
+library(shinyjs)
+library(rintrojs) # introBox
+library(DiagrammeR)
+library(shinyalert)
 
 source("R/footer.R")
 source("R/func/gMCP_xc2.R")
@@ -37,9 +35,8 @@ source("R/func/graph_create.R")
 # ui output
 source("R/module/tabhome.R")
 source("R/module/tabdraw.R")
-# source("R/module/tabprocedure.R")
+source("R/module/tabprocedure.R")
 source("R/module/tabtest.R")
-
 
 # -----------------------------------------------------
 ui <- tagList(
@@ -62,21 +59,21 @@ ui <- tagList(
                  collapsible = TRUE,
                  tabHome,
                  tabDraw,
-                 # tabProcedure,
+                 tabProcedure,
                  tabTest
     )),
   br(),br(),br(),
   foot)
 
 # graph_data initial setting -----------------------
-init.nodes.df = data.frame(id = c("H1","H2","H3"),
-                           label = c("H1","H2","H3"),  # label should be the same as 'id'
-                           weight = c("1/3", "1/3","1/3"),
-                           pvalue = c("0.01","0.01","0.01"),
+init.nodes.df = data.frame(id = c("H1","H2"),
+                           label = c("H1","H2"),  # label should be the same as 'id'
+                           weight = c("1/2", "1/2"),
+                           pvalue = c("0.01","0.01"),
                            stringsAsFactors = F)
 init.edges.df = data.frame(id = c("e1","e2"),
                            from = c("H1","H2"), 
-                           to = c("H2","H3"),
+                           to = c("H2","H1"),
                            label = c("0.1","0.1"), # label should be the same as 'propagation'
                            stringsAsFactors = F)
 
@@ -99,7 +96,6 @@ server <- function(input, output,session) {
                inputId = "num_alert",
                inputPlaceholder = "",
                confirmButtonText = "Yes", 
-               # showCancelButton = TRUE,cancelButtonText = "No", 
                callbackR = modalCallback)
   })
   modalCallback <- function(value) {
@@ -116,6 +112,8 @@ server <- function(input, output,session) {
       visExport() %>%
       visEdges(arrows = 'to') %>%
       visNodes(shape = "ellipse") %>%
+      visLayout(randomSeed = 123)%>%
+      visPhysics(stabilization = TRUE)%>%
       visOptions(manipulation = list(enabled = T,
                                      editEdgeCols = c("label"),
                                      editNodeCols = c("id","weight", "pvalue"),
@@ -184,15 +182,11 @@ server <- function(input, output,session) {
     # Add one to the column to shift for id
     j <- info$col + 1
     v <- info$value
-    
     # Update visNetwork data via proxy
     graph_data$edges[i, j] <<- DT::coerceValue(
       v, graph_data$edges[i, j]
     )
     replaceData(proxy_visEdges, graph_data$edges, resetPaging = FALSE)
-    
-    # Make sure main graphdata stays up-to-date
-    # graph_data <- graph_data
   })
   
   proxy_visNodes <- dataTableProxy("graphOutput_visNodes")
@@ -202,13 +196,11 @@ server <- function(input, output,session) {
     # Add one to column to shift for id
     j <- info$col + 1
     v <- info$value
-    
     # Update visNetwork data via proxy
     graph_data$nodes[i, j] <<- DT::coerceValue(
       v, graph_data$nodes[i, j]
     )
     replaceData(proxy_visNodes, graph_data$nodes, resetPaging = FALSE)
-    
   })
   
   output$graphOutput_visNodes = DT::renderDT({
@@ -227,7 +219,7 @@ server <- function(input, output,session) {
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
-  output$res_Table1 <- renderTable({
+  output$res_Table <- renderTable({
     num <- nrow(graph_data$nodes)
     names <- lapply(1:num, function(i) {paste0("H", i)})
     ini.matrix <- matrix(0,nrow=num,ncol=num)
@@ -241,40 +233,15 @@ server <- function(input, output,session) {
                        weights=f2n(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
-    result <- data.frame(result$rejected)
-    result <- ifelse(result=="TRUE", "rejected", "not rejected")
-    result <- cbind(as.character(names),result)
-    colnames(result) <- c("hypothesis","result")
+    result_rej <- data.frame(result$rejected)
+    result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
+    result_adjp <- result$adjpvalues
+    result <- cbind(as.character(names),result_adjp,result_rej)
+    colnames(result) <- c("hypothesis","adjusted p-value","result")
     result
-  })
-  
-  output$res_Table2 <- renderTable({
-    num <- nrow(graph_data$nodes)
-    names <- lapply(1:num, function(i) {paste0("H", i)})
-    ini.matrix <- matrix(0,nrow=num,ncol=num)
-    colnames(ini.matrix) <- names
-    rownames(ini.matrix) <- names
-    for (i in 1:nrow(graph_data$edges)){
-      ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
-                 which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
-    }
-    result <- gMCP_xc2(matrix=ini.matrix,
-                       weights=f2n(graph_data$nodes[,"weight"]),
-                       pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
-                       alpha = input$alpha_draw,fweights = F)
-    result <- data.frame(result$adjpvalues)
-    result <- cbind(as.character(names),result)
-    colnames(result) <- c("hypothesis","adjusted p-values")
-    result
-  })
-  
-  output$extend_G <- renderTable(
-    {
-      result <- data.frame(res$G)
-      colnames(result) <- rownames(input$TransitionMatrixG)
-      rownames(result) <- rownames(input$TransitionMatrixG)
-      result
-    }, caption = "0 means no trasition.", caption.placement = "bottom")
+  }, caption = "Rejection results depend on the relationship between the calculated adjusted <em>p</em>-value and the specified Total &alpha;.",
+  caption.placement = getOption("xtable.caption.placement", "bottom"), 
+  caption.width = getOption("xtable.caption.width", NULL))
   
     # ---------------- Procedure Page output ----------------
     df_create <- reactive({
@@ -293,7 +260,7 @@ server <- function(input, output,session) {
       )
     })
     
-    output$uioutput_Tmatrix <- renderUI({
+    output$uioutput_Tmatrix1 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
       df <- df_create()
       rownames(df) <- lapply(1:num, function(i) {
@@ -301,104 +268,121 @@ server <- function(input, output,session) {
       })
       colnames(df) <- rownames(df)
       wp <- wp_create()
-      box(width = 10, style = "background-color: white;",
-          box(title = div(HTML("Transition matrix <em>G</em>")),
-              status = "primary", solidHeader = TRUE,width = 6, 
-              withMathJax(helpText("The propagation of significance levels")),
-              matrixInput(inputId = "TransitionMatrixG",
-                          value = df,class = "numeric",
-                          cols = list(names = TRUE,extend = FALSE,
-                                      editableNames = FALSE,delta = 2),
-                          rows = list(names = TRUE, extend = FALSE,
-                                      editableNames = FALSE,delta = 1),
-                          copy = TRUE,paste = TRUE),
-              helpText("The values are between 0 and 1.")
-          ),
-          
-          box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
-              status = "primary",solidHeader = TRUE,width = 6,
-              helpText(div(HTML("Initial weights and <em>p</em>-values"))),
-              matrixInput(inputId = "WeightPvalue",
-                          value = wp, class = "numeric",
-                          cols = list(names = TRUE, extend = FALSE,
-                                      editableNames = FALSE, delta = 2),
-                          rows = list(names = TRUE, extend = FALSE,
-                                      editableNames = FALSE, delta = 1),
-                          copy = TRUE, paste = TRUE),
-              helpText("The sum of weights are no more than 1.")),
-          br(),
-          helpText("Please click corresponding cell to edit before testing.")
+      box(title = div(HTML("Transition matrix <em>G</em>")),
+          status = "primary", solidHeader = TRUE,width = 10, 
+          withMathJax(helpText("The propagation of significance levels")),
+          matrixInput(inputId = "TransitionMatrixG",
+                      value = df,class = "numeric",
+                      cols = list(names = TRUE,extend = FALSE,
+                                  editableNames = FALSE,delta = 2),
+                      rows = list(names = TRUE, extend = FALSE,
+                                  editableNames = FALSE,delta = 1),
+                      copy = TRUE,paste = TRUE),
+          helpText("The values are between 0 and 1.")
       )
+      }) 
+    output$uioutput_Tmatrix2 <- renderUI({
+      num <- as.integer(input$Number_Hypotheses)
+      df <- df_create()
+      wp <- wp_create()
+      rownames(df) <- lapply(1:num, function(i) {
+        paste0("H", i)
+      })
+      colnames(df) <- rownames(df)
+      box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
+          status = "primary",solidHeader = TRUE,width = 10,
+          helpText(div(HTML("Initial weights and <em>p</em>-values"))),
+          matrixInput(inputId = "WeightPvalue",
+                      value = wp, class = "numeric",
+                      cols = list(names = TRUE, extend = FALSE,
+                                  editableNames = FALSE, delta = 2),
+                      rows = list(names = TRUE, extend = FALSE,
+                                  editableNames = FALSE, delta = 1),
+                      copy = TRUE, paste = TRUE),
+          helpText("The sum of weights are no more than 1."))
     })    
     
     
-    twoPlots <- eventReactive(input$TestButton,
-                              {
-                                net <- network(input$TransitionMatrixG,
-                                               directed = TRUE,
-                                               names.eval = "weights",
-                                               ignore.eval = FALSE)
-                                num <- as.integer(input$Number_Hypotheses2)
-                                net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
-                                e <- network.edgecount(net)
-                                
-                                a <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
-                                  xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
-                                  geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
-                                             color = "grey50",curvature = 0.15) +
-                                  geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
-                                  geom_nodetext(aes(label = vertex.names)) +
-                                  geom_edgetext_repel(aes(label = weights), color = "white", 
-                                                      fill = "grey25",
-                                                      box.padding = unit(0.25, "line")) +
-                                  scale_color_brewer(palette = "Set2") +
-                                  labs(title='Initial graph')+
-                                  theme_blank()+
-                                  theme(aspect.ratio=1,
-                                        plot.title = element_text(size=15, face="bold.italic",
-                                                                  margin = margin(15, 0, 15, 0)),
-                                        plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
-                                  
-                                res <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                                                weights=f2n(input$WeightPvalue[,"Weights"]),
-                                                pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
-                                                alpha = input$alpha,fweights = F)
-                                res_pvalues <- res$pvalues
-                                res_weights <- round(res$weights,digits = 2)
-                                res_G <- round(res$G,digits = 2)
-                                res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
-                                                      "Adjusted p-values" = res$adjpvalues,
-                                                      check.names = FALSE)
-                              
-                                res_net <- network(res_G,directed = TRUE,
-                                                   names.eval = "weights",ignore.eval = FALSE)
-                                res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
-                                e <- network.edgecount(res_net)
-                                res_net %v% "Rejection" <- res$rejected
-                                
-                                b <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
-                                  xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
-                                  geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
-                                             color = "grey50",curvature = 0.15) +
-                                  geom_nodes(aes(x, y,color = Rejection), alpha = 0.5,size = 14) +
-                                  geom_nodetext(aes(label = vertex.names)) +
-                                  scale_color_brewer(palette = "Set2") +
-                                  labs(title='Final graph')+
-                                  theme_blank()+
-                                  theme(aspect.ratio=1,
-                                        plot.title = element_text(size=15, face="bold.italic",
-                                                                  margin = margin(10, 5, 10, 0)),
-                                        plot.margin = margin(0.5,0.5,0.1,0.1))+
-                                  annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
-                                                    # ttheme_minimal() could be transparent
-                                                    xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
-                                
-                                ggarrange(a,b,ncol = 2, nrow = 1)
-                              })
+    twoPlots <- eventReactive(input$TestButton,{
+      net <- network(input$TransitionMatrixG,
+                     directed = TRUE,
+                     names.eval = "weights",
+                     ignore.eval = FALSE)
+      num <- as.integer(input$Number_Hypotheses2)
+      net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
+      e <- network.edgecount(net)
+      
+      initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
+        xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
+        geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+                   color = "grey50",curvature = 0.15) +
+        geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
+        geom_nodetext(aes(label = vertex.names)) +
+        geom_edgetext_repel(aes(label = weights), color = "white",
+                            fill = "grey25",
+                            box.padding = unit(0.25, "line")) +
+        scale_color_brewer(palette = "Set2") +
+        labs(title='Initial graph')+
+        # theme_blank()+
+        theme(aspect.ratio=1,
+              plot.title = element_text(size=15, face="bold.italic",
+                                        margin = margin(15, 0, 15, 0)),
+              plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
+      
+      res <- gMCP_xc2(matrix=input$TransitionMatrixG,
+                      weights=f2n(input$WeightPvalue[,"Weights"]),
+                      pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
+                      alpha = input$alpha,fweights = F)
+      res_pvalues <- res$pvalues
+      res_weights <- res$weights
+      res_G <- res$G
+      res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
+                            "Adjusted p-values" = res$adjpvalues,
+                            check.names = FALSE)
+      
+      res_net <- network(res_G,directed = TRUE,
+                         names.eval = "weights",ignore.eval = FALSE)
+      res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
+      e <- network.edgecount(res_net)
+      res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
+      res_net %v% "Reject" <- (as.character(res$rejected))
+      
+      final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
+        xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
+        geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+                   color = "grey50",curvature = 0.15) +
+        geom_nodes(aes(x, y, color = Reject), alpha = 0.5,size = 14) +
+        geom_nodetext(aes(label = vertex.names)) +
+        scale_color_brewer(palette = "Set2") +
+        labs(title='Final graph')+
+        # theme_blank()+
+        theme(aspect.ratio=1,
+              plot.title = element_text(size=15, face="bold.italic",
+                                        margin = margin(10, 5, 10, 0)),
+              plot.margin = margin(0.5,0.5,0.1,0.1))
+        # annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
+        #                   # ttheme_minimal() could be transparent
+        #                   xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
+      ggarrange(initial,final,ncol = 2, nrow = 1)
+    })
     
-    # output$ResultPlot <- renderPlot(
-    #   twoPlots()
-    # )
+    output$ResultPlot <- renderPlot(
+      twoPlots()
+    )
+    
+    output$rejresult <- renderTable({
+      res <- gMCP_xc2(matrix=input$TransitionMatrixG,
+                      weights=f2n(input$WeightPvalue[,"Weights"]),
+                      pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
+                      alpha = input$alpha,fweights = F)
+      res_pvalues <- res$pvalues
+      res_weights <- res$weights
+      res_G <- res$G
+      res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
+                            "Adjusted p-values" = res$adjpvalues,
+                            check.names = FALSE)
+      res_adj
+    })
     
      output$extend_weights <- renderTable(
         {

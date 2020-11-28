@@ -1,0 +1,12 @@
+name: 20MRC_BSU_GraphApp
+title: 20MRC_BSU_GraphApp
+username:
+account: mrc-bsu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3301562
+bundleId: 3915657
+url: https://mrc-bsu.shinyapps.io/20MRC_BSU_GraphApp/
+when: 1606562802.28923
+asMultiple: FALSE
+asStatic: FALSE

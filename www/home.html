@@ -4,38 +4,40 @@
     font-weight: bold;
   }
 </style>
-
 <style> 
-
 #algo {
   border: 1px solid;
   padding: 10px;
   box-shadow: 10px 10px 10px blue;
 }
 </style>
-        
+<h3>Welcome to <i>GraphApp</i>!</h3>
+<p><i>GraphApp</i> is a Shiny application that helps to implement the graphical approach for multile test procedures. The app is a companion to the following article:
 
+<b><li>Bretz, F., Posch, M., Glimm, E., Klinglmueller, F., Maurer, W., & Rohmeyer, K. (2011). Graphical approaches for multiple comparison procedures using weighted Bonferroni, Simes, or parametric tests. <i>Biometrical Journal</i>, 53(6), 894-913. <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/bimj.201000239">PDF</a></li></b>
 
-<br><br>
-<h3>Overview</h3>
-<p>Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
-Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. <b>The graphical approach to hypothesis testing</b>, in this Shiny app is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.</p>
+The key idea is to express the resulting multiple test procedures by directed, weighted graphs, where each node corresponds to an elementary hypothesis, together with a simple algorithm to generate such graphs while sequentially testing the individual hypotheses.
 
-<h3>Using this application</h3>
-<br><br>
-<b>Home</b>:
+<h3>How to use this application</h3>
+You should navigate this site using the header tabs:
+<br>
+<i class="glyphicon glyphicon-home"></i> <b>Home</b>: 
 General description of this Shiny App and some learning materials.
-<br><br>
-<b>Draw</b>:
-<br><br>
-<b>common procedure</b>:
-<br><br>
-
-<b>Example test</b>:
-With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
+<br>
+<i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Draw the test procedure by yourself with nodes and edges.
+<br>
+<i class="glyphicon glyphicon-cog"></i> <b>Common procedures</b>: The most commonly used procedures:<br>
+ <li> Bonferroni-Holm procedure</li>
+ <li> Fixed Sequence tests</li>
+ <li> Fallback procedures</li>
+<i class="glyphicon glyphicon-picture"></i> <b>Example tests</b>: Specific examples of the tests.
 
 
 <h3>Method</h3>
+With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
+Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
+Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. 
+<b>The graphical approach to hypothesis testing</b>, in this Shiny app is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.
 
 The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. The key idea is to express the resulting multiple test procedures by directed, weighted graph, where <em>vertices</em> correspond to elementary hypotheses: <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em> with associated weights denoting the local significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em>. In addition, any two vertices <em>H<sub>i</sub></em> and <em>H<sub>j</sub></em> are connected through directed <em>edges</em>, and the associated weights <em>g<sub>ij</sub></em> indicates the fraction of the local significance level <em>&alpha;<sub>i</sub></em> that is propagated to <em>H<sub>j</sub></em> once <em>H<sub>i</sub></em> has been rejected. A weight <em>g<sub>ij</sub></em>=0 indicates that no propagation of the significance level is foreseen and the edge is dopped for convenience.
 
@@ -71,5 +73,13 @@ Different test procedures can account for the inherent logical relationships bet
 <br>
 
 <br><br>
+<h3>References</h3>
+
+
+
+<b><li>Holm, S. (1979). A simple sequentially rejective multiple test procedure.  <i>Scandinavian journal of statistics</i>, 65-70.</li></b>
+<b><li>Holm, S. (1979). Westfall, P. H., & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. <i>Journal of Statistical Planning and Inference</i>, 99(1), 25-40. 65-70.</li></b>
+<b><li>Wiens, B. L. (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. <i>Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry</i>, 2(3), 211-215. 65-70.</li></b>
+<b><li>Maurer, W., Glimm, E., & Bretz, F. (2011). Multiple and repeated testing of primary, coprimary, and secondary hypotheses. <i>Statistics in Biopharmaceutical Research</i>, 3(2), 336-352.</li></b>
 
 

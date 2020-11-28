@@ -3,12 +3,12 @@
 
 foot <- tags$footer(
   tagList(
-    p("Built to implement the graphical approach",
-      style="font-size:100%; font-family:Arial; line-height:.8rem;"
-    ),
-    p("GUI created with R Shiny by Xijin Chen",
+    p("Built to implement the graphical approach. GUI created with R Shiny by",
+      # style="font-size:100%; font-family:Arial; line-height:.8rem;"
+    # ),
+    # p("GUI created with R Shiny by",
       tags$a(
-        href = "https://github.com/xijin0911","available on GitHub"),
+        href = "https://github.com/xijin0911","Xijin Chen"),
       style="font-size:100%; font-family:Arial; line-height:.8rem;"
     ),
     p(
