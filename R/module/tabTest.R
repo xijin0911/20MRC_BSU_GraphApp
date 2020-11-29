@@ -1,4 +1,5 @@
-tabTest <- tabPanel("Example tests", icon=icon("picture", lib = "glyphicon"),  
+tabTest <- tabPanel("Specific tests",
+                    # icon=icon("picture", lib = "glyphicon"),  
          column(3,style = "background-color: skyblue;",
                 h3("Examples", align = "center"),
                 prettyRadioButtons(

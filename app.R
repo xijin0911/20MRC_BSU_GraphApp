@@ -59,8 +59,10 @@ ui <- tagList(
                  collapsible = TRUE,
                  tabHome,
                  tabDraw,
-                 tabProcedure,
-                 tabTest
+                 navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
+                            tabProcedure,
+                            tabTest)
+                 
     )),
   br(),br(),br(),
   foot)
