@@ -1,4 +1,6 @@
-tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),      
+tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
+                    useShinyalert(),  # Set up shinyalert
+                    actionButton("inst", "Instructions",icon("atom")),
                     fluidRow(
                       column(
                         h2("Graph", align = "center"),
@@ -30,18 +32,21 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                         DTOutput("graphOutput_visEdges")),
                       
                     column(
-                      h2("Result", align = "center"),
+                      h2("Results", align = "center"),
                       width = 4,
                       p("Manipulate on graph or in tables to obtain the result"),
                       br(),
                       tags$head( 
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
-                      actionButton("rej_infor", "Rejection results:", icon("paper-plane"),
-                                   style="background-color: AliceBlue;
-                                            border-color: AliceBlue"),
-                      bsTooltip("rej_infor", "",
-                                "right", options = list(container = "body")),
-                      tableOutput("res_Table")
+                      # actionButton("rej_infor", "Rejection results:", icon("paper-plane"),
+                      #              style="background-color: AliceBlue;
+                      #                       border-color: AliceBlue"),
+                      # bsTooltip("rej_infor", "",
+                      #           "right", options = list(container = "body")),
+                      tableOutput("res_Table"),
+                      radioButtons('format', 'Report', c('PDF', 'HTML', 'Word'),
+                                   inline = TRUE),
+                      downloadButton('Report_Draw') ,
                     ))
 )

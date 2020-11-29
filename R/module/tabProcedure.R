@@ -7,7 +7,7 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                                            label="Number of Hypotheses:",
                                            value=3,step = 1,min = 1),
                               br(),
-                              numericInput(inputId = "alpha", 
+                              numericInput(inputId = "alpha_procedure", 
                                            label = HTML("&alpha;"),
                                            value = 0.05,step = 0.001,min = 0),
                               br(),
@@ -48,6 +48,7 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                               )
                        ),
                        column(4,# style = "background-color:#FFFAFA;",
+                              h2("Details",align = "center"),
                               uiOutput("uioutput_Tmatrix1"),
                               br(),br(),
                               uiOutput("uioutput_Tmatrix2"),
@@ -55,23 +56,25 @@ tabProcedure <- tabPanel("Common procedures", icon=icon("cog", lib = "glyphicon"
                               shinyjs::useShinyjs()),
                        column(5,style = "background-color: AliceBlue;",
                               h3("Results", align = "center"),
-                              # actionButton("TestButton", "Test!"),
-                              actionButton("TestButton", "Test!", icon("paper-plane"),
-                                           style="background-color: AliceBlue;
-                                            border-color: AliceBlue"),
-                              bsTooltip("TestButton", "Produce or update the initial and final graphs",
-                                        "right", options = list(container = "body")),
-                              conditionalPanel(condition = "input.TestButton != 0",
-                                               plotOutput("ResultPlot")),
-                              br(),br(),
-                              a(id = "Moreinformation",
-                                div(HTML("More information about the resulting Transition matrix <em>G</em> and Weights <em>w</em>"))),
-                              shinyjs::hidden(
-                                div(id = "moreinfor",
-                                    box(width=4,
-                                        tableOutput("rejresult"))
-                                    # box(width=4,
-                                    #     tableOutput("extend_weights"))
-                                )
-                              ))
-)
+                              # actionButton("TestButton", "Test!", icon("paper-plane"),
+                              #              style="background-color: AliceBlue;
+                              #               border-color: AliceBlue"),
+                              # bsTooltip("TestButton", "Produce or update the initial and final graphs",
+                              #           "right", options = list(container = "body")),
+                              plotOutput("ResultPlot"),
+                              # conditionalPanel(condition = "input.TestButton != 0",
+                              #                  ),
+                              # plotOutput("ResultPlot"),
+                              tableOutput("rejresult")
+                              # a(id = "Moreinformation",
+                              #   div(HTML("More information about the resulting Transition matrix <em>G</em> and Weights <em>w</em>"))),
+                              # shinyjs::hidden(
+                              #   div(id = "moreinfor",
+                              #       box(width=4,
+                              #           tableOutput("rejresult"))
+                              #       # box(width=4,
+                              #       #     tableOutput("extend_weights"))
+                              #   )
+                              # )
+                              )
+                       )

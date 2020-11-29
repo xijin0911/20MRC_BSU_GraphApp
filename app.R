@@ -102,6 +102,12 @@ server <- function(input, output,session) {
     value$num <- input$num_alert
   }
     # ---------------- Draw Page output ----------------  
+  observeEvent(input$inst, {
+    shinyalert(title = "Instructions",type = "info", 
+               text= "<li>Graph & Details: Inputs</li>
+               <li>Results: Outputs of the rejection results.</li>",html=TRUE)
+  })
+
   graph_data = reactiveValues(
     nodes = init.nodes.df,
     edges = init.edges.df
@@ -213,7 +219,7 @@ server <- function(input, output,session) {
   
   output$graphOutput_visEdges = DT::renderDT({
     result <- graph_data$edges[,c("from","to","label")]
-    colnames(result) <- c("from","to","propagation")
+    colnames(result) <- c("from","to","propagation (label)")
     result
   },
   editable = TRUE,
@@ -237,11 +243,35 @@ server <- function(input, output,session) {
     result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
     result_adjp <- result$adjpvalues
     result <- cbind(as.character(names),result_adjp,result_rej)
-    colnames(result) <- c("hypothesis","adjusted p-value","result")
+    colnames(result) <- c("hypothesis","adjusted p-value","rejection")
     result
-  }, caption = "Rejection results depend on the relationship between the calculated adjusted <em>p</em>-value and the specified Total &alpha;.",
+  }, caption = "Rejection results depend on the relationship between the calculated adjusted <em>p</em>-value and the specified total &alpha;.",
   caption.placement = getOption("xtable.caption.placement", "bottom"), 
   caption.width = getOption("xtable.caption.width", NULL))
+  
+  output$Report_Draw <- downloadHandler(
+    filename = function() {
+      paste('Report', sep = '.', switch(
+        input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+      ))
+    },  
+    content = function(file) {
+      src <- normalizePath('Report_Draw.Rmd')
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'Report_Draw.Rmd', overwrite = TRUE)
+      params <- list(
+        alpha = input$alpha_draw
+      )
+      out <- render('Report_Draw.Rmd', switch(
+        input$format,
+        PDF = pdf_document(), HTML = html_document(), Word = word_document()
+      ),params = params,
+      envir = new.env(parent = globalenv()))
+      file.rename(out, file)
+    }
+  )
+  
   
     # ---------------- Procedure Page output ----------------
     df_create <- reactive({
@@ -303,7 +333,7 @@ server <- function(input, output,session) {
     })    
     
     
-    twoPlots <- eventReactive(input$TestButton,{
+    output$ResultPlot <- renderPlot({
       net <- network(input$TransitionMatrixG,
                      directed = TRUE,
                      names.eval = "weights",
@@ -311,9 +341,10 @@ server <- function(input, output,session) {
       num <- as.integer(input$Number_Hypotheses2)
       net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(net)
+      # net %v% "Rejection" <- (as.character(res$rejected))
       
       initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
-        xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
+        xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
         geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
                    color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
@@ -330,9 +361,9 @@ server <- function(input, output,session) {
               plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
       
       res <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                      weights=f2n(input$WeightPvalue[,"Weights"]),
-                      pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
-                      alpha = input$alpha,fweights = F)
+                      weights=f2n(input$WeightPvalue[,"weights"]),
+                      pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                      alpha = input$alpha_procedure,fweights = F)
       res_pvalues <- res$pvalues
       res_weights <- res$weights
       res_G <- res$G
@@ -345,75 +376,52 @@ server <- function(input, output,session) {
       res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(res_net)
       res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
-      res_net %v% "Reject" <- (as.character(res$rejected))
+      res_net %v% "Rejection" <- (as.character(res$rejected))
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
-        xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
+        xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
         geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
                    color = "grey50",curvature = 0.15) +
-        geom_nodes(aes(x, y, color = Reject), alpha = 0.5,size = 14) +
+        geom_nodes(aes(x, y, color = Rejection), alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
+        geom_edgetext_repel(aes(label = weights), color = "white",
+                            fill = "grey25",
+                            box.padding = unit(0.25, "line")) +
         scale_color_brewer(palette = "Set2") +
         labs(title='Final graph')+
+        theme(legend.position = "none")+
         # theme_blank()+
         theme(aspect.ratio=1,
               plot.title = element_text(size=15, face="bold.italic",
                                         margin = margin(10, 5, 10, 0)),
               plot.margin = margin(0.5,0.5,0.1,0.1))
+      legend_b <- get_legend(final + theme(legend.position="bottom"))
+      
         # annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
         #                   # ttheme_minimal() could be transparent
         #                   xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
-      ggarrange(initial,final,ncol = 2, nrow = 1)
+      # ggarrange(initial,final,ncol = 2, nrow = 1)
+      p <- cowplot::plot_grid( initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
+      p
     })
     
-    output$ResultPlot <- renderPlot(
-      twoPlots()
-    )
+    # output$ResultPlot <- renderPlot(
+    #   twoPlots()
+    # )
     
     output$rejresult <- renderTable({
-      res <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                      weights=f2n(input$WeightPvalue[,"Weights"]),
-                      pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
-                      alpha = input$alpha,fweights = F)
-      res_pvalues <- res$pvalues
-      res_weights <- res$weights
-      res_G <- res$G
-      res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
-                            "Adjusted p-values" = res$adjpvalues,
-                            check.names = FALSE)
-      res_adj
+        names <- paste0("H", 1:input$Number_Hypotheses)
+        result <- gMCP_xc2(matrix=input$TransitionMatrixG,
+                           weights=f2n(input$WeightPvalue[,"weights"]),
+                           pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                           alpha = input$alpha_procedure,fweights = F)
+        result_rej <- data.frame(result$rejected)
+        result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
+        result_adjp <- result$adjpvalues
+        output <- data.frame(cbind(as.character(names),result_adjp,result_rej))
+        colnames(output) <- c("hypothesis","adjusted p-value","rejection")
+        output
     })
-    
-     output$extend_weights <- renderTable(
-        {
-            net <- network(input$TransitionMatrixG,
-                           directed = TRUE,
-                           names.eval = "weights",
-                           ignore.eval = FALSE)
-            res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                            weights=f2n(input$WeightPvalue[,1]),
-                            pvalues=as.numeric(input$WeightPvalue[,2]),
-                     alpha = input$alpha,fweights = F)
-            data.frame(Hypothesis = paste0("H", 1:input$Number_Hypotheses),
-                       Weights = res$weights)
-        })
-     
-     output$extend_G <- renderTable(
-         {
-             net <- network(input$TransitionMatrixG,
-                            directed = TRUE,
-                            names.eval = "weights",
-                            ignore.eval = FALSE)
-             res <- gMCP_xc2(matrix = input$TransitionMatrixG,
-                             weights=f2n(input$WeightPvalue[,"Weights"]),
-                             pvalues=as.numeric(input$WeightPvalue[,"P-values"]),
-                             alpha = input$alpha,fweights = F)
-             result <- data.frame(res$G)
-             colnames(result) <- rownames(input$TransitionMatrixG)
-             rownames(result) <- rownames(input$TransitionMatrixG)
-             result
-         }, caption = "0 means no trasition.", caption.placement = "bottom")
-
      # ---------------- Test Page output ----------------
      df_create_test <- reactive({
        switch(input$exRadio,
@@ -511,8 +519,8 @@ output$resPlots_final <- renderPlot({
   wp <- wp_create_test()
   names <- lapply(1:num, function(i) {paste0("H", i)})
   res <- gMCP_xc2(matrix=df,
-                  weights=f2n(wp[,"Weights"]),
-                  pvalues=as.numeric(wp[,"P-values"]),
+                  weights=f2n(wp[,"weights"]),
+                  pvalues=as.numeric(wp[,"pvalues"]),
                   alpha = input$alpha_test,fweights = F)
   res_pvalues <- res$pvalues
   res_weights <- round(res$weights,digits = 2)

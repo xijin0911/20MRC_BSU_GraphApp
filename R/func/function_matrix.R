@@ -61,8 +61,8 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
     pvalues = rep(0.01,num)
   }
   re <- data.frame(
-                   "Weights" = weight,
-                   "P-values" = pvalues, check.names = FALSE)
+                   "weights" = weight,
+                   "pvalues" = pvalues, check.names = FALSE)
   rownames(re) <- name
   return(as.matrix(re))
 }

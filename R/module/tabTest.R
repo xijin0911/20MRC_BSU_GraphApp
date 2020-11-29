@@ -20,7 +20,7 @@ tabTest <- tabPanel("Example tests", icon=icon("picture", lib = "glyphicon"),
            plotOutput("resPlots_final")
          ),
          column(width = 4,
-           h2("Result", align = "center"),
+           h2("Results", align = "center"),
            tableOutput("uioutput_Tmatrix_df"),
            br(),
            tableOutput("uioutput_Tmatrix_wp")
