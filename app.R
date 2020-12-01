@@ -1,4 +1,3 @@
-
 # the most recent version of visNetwork
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
@@ -40,10 +39,11 @@ source("R/module/tabtest.R")
 
 # -----------------------------------------------------
 ui <- tagList(
+  # tags$head(includeScript("google_analytics.html")),
   fluidPage(setBackgroundColor("AliceBlue"),
       theme = shinytheme("cerulean"),
       list(tags$head(tags$style(HTML("
-      .navbar .navbar-nav {float: right; 
+      .navbar .navbar-nav {float: left; 
                            color: white; 
                            font-size: 10px;} 
       .navbar .navbar-header {float: left;} 
@@ -251,30 +251,19 @@ server <- function(input, output,session) {
   caption.placement = getOption("xtable.caption.placement", "bottom"), 
   caption.width = getOption("xtable.caption.width", NULL))
   
-  output$Report_Draw <- downloadHandler(
-    filename = function() {
-      paste('Report', sep = '.', switch(
-        input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
-      ))
-    },  
+  output$report <- downloadHandler(
+    filename = "report.html",
     content = function(file) {
-      src <- normalizePath('Report_Draw.Rmd')
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'Report_Draw.Rmd', overwrite = TRUE)
-      params <- list(
-        alpha = input$alpha_draw
+      tempReport <- file.path(tempdir(), "report.Rmd")
+      file.copy("report.Rmd", tempReport, overwrite = TRUE)
+      params <- list(alpha_draw = input$alpha_draw,
+                     graph_data = graph_data)
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
       )
-      out <- render('Report_Draw.Rmd', switch(
-        input$format,
-        PDF = pdf_document(), HTML = html_document(), Word = word_document()
-      ),params = params,
-      envir = new.env(parent = globalenv()))
-      file.rename(out, file)
     }
   )
-  
-  
     # ---------------- Procedure Page output ----------------
     df_create <- reactive({
       switch(input$Weighting_Strategy2,
@@ -300,7 +289,7 @@ server <- function(input, output,session) {
       })
       colnames(df) <- rownames(df)
       wp <- wp_create()
-      box(title = div(HTML("Transition matrix <em>G</em>")),
+      box(title = h5(HTML("Transition matrix <em>G</em>")),
           status = "primary", solidHeader = TRUE,width = 10, 
           withMathJax(helpText("The propagation of significance levels")),
           matrixInput(inputId = "TransitionMatrixG",
@@ -313,6 +302,7 @@ server <- function(input, output,session) {
           helpText("The values are between 0 and 1.")
       )
       }) 
+    
     output$uioutput_Tmatrix2 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
       df <- df_create()
@@ -321,7 +311,7 @@ server <- function(input, output,session) {
         paste0("H", i)
       })
       colnames(df) <- rownames(df)
-      box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
+      box(title = h5(HTML("Weights <em>w</em> and <em>p</em>-values")),
           status = "primary",solidHeader = TRUE,width = 10,
           helpText(div(HTML("Initial weights and <em>p</em>-values"))),
           matrixInput(inputId = "WeightPvalue",
@@ -333,7 +323,6 @@ server <- function(input, output,session) {
                       copy = TRUE, paste = TRUE),
           helpText("The sum of weights are no more than 1."))
     })    
-    
     
     output$ResultPlot <- renderPlot({
       net <- network(input$TransitionMatrixG,
@@ -379,6 +368,7 @@ server <- function(input, output,session) {
       e <- network.edgecount(res_net)
       res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
       res_net %v% "Rejection" <- (as.character(res$rejected))
+      res_net %v% "Rejection"
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
@@ -386,9 +376,9 @@ server <- function(input, output,session) {
                    color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y, color = Rejection), alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
-        geom_edgetext_repel(aes(label = weights), color = "white",
-                            fill = "grey25",
-                            box.padding = unit(0.25, "line")) +
+        # geom_edgetext_repel(aes(label = weights), color = "white",
+        #                     fill = "grey25",
+        #                     box.padding = unit(0.25, "line")) +
         scale_color_brewer(palette = "Set2") +
         labs(title='Final graph')+
         theme(legend.position = "none")+
@@ -428,14 +418,14 @@ server <- function(input, output,session) {
      df_create_test <- reactive({
        switch(input$exRadio,
               "Simple successive procedure" = dfcreate(4,"Simple successive procedure"),
-              "Second" = dfcreate(4,"Simple successive procedure")
+              "Parallel gatekeeping procedure" = dfcreate(4,"Parallel gatekeeping procedure")
        )
      })
      
      wp_create_test <- reactive({
        switch(input$exRadio,
               "Simple successive procedure" = wpcreat(4,"Simple successive procedure"),
-              "Second" = wpcreat(4,"Simple successive procedure")
+              "Parallel gatekeeping procedure" = wpcreat(4, "Parallel gatekeeping procedure")
        )
      })
      
@@ -447,43 +437,15 @@ server <- function(input, output,session) {
        })
        colnames(df) <- rownames(df)
        df
-           # box(title = div(HTML("Transition matrix <em>G</em>")),
-           #     status = "primary", solidHeader = TRUE,width = 10,
-           #     withMathJax(helpText("The propagation of significance levels")),
-           #     matrixInput(inputId = "TransitionMatrixG",
-           #                 value = df,class = "numeric",
-           #                 cols = list(names = TRUE,extend = FALSE,
-           #                             editableNames = FALSE,delta = 2),
-           #                 rows = list(names = TRUE, extend = FALSE,
-           #                             editableNames = FALSE,delta = 1),
-           #                 copy = TRUE,paste = TRUE),
-           #     helpText("The values are between 0 and 1.")
-           # )
-           })
-       
+     }, rownames = TRUE)
+     
        output$uioutput_Tmatrix_wp <- renderTable({
          num <- 4
-         df <- df_create_test()
-         rownames(df) <- lapply(1:num, function(i) {
-           paste0("H", i)
-         })
-         colnames(df) <- rownames(df)
          wp <- wp_create_test()
          wp
-           # box(title = div(HTML("Weights <em>w</em> and <em>p</em>-values")),
-           #     status = "primary",solidHeader = TRUE,width = 10,
-           #     helpText(div(HTML("Initial weights and <em>p</em>-values"))),
-           #     matrixInput(inputId = "WeightPvalue",
-           #                 value = wp, class = "numeric",
-           #                 cols = list(names = TRUE, extend = FALSE,
-           #                             editableNames = FALSE, delta = 2),
-           #                 rows = list(names = TRUE, extend = FALSE,
-           #                             editableNames = FALSE, delta = 1),
-           #                 copy = TRUE, paste = TRUE),
-           #     helpText("The sum of weights are no more than 1."))
-     })
+     }, rownames = TRUE)
      
-     output$resPlots_ini <- renderPlot({
+     output$resPlots_both <- renderPlot({
        num <- 4
        df <- df_create_test()
        wp <- wp_create_test()
@@ -496,8 +458,8 @@ server <- function(input, output,session) {
        net %v% "vertex.names"  <- names
        e <- network.edgecount(net)
        
-       ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
-         xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
+       initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
+         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
          geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
                     color = "grey50",curvature = 0.15) +
          geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
@@ -512,14 +474,14 @@ server <- function(input, output,session) {
                plot.title = element_text(size=15, face="bold.italic",
                                          margin = margin(10, 0, 10, 0)),
                plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
-     })
-
-
-output$resPlots_final <- renderPlot({
-  num <- 4
-  df <- df_create_test()
-  wp <- wp_create_test()
-  names <- lapply(1:num, function(i) {paste0("H", i)})
+#      })
+# 
+# 
+# output$resPlots_final <- renderPlot({
+#   num <- 4
+#   df <- df_create_test()
+#   wp <- wp_create_test()
+#   names <- lapply(1:num, function(i) {paste0("H", i)})
   res <- gMCP_xc2(matrix=df,
                   weights=f2n(wp[,"weights"]),
                   pvalues=as.numeric(wp[,"pvalues"]),
@@ -537,8 +499,8 @@ output$resPlots_final <- renderPlot({
   rej <- ifelse(res$rejected==TRUE,"rejected","not rejected")
   res_net %v% "Rejection" <- rej
   
-  ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
-    xlim(-0.02, 1.02) + ylim(-0.02, 1.02)+
+  final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
+    xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
     geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
                color = "grey50",
                curvature = 0.15) +
@@ -547,13 +509,18 @@ output$resPlots_final <- renderPlot({
     scale_color_brewer(palette = "Set2") +
     labs(title='Final graph')+
     theme_blank()+
+    theme(legend.position = "none")+
     theme(aspect.ratio=1,
           plot.title = element_text(size=15, face="bold.italic",
                                     margin = margin(10, 0, 10, 0)),
-          plot.margin = margin(0.5,0.1,0.1,0.1))+
-  annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
-                    # ttheme_minimal() could be transparent
-                    xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
+          plot.margin = margin(0.1,0.1,0.1,0.1))
+  legend_b <- get_legend(final + theme(legend.position="bottom"))
+  p <- cowplot::plot_grid( initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
+  p
+  # +
+  # annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
+  #                   # ttheme_minimal() could be transparent
+  #                   xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
 })
 }
 

@@ -1,0 +1,27 @@
+---
+title: "Report for the results"
+output: html_document
+params:
+  alpha_draw: NA
+  graph_data: NA
+---
+
+```{r}
+library(knitr)
+library(xtable)
+alpha <- params$alpha_draw
+edges <- params$graph_data$edges
+nodes <- params$graph_data$nodes
+edges
+nodes
+```
+
+```{r}
+kable(edges, format = "latex", booktabs = TRUE)
+```
+
+
+```{r, echo=FALSE, results='asis'}
+kable(nodes, format = "latex", booktabs = TRUE)
+```
+

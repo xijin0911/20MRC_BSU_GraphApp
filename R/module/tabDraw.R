@@ -19,9 +19,6 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                                             border-color: AliceBlue"),
                         bsTooltip("node_infor", "The nodes table includes the information about individual hypotheses",
                                   "right", options = list(container = "body")),
-                        # style="color: #fff; 
-                        #              background-color: AliceBlue; 
-                        #              border-color: #337ab7"
                         DTOutput("graphOutput_visNodes"),
                         p("Sum of weights should be no larger than 1."),
                         actionButton("edge_infor", "Edges:", icon("paper-plane"),
@@ -45,8 +42,10 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                       # bsTooltip("rej_infor", "",
                       #           "right", options = list(container = "body")),
                       tableOutput("res_Table"),
-                      radioButtons('format', 'Report', c('PDF', 'HTML', 'Word'),
-                                   inline = TRUE),
-                      downloadButton('Report_Draw') ,
+                      # radioButtons('format', 'Report_Draw', c('PDF', 'HTML', 'Word'),
+                      #              inline = TRUE),
+                      # downloadButton('Report_Draw'),
+                      # sliderInput("slider", "Slider", 1, 100, 50),
+                      downloadButton("report", "Generate report")
                     ))
 )

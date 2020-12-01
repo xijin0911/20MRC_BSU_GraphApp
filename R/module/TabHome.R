@@ -12,7 +12,6 @@ tabHome <- tabPanel("Home", icon=icon("home", lib = "glyphicon"),
                         column(2,style = "background-color: skyblue;",
                                h5("Learning Materials"),
                                downloadButton("downloadData", label = "Slides")
-                               # p("Please download what you need here.")
                         ),
                         br(),br()
                       ))

@@ -8,14 +8,14 @@ foot <- tags$footer(
     # ),
     # p("GUI created with R Shiny by",
       tags$a(
-        href = "https://github.com/xijin0911","Xijin Chen"),
+        href = "https://github.com/xijin0911","Xijin Chen."),
       style="font-size:100%; font-family:Arial; line-height:.8rem;"
     ),
     p(
       "If you have any questions or comments, you can email us at ",
-      tags$a(href = "chenxijin2017@gmail.com", "chenxijin2017@gmail.com"),
-      style="font-size:100%; font-family:Arial; line-height:.8rem;"
-    )
+      tags$a(href = "https://www.mrc-bsu.cam.ac.uk/people/in-alphabetical-order/n-to-s/david-robertson/",
+             "Dr. David Robertson"),
+      style="font-size:100%; font-family:Arial; line-height:.8rem;")
   ),
   align = "center",
   style = "

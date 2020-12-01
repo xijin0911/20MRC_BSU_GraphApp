@@ -35,6 +35,14 @@ dfcreate <- function(num,test="Bonferroni-Holm procedure"){
                 c(0,1,0,0),
                 c(1,0,0,0))
   }
+  if(test == "Parallel gatekeeping procedure")  #has the fixed number of hypothesis 
+  {
+    df = rbind(c(0,0,0.5,0.5),
+               c(0,0,0.5,0.5),
+               c(0,0,0,1),
+               c(0,0,1,0))
+  }
+  
   colnames(df) <- name
   rownames(df) <- name
   return(df)
@@ -59,6 +67,10 @@ wpcreat <- function(num,test="Bonferroni-Holm procedure"){
   if(test == "Simple successive procedure"){
     weight = c(0.5,0.5,0,0)
     pvalues = rep(0.01,num)
+  }
+  if(test == "Parallel gatekeeping procedure"){
+    weight = c(0.5,0.5,0,0)
+    pvalues = c(0.097,0.015,0.005,0.006)
   }
   re <- data.frame(
                    "weights" = weight,
