@@ -23,6 +23,7 @@ library(shinyjs)
 library(rintrojs) # introBox
 library(DiagrammeR)
 library(shinyalert)
+library(jsonlite)  # guideline shinyjs
 
 source("R/footer.R")
 source("R/func/gMCP_xc2.R")
@@ -80,6 +81,15 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            stringsAsFactors = F)
 
 server <- function(input, output,session) { 
+  
+  # shinyjs instructions
+  steps <- read.csv("help.csv")
+  session$sendCustomMessage(type = 'setHelpContent', message = list(steps = toJSON(steps) ))
+  observeEvent(input$startHelp,{
+    session$sendCustomMessage(type = 'startHelp', message = list(""))
+  })
+  # shinyjs instructions
+  
   output$downloadData <- downloadHandler(
     filename = "file1.pdf",
     content = function(file) {
@@ -148,7 +158,6 @@ server <- function(input, output,session) {
           id = input$editable_network_graphChange$id,
           from = input$editable_network_graphChange$from,
           to = input$editable_network_graphChange$to,
-          # label = "NULL",
           label = "NULL",
           stringsAsFactors = F)
       )

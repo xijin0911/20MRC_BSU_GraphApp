@@ -1,14 +1,25 @@
 tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
-                    useShinyalert(),  # Set up shinyalert
-                    actionButton("inst", "Instructions",icon("atom")),
+                    
+                    includeCSS("introjs.min.css"),
+                    includeCSS("app.css"),
+                    includeScript("intro.min.js"),
+                    includeScript("app.js"),
+                    div(class="flexcontainer",
+                        actionButton(inputId="startHelp", label="instructions  ", 
+                                     class="btn-default",icon("atom"))
+                    ),
+                    # useShinyalert(),  # Set up shinyalert
+                    # actionButton("inst", "Instructions",icon("atom")),
                     fluidRow(
-                      column(
-                        h2("Graph", align = "center"),
+                      # column 1
+                      column( h3("Graph", align = "center"),id="Graph",
+                              style="background-color: AliceBlue;border-color: AliceBlue", 
                         width = 4,
                         p("Place new nodes and edges with corresponding elements or edit the elements"),
                         visNetworkOutput("editable_network", height = "400px")),
-                      column(
-                        h2("Details", align = "center"),
+                      # column 2
+                      column(h3("Details", align = "center"),id="Details",
+                             style="background-color: AliceBlue;border-color: AliceBlue", 
                         p("You can also double click the cells below to edit"),
                         numericInput(inputId = "alpha_draw", 
                                      label = HTML("Total &alpha;"),
@@ -27,9 +38,9 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                         bsTooltip("edge_infor", "The edges table includes the information about transition",
                                   "right", options = list(container = "body")),
                         DTOutput("graphOutput_visEdges")),
-                      
-                    column(
-                      h2("Results", align = "center"),
+                      # column 3
+                    column(h3("Results", align = "center"),id="Results",
+                    style="background-color: AliceBlue;border-color: AliceBlue", 
                       width = 4,
                       p("Manipulate on graph or in tables to obtain the result"),
                       br(),

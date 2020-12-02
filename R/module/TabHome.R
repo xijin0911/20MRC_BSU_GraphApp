@@ -10,9 +10,9 @@ tabHome <- tabPanel("Home", icon=icon("home", lib = "glyphicon"),
                         br(),br(),
                         br(),br(),
                         column(2,style = "background-color: skyblue;",
-                               h5("Learning Materials"),
-                               downloadButton("downloadData", label = "Slides")
-                        ),
+                               h5("Lecture Slides"),
+                               downloadButton("downloadData", label = "Slides"),
+                               br(),br()),
                         br(),br()
                       ))
                     

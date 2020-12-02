@@ -10,7 +10,21 @@
   padding: 10px;
   box-shadow: 10px 10px 10px blue;
 }
+span.frac {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+span.frac > sup, span.frac > sub {
+  display: block;
+  font: inherit;
+  padding: 0 0.3em;
+}
+span.frac > sup {border-bottom: 0.08em solid;}
+span.frac > span {display: none;}
 </style>
+
+
 <h3>Welcome to <i>GraphApp</i>!</h3>
 <p><i>GraphApp</i> is a Shiny application that helps to implement the graphical approach for multile test procedures. The app is a companion to the following article:
 
@@ -47,11 +61,31 @@ The graphical approaches dissociate the <em>underlying weighting strategy </em> 
 <h5>1. Weighting strategy</h5>
 The weighting strategies can reflect the given study objectives, which can be communicated to the clinical team. Weighting strategies are formally defined through the weights <em>&omega;<sub>i</sub>(I),i&#8712;I</em>, for the global null hypothesis <em>H<sub>I</sub></em> and the transition matrix <em>G=(g<sub>ij</sub>)</em>, where <em>0&le;g<sub>ij</sub>&le;1</em>,<em>g<sub>ii</sub></em>=0, and <em>&sum;g<sub>ij</sub>&le;1</em> for all <em>i,j&#8712;I</em>. We additionally need to determine how the graph is updated once a vertex is removed. This can be achieved by tailoring Algotithm 1 as below to the graphical weighting strategy.   
 
+<code r>
+
+</code>
 
 <br><br>
 <div id="algo">
   <dt>Algorithm 1</dt>
-  <p>Define multiple shadows with blur effect.</p>
+  Transition matrix <em>G=(g<sub>ij</sub>)</em>, where <em>g<sub>ij</sub></em> is the fraction of  <em>&alpha;<sub>i</sub></em> allocated to <em>H<sub>j</sub></em> if <em>H<sub>i</sub></em> is rejected.
+  Require <em>0&le;g<sub>ij</sub>&le;1</em>, <em>g<sub>ii</sub>=0</em> and <em>&sum;<sub>k=1</sub>g<sub>ik</sub>=1</em> for <em>i ,j = 1, ..., K.</em>
+  
+  <ol>
+  <li><em>J = {1, ..., K}</em></li>
+  <li>Select a <em>j&isin;J</em> such that <em>p<sub>j</sub>&alpha;</em><sub>j</sub> and reject <em>H<sub>j</sub></em>; otherwise stop</li>
+  <li>Update the graph:
+  <br>
+  <em>J &rarr; J\{j}</em> 
+  <br><br>
+  <em>&alpha;<sub>l</sub> &rarr; &#123;<sup style="margin-left: 7px">
+    <span class="frac"><sup>g<sub>lk</sub>+g<sub>lj</sub>g<sub>jk</sub></sup><span>&frasl;</span><sub>1-g<sub>lj</sub>g<sub>jl</sub></sub></span> for <em>l,k&isin;J, l&ne; k, g<sub>lj</sub>g<sub>jl</sub> < 1 </em> 
+  </sup>
+  
+  <sub style="margin-left:-20px">0 otherwise</sub></em>
+  </li>
+</ol>
+  
 </div>
 
 

@@ -1,0 +1,4 @@
+"step","element","intro","position"
+"1","#Graph","Add/Delete/Edit nodes and edges in the graph", "top"
+"2","#Details","Add/Delete/Edit nodes and edges in the table", "top"
+"3","#Results","The result of multiple testing of the information in Graph and Details", "top"

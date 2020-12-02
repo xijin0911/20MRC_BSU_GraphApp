@@ -3,11 +3,42 @@
 f2n <- function(ff){
   library(gsubfn)
   calc <- function(s) {
-    x <- c(if (length(s) == 2) 0, as.numeric(s), 0:1)
-    x[1] + x[2] / x[3]
+    x <- c(as.numeric(s), 0:1)
+    x[1] / x[2]
   }
-  sapply(strapplyc(ff, "\\d+"), calc)
+  result <- sapply(strapplyc(ff, "\\d+"), calc)
+  result
 }
+
+
+f2n("0.5")
+f2n("1/2")
+f2n(c("0.5","1/2"))
+
+# f2n <- function(ff){
+#   library(gsubfn)
+#   calc <- function(s) {
+#     x <- c(if (length(s) == 2) 0, as.numeric(s), 0:1)
+#     x[1] + x[2] / x[3]
+#   }
+#   for(i in 1:length(ff)){
+#     if(is.numeric(ff[i]) == FALSE){
+#       ff[i] <- calc(ff[i])
+#     }
+#   }
+#   ff}
+
+  # if(is.numeric(ff) == FALSE){
+  #   calc <- function(s) {
+  #     x <- c(if (length(s) == 2) 0, as.numeric(s), 0:1)
+  #     x[1] + x[2] / x[3]
+  #   }
+  #   result <- sapply(strapplyc(ff, "\\d+"), calc)
+  # }else{
+  #   result <-ff
+  # }
+  # result
+
 
 
 dfcreate <- function(num,test="Bonferroni-Holm procedure"){
