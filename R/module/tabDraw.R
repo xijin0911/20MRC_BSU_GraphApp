@@ -1,26 +1,25 @@
 tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
-                    
                     includeCSS("introjs.min.css"),
                     includeCSS("app.css"),
                     includeScript("intro.min.js"),
                     includeScript("app.js"),
                     div(class="flexcontainer",
-                        actionButton(inputId="startHelp", label="instructions  ", 
-                                     class="btn-default",icon("atom"))
+                        span(actionButton(inputId="startHelp", 
+                                          label="Guide", 
+                                     class="btn-default",icon("atom")),
+                             style = "position:absolute;left:2em;")
                     ),
-                    # useShinyalert(),  # Set up shinyalert
-                    # actionButton("inst", "Instructions",icon("atom")),
                     fluidRow(
                       # column 1
                       column( h3("Graph", align = "center"),id="Graph",
                               style="background-color: AliceBlue;border-color: AliceBlue", 
-                        width = 4,
-                        p("Place new nodes and edges with corresponding elements or edit the elements"),
+                        width = 5,
+                        p("Click the Edit button"),
                         visNetworkOutput("editable_network", height = "400px")),
                       # column 2
                       column(h3("Details", align = "center"),id="Details",
                              style="background-color: AliceBlue;border-color: AliceBlue", 
-                        p("You can also double click the cells below to edit"),
+                        p("Double click the cells below to edit"),
                         numericInput(inputId = "alpha_draw", 
                                      label = HTML("Total &alpha;"),
                                      value = 0.05,step = 0.001,min = 0),
@@ -41,8 +40,8 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                       # column 3
                     column(h3("Results", align = "center"),id="Results",
                     style="background-color: AliceBlue;border-color: AliceBlue", 
-                      width = 4,
-                      p("Manipulate on graph or in tables to obtain the result"),
+                      width = 3,
+                      p(""),
                       br(),
                       tags$head( 
                         tags$style(HTML("h4 {text-decoration: underline;}" 

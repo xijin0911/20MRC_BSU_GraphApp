@@ -4,6 +4,8 @@ output: html_document
 params:
   alpha_draw: NA
   graph_data: NA
+header-includes:
+  \usepackage{booktabs}
 ---
 
 ```{r}
@@ -16,12 +18,41 @@ edges
 nodes
 ```
 
-```{r}
-kable(edges, format = "latex", booktabs = TRUE)
-```
-
-
 ```{r, echo=FALSE, results='asis'}
-kable(nodes, format = "latex", booktabs = TRUE)
+library(knitr)
+library(xtable)
+t1 <- kable(nodes,
+  # cbind('Items'=c(#"Number of patients",
+  #             "Number of predictors",
+  #             "Number of events "),
+  #           'Values'=c(#params$n,
+  #              params$p,
+  #              params$Ef)), 
+  format = "latex", booktabs = TRUE)
+           
+t2 <- kable(edges,
+  # cbind('Items'=c("Shrinkage factor",
+  #             "Adjusted Cox-Snell R-squared",
+  #             "Absolute difference",
+  #             "Margin of error"),
+  #           'Values'=c(params$S_VH,
+  #              params$csR2_adj,
+  #              params$d,
+  #              params$error_mar)), 
+  format = "latex", booktabs = TRUE)
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\caption{Data characteristics}
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering
+        \\caption{Input desired values}",
+        t2,
+    "\\end{minipage} 
+\\end{table}"
+))  
 ```
+
 

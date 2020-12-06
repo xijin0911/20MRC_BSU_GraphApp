@@ -158,7 +158,7 @@ server <- function(input, output,session) {
           id = input$editable_network_graphChange$id,
           from = input$editable_network_graphChange$from,
           to = input$editable_network_graphChange$to,
-          label = "NULL",
+          label = "undefined",
           stringsAsFactors = F)
       )
       graph_data$edges = temp
@@ -246,8 +246,8 @@ server <- function(input, output,session) {
       ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
                  which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
     }
-    result <- gMCP_xc2(matrix=ini.matrix,
-                       weights=f2n(graph_data$nodes[,"weight"]),
+    result <- gMCP_xc3(matrix=ini.matrix,
+                       weights=f2d(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
     result_rej <- data.frame(result$rejected)
@@ -275,15 +275,14 @@ server <- function(input, output,session) {
   )
     # ---------------- Procedure Page output ----------------
     df_create <- reactive({
-      switch(input$Weighting_Strategy2,
+      switch(input$common_procedures,
              "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
              "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure")
       )
     })
-    
     wp_create <- reactive({
-      switch(input$Weighting_Strategy2,
+      switch(input$common_procedures,
              "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
              "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
@@ -341,7 +340,6 @@ server <- function(input, output,session) {
       num <- as.integer(input$Number_Hypotheses2)
       net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(net)
-      # net %v% "Rejection" <- (as.character(res$rejected))
       
       initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
@@ -361,7 +359,7 @@ server <- function(input, output,session) {
               plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
       
       res <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                      weights=f2n(input$WeightPvalue[,"weights"]),
+                      weights=f2d(input$WeightPvalue[,"weights"]),
                       pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
                       alpha = input$alpha_procedure,fweights = F)
       res_pvalues <- res$pvalues
@@ -406,14 +404,10 @@ server <- function(input, output,session) {
       p
     })
     
-    # output$ResultPlot <- renderPlot(
-    #   twoPlots()
-    # )
-    
     output$rejresult <- renderTable({
         names <- paste0("H", 1:input$Number_Hypotheses)
         result <- gMCP_xc2(matrix=input$TransitionMatrixG,
-                           weights=f2n(input$WeightPvalue[,"weights"]),
+                           weights=f2d(input$WeightPvalue[,"weights"]),
                            pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
                            alpha = input$alpha_procedure,fweights = F)
         result_rej <- data.frame(result$rejected)
@@ -492,7 +486,7 @@ server <- function(input, output,session) {
 #   wp <- wp_create_test()
 #   names <- lapply(1:num, function(i) {paste0("H", i)})
   res <- gMCP_xc2(matrix=df,
-                  weights=f2n(wp[,"weights"]),
+                  weights=f2d(wp[,"weights"]),
                   pvalues=as.numeric(wp[,"pvalues"]),
                   alpha = input$alpha_test,fweights = F)
   res_pvalues <- res$pvalues

@@ -11,9 +11,14 @@ f2n <- function(ff){
 }
 
 
-f2n("0.5")
-f2n("1/2")
-f2n(c("0.5","1/2"))
+f2d <- function(input){
+  for(i in 1:length(input)){
+    input[i] <- eval(parse(text=input[i]))
+  }
+  result <- as.numeric(input)
+  result
+}
+
 
 # f2n <- function(ff){
 #   library(gsubfn)
