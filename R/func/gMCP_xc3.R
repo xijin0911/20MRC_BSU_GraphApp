@@ -25,6 +25,7 @@ gMCP_xc3 <- function(matrix,weights,
                      pvalues, alpha = 0.05,
                      fweights = F) 
 {
+  library(gMCP)
   G <- matrix
   n <- ncol(G)   # number of hypotheses
   h <- numeric(n) 

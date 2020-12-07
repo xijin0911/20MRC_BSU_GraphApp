@@ -1,29 +1,28 @@
-tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
+tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                     includeCSS("introjs.min.css"),
                     includeCSS("app.css"),
                     includeScript("intro.min.js"),
                     includeScript("app.js"),
                     div(class="flexcontainer",
-                        span(actionButton(inputId="startHelp", 
+                        span(actionButton(inputId="draw_instruction", 
                                           label="Guide", 
                                      class="btn-default",icon("atom")),
-                             style = "position:absolute;left:2em;")
-                    ),
+                             style = "position:absolute;left:2em;")),
                     fluidRow(
                       # column 1
-                      column( h3("Graph", align = "center"),id="Graph",
-                              style="background-color: AliceBlue;border-color: AliceBlue", 
-                        width = 5,
-                        p("Click the Edit button"),
-                        visNetworkOutput("editable_network", height = "400px")),
-                      # column 2
-                      column(h3("Details", align = "center"),id="Details",
+                      column(id="Graph",width = 4,
                              style="background-color: AliceBlue;border-color: AliceBlue", 
-                        p("Double click the cells below to edit"),
-                        numericInput(inputId = "alpha_draw", 
-                                     label = HTML("Total &alpha;"),
-                                     value = 0.05,step = 0.001,min = 0),
-                        width = 4,
+                             h3("Graph", align = "center"),
+                             p("Click the Edit button"),
+                             visNetworkOutput("editable_network", height = "400px")),
+                      # column 2
+                      column(id="Details",width = 4,
+                             style="background-color: AliceBlue;border-color: AliceBlue", 
+                             h3("Details", align = "center"),
+                             p("Double click the cells below to edit"),
+                             numericInput(inputId = "alpha_draw",
+                                          label = HTML("Total &alpha;"),
+                                          value = 0.05,step = 0.001,min = 0),
                         actionButton("node_infor", "Nodes:", icon("paper-plane"),
                                      style="background-color: AliceBlue;
                                             border-color: AliceBlue"),
@@ -38,24 +37,14 @@ tabDraw <- tabPanel("Draw",   icon=icon("pencil", lib = "glyphicon"),
                                   "right", options = list(container = "body")),
                         DTOutput("graphOutput_visEdges")),
                       # column 3
-                    column(h3("Results", align = "center"),id="Results",
-                    style="background-color: AliceBlue;border-color: AliceBlue", 
-                      width = 3,
-                      p(""),
-                      br(),
+                    column(id="Results",width = 4,
+                           style="background-color: AliceBlue;border-color: AliceBlue", 
+                           h3("Results", align = "center"),
+                           p(""),br(),
                       tags$head( 
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
-                      # actionButton("rej_infor", "Rejection results:", icon("paper-plane"),
-                      #              style="background-color: AliceBlue;
-                      #                       border-color: AliceBlue"),
-                      # bsTooltip("rej_infor", "",
-                      #           "right", options = list(container = "body")),
                       tableOutput("res_Table"),
-                      # radioButtons('format', 'Report_Draw', c('PDF', 'HTML', 'Word'),
-                      #              inline = TRUE),
-                      # downloadButton('Report_Draw'),
-                      # sliderInput("slider", "Slider", 1, 100, 50),
                       downloadButton("report", "Generate report")
                     ))
 )

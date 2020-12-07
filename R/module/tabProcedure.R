@@ -1,7 +1,21 @@
 tabProcedure <- tabPanel("Common procedures",
+                         includeCSS("www/style.css"),
                          # icon=icon("cog", lib = "glyphicon"),  
-                       column(3,style = "background-color: skyblue;",
-                              h3("Settings", align = "center"),
+                         # includeCSS("introjs.min.css"),
+                         # includeCSS("app.css"),
+                         # includeScript("intro.min.js"),
+                         # includeScript("app.js"),
+                         # div(class="flexcontainer",
+                         #     span(actionButton(inputId="procedure_instruction", 
+                         #                       label="Guide", 
+                         #                       class="btn-default",icon("atom")),
+                         #          style = "position:absolute;left:2em;")),
+                         fluidRow(
+                           column(id="Settings_procedure",3,
+                                  style="background-color: skyblue;",
+                                  h3("Settings", align = "center"),
+                                  # style = "background-color: skyblue;",
+                              # h3("", align = "center"),
                               br(),
                               collapsible = FALSE,solidHeader = TRUE,collapsed = TRUE,
                               numericInput(inputId="Number_Hypotheses",
@@ -20,62 +34,73 @@ tabProcedure <- tabPanel("Common procedures",
                                           selected = "Bonferroni-Holm procedure"),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Bonferroni-Holm procedure'",
-                                div(strong("Note:"), "All hypothesese have the same weights.", style = "color:blue")
+                                div("All hypothesese have the same weights.")
                               ),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fixed sequence test'",
-                                div(strong("Note:"), "The subsequent tests will not be performed unless the previous hypothesis is tested significantly", style = "color:blue")
+                                div(HTML("Each hypothesis is tested in the pre-specified sequence at level &alpha; until the first non-rejection"))
                               ),
                               
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fallback procedure'",
-                                div(strong("Note:"), "All hypotheses with same weights have a priori testing orde", style = "color:blue")
+                                div(strong("Note:"), HTML("Each hypothesis is tested in the pre-specified sequence, and the &alpha; between hypotheses. 
+                                                          For each <em>H<sub>i</sub></em>, &sum;<sub>1</sub><sup>K</sup>&alpha;<sup>i</sup>=&alpha;"))
                               ),
+                              # hr(),
+                              # p(style="font-family:courier;","Rejection rule"),
+                              # conditionalPanel(
+                              #   condition = "input.common_procedures == 'Bonferroni-Holm procedure'",
+                              #   p("")
+                              # ),
+                              # conditionalPanel(
+                              #   condition = "input.common_procedures == 'Fixed sequence test'",
+                              #   div(HTML("if <em>p<sub>k</sub></em> &le;&alpha; reject <em>H<sub>k</sub></em> and continue; else stop"))
+                              #   ),
+                              # conditionalPanel(
+                              #   condition = "input.common_procedures == 'Fallback procedure'",
+                              #   p()),
                               hr(),
+                              p(style="font-family:courier;","Reference"),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Bonferroni-Holm procedure'",
-                                p("Holm, S. (1979). A Simple Sequentially Rejective Multiple Test Procedure. Scandinavian Journal of Statistics, 6(2), 65-70. Retrieved November 2, 2020, from http://www.jstor.org/stable/4615733")
+                                div(HTML("Holm, S. (1979). A Simple Sequentially Rejective Multiple Test Procedure. <i>Scandinavian Journal of Statistics</i>, 6(2), 65-70. Retrieved December 7, 2020."))
                               ),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fixed sequence test'",
-                                p(("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. Drug Information Journal, 34(2), 591–597.")),
-                                p(("Westfall, PH, & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. Journal of Statistical Planning and Inference , 99 (1), 25-40."))
+                                div(HTML("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. <i>Drug Information Journal</i>, 34(2), 591–597.")),
+                                div(HTML("Westfall, PH, & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. <i>Journal of Statistical Planning and Inference</i>, 99 (1), 25-40."))
                               ),
-                              
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fallback procedure'",
-                                p(("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry , 2 (3), 211-215."),
-                                  p(("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. Statistics in Medicine 2009; 28:586-604.")))
+                                div(HTML("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: <i>The Journal of Applied Statistics in the Pharmaceutical Industry</i>, 2 (3), 211-215."),
+                                    div(HTML("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. <i>Statistics in Medicine</i> 2009; 28:586-604.")))
                               )
                        ),
-                       column(4,# style = "background-color:#FFFAFA;",
-                              h2("Details",align = "center"),
+                       column(id="Details_procedure",4,# style = "background-color:#FFFAFA;",
+                              style="background-color: AliceBlue;border-color: AliceBlue",
+                              h2("Details", align = "center"),
+                              actionButton("G_infor", HTML("Transition matrix <em>G</em>"), icon("paper-plane"),
+                                           style="background-color: AliceBlue;
+                                            border-color: AliceBlue"),
+                              bsTooltip("G_infor", "The propagation of significance levels",
+                                        "right", options = list(container = "body")),
                               uiOutput("uioutput_Tmatrix1"),
                               br(),br(),
+                              actionButton("wp_infor", HTML("Weights <em>w</em> and <em>p</em>-values"), icon("paper-plane"),
+                                           style="background-color: AliceBlue;
+                                            border-color: AliceBlue"),
+                              bsTooltip("wp_infor", "Initial weights and <em>p</em>-values",
+                                        "right", options = list(container = "body")),
                               uiOutput("uioutput_Tmatrix2"),
                               br(),
                               shinyjs::useShinyjs()),
-                       column(5,style = "background-color: AliceBlue;",
-                              h3("Results", align = "center"),
-                              plotOutput("ResultPlot"),
-                              tableOutput("rejresult")
-                              # actionButton("TestButton", "Test!", icon("paper-plane"),
-                              #              style="background-color: AliceBlue;
-                              #               border-color: AliceBlue"),
-                              # bsTooltip("TestButton", "Produce or update the initial and final graphs",
-                              #           "right", options = list(container = "body")),
-                              # conditionalPanel(condition = "input.TestButton != 0",
-                              #                  ),
-                              # plotOutput("ResultPlot"),
-                              # a(id = "Moreinformation",
-                              #   div(HTML("More information about the resulting Transition matrix <em>G</em> and Weights <em>w</em>"))),
-                              # shinyjs::hidden(
-                              #   div(id = "moreinfor",
-                              #       box(width=4,
-                              #           tableOutput("rejresult"))
-                              #       # box(width=4,
-                              #       #     tableOutput("extend_weights"))
-                              #   )
-                              # )
-                              )
+                       column(id="Details_procedure",5,
+                              style="background-color: AliceBlue;border-color: AliceBlue",
+                              h2("Results", align = "center"),
+                              p("Results of the testing procedures"), 
+                              tableOutput("rejresult"),
+                              # actionButton("TestButton", "Graph",
+                              #              style="background-color: AliceBlue;border-color: AliceBlue"),
+                              plotOutput("ResultPlot")
+                              ))
                        )

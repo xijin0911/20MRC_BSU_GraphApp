@@ -25,6 +25,7 @@ library(DiagrammeR)
 library(shinyalert)
 library(jsonlite)  # guideline shinyjs
 
+
 source("R/footer.R")
 source("R/func/gMCP_xc3.R")
 source("R/func/generate_graph.R")
@@ -83,11 +84,29 @@ init.edges.df = data.frame(id = c("e1","e2"),
 server <- function(input, output,session) { 
   
   # shinyjs instructions
-  steps <- read.csv("help.csv")
-  session$sendCustomMessage(type = 'setHelpContent', message = list(steps = toJSON(steps) ))
-  observeEvent(input$startHelp,{
+  # --- draw
+  steps_draw <- read.csv("help_draw.csv")
+  session$sendCustomMessage(type = 'setHelpContent', 
+                            message = list(steps = toJSON(steps_draw) ))
+  observeEvent(input$draw_instruction,{
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
+  # --- procedure
+  # steps_procedure <- read.csv("help_procedure.csv")
+  # session$sendCustomMessage(type = 'setHelpContent2', 
+  #                           message = list(steps = toJSON(steps_procedure) ))
+  # observeEvent(input$procedure_instruction,{
+  #   session$sendCustomMessage(type = 'startHelp2', 
+  #                             message = list(""))
+  # })
+  # # --- test
+  # steps_test <- read.csv("help_test.csv")
+  # session$sendCustomMessage(type = 'setHelpContent3', 
+  #                           message = list(steps = toJSON(steps_test) ))
+  # observeEvent(input$test_instruction,{
+  #   session$sendCustomMessage(type = 'startHelp3', 
+  #                             message = list(""))
+  # })
   # shinyjs instructions
   
   output$downloadData <- downloadHandler(
@@ -297,9 +316,10 @@ server <- function(input, output,session) {
       })
       colnames(df) <- rownames(df)
       wp <- wp_create()
-      box(title = h5(HTML("Transition matrix <em>G</em>")),
+      box(
+        # title = h5(HTML("Transition matrix <em>G</em>")),
           status = "primary", solidHeader = TRUE,width = 10, 
-          withMathJax(helpText("The propagation of significance levels")),
+          # withMathJax(helpText("The propagation of significance levels")),
           matrixInput(inputId = "TransitionMatrixG",
                       value = df,class = "numeric",
                       cols = list(names = TRUE,extend = FALSE,
@@ -319,9 +339,10 @@ server <- function(input, output,session) {
         paste0("H", i)
       })
       colnames(df) <- rownames(df)
-      box(title = h5(HTML("Weights <em>w</em> and <em>p</em>-values")),
+      box(
+        # title = h5(HTML("Weights <em>w</em> and <em>p</em>-values")),
           status = "primary",solidHeader = TRUE,width = 10,
-          helpText(div(HTML("Initial weights and <em>p</em>-values"))),
+          # helpText(div(HTML("Initial weights and <em>p</em>-values"))),
           matrixInput(inputId = "WeightPvalue",
                       value = wp, class = "numeric",
                       cols = list(names = TRUE, extend = FALSE,
@@ -365,22 +386,22 @@ server <- function(input, output,session) {
       res_pvalues <- res$pvalues
       res_weights <- res$weights
       res_G <- res$G
-      res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
-                            "Adjusted p-values" = res$adjpvalues,
-                            check.names = FALSE)
+      # res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
+      #                       "Adjusted p-values" = res$adjpvalues,
+      #                       check.names = FALSE)
       
       res_net <- network(res_G,directed = TRUE,
                          names.eval = "weights",ignore.eval = FALSE)
       res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(res_net)
-      res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
-      res_net %v% "Rejection" <- (as.character(res$rejected))
+      # res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
+      res_net %v% "Rejection" <- (res$rejected)
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
         geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
                    color = "grey50",curvature = 0.15) +
-        geom_nodes(aes(x, y, color = Rejection), alpha = 0.5,size = 14) +
+        geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
         # geom_edgetext_repel(aes(label = weights), color = "white",
         #                     fill = "grey25",
@@ -416,6 +437,65 @@ server <- function(input, output,session) {
         colnames(output) <- c("hypothesis","adjusted p-value","rejection")
         output
     })
+    
+    
+    # twoPlots <- eventReactive(input$TestButton,
+    #                           {
+    #                             net <- network(input$TransitionMatrixG,
+    #                                            directed = TRUE,
+    #                                            names.eval = "weights",
+    #                                            ignore.eval = FALSE)
+    #                             net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
+    #                             e <- network.edgecount(net)
+    #                             ###
+    #                             a <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
+    #                               geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
+    #                                          color = "grey50",
+    #                                          curvature = 0.15) +
+    #                               geom_nodes(aes(x, y),color = "grey", size = 8) +
+    #                               geom_nodetext(aes(label = vertex.names)) +
+    #                               geom_edgetext_repel(aes(label = weights), color = "white", fill = "grey25",
+    #                                                   box.padding = unit(0.25, "line")) +
+    #                               scale_color_brewer(palette = "Set2") +
+    #                               theme(margin = c(0.1,0.1,0.1,0.1))+
+    #                               #  scale_size_area("importance", breaks = 1:3, max_size = 9) +
+    #                               theme_blank()
+    #                             
+    #                             
+    #                             ###
+    #                             WPmatrix <- input$WeightPvalue
+    #                             # 
+    #                             res <- gMCP_xc3(matrix=input$TransitionMatrixG,
+    #                                             weights=as.numeric(input$WeightPvalue[,"weights"]),
+    #                                             pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+    #                                             alpha = input$alpha_procedure,fweights = F)
+    #                             res_pvalues <- res$pvalues
+    #                             res_weights <- round(res$weights,digits = 2)
+    #                             res_G <- round(res$G,digits = 2)
+    #                             
+    #                             res_net <- network(res_G,directed = TRUE,
+    #                                                names.eval = "weights",ignore.eval = FALSE)
+    #                             res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
+    #                             e <- network.edgecount(res_net)
+    #                             res_net %v% "Rejection" <- res$rejected
+    #                             b <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
+    #                               geom_edges(arrow = arrow(length = unit(15, "pt"), type = "closed"),
+    #                                          color = "grey50",
+    #                                          curvature = 0.15) +
+    #                               geom_nodes(aes(x, y,color = Rejection), size = 12) +
+    #                               geom_nodetext(aes(label = vertex.names)) +
+    #                               scale_color_brewer(palette = "Set2") +
+    #                               theme_blank()
+    #                             
+    #                             legend_b <- get_legend(b + theme(legend.position="bottom"))
+    #                             p <- cowplot::plot_grid(a, b, legend_b, ncol = 2, rel_heights = c(1, .2))
+    #                             p
+    #                           })
+    
+    # output$ResultPlot_procedure <- renderPlot(
+    #   twoPlots()
+    # )
+    
      # ---------------- Test Page output ----------------
      df_create_test <- reactive({
        switch(input$exRadio,
@@ -446,7 +526,31 @@ server <- function(input, output,session) {
          wp <- wp_create_test()
          wp
      }, rownames = TRUE)
+       
+       output$rejtable <- renderTable({
+         num <- 4
+         wp <- wp_create_test()
+         df <- df_create_test()
+         names <- lapply(1:num, function(i) {
+           paste0("H", i)
+         })
+         rownames(df) <- names
+         colnames(df) <- rownames(df)
+         result <- gMCP_xc3(matrix=df,
+                            weights=f2d(wp[,"weights"]),
+                            pvalues=as.numeric(wp[,"pvalues"]),
+                            alpha = input$alpha_test,fweights = F)
+         result_rej <- data.frame(result$rejected)
+         # result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
+         result_adjp <- result$adjpvalues
+         output <- data.frame(cbind(as.character(names),result_adjp,result_rej))
+         colnames(output) <- c("hypothesis","adjusted p-value","rejection")
+         output
+       })
+       
      
+    
+       
      output$resPlots_both <- renderPlot({
        num <- 4
        df <- df_create_test()
