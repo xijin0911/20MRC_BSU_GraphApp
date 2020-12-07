@@ -46,6 +46,22 @@ General description of this Shiny App and some learning materials.
 <li>Specific tests</li>
 
 <h3>Method</h3>
+
+Technical basis of the graphical approach: the graph defines a
+<b>closed testing procedure</b> with weighted Bonferroni tests for
+each intersection hypothesis. In short, the graphical approaches could be summarized by the following steps:
+
+<ul>
+  <li>Hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>K</sub></em> represented as nodes</li>
+  <li>Split of significance level <em>&alpha;</em> into (<em>&alpha;<sub>1</sub></em>, ...,  <em>&alpha;<sub>K</sub></em>)</li>
+  <p>Equivalent formulation of split of <em>&alpha;<sub>i</sub></em> using weights (<em>w<sub>1</sub></em>, ..., <em>w<sub>K</sub></em>) where <em>&sum;<sup>K</sup><sub style="margin-left: 1px">i=1</sub>w<sub>i</sub></em>= 1 and <em>&alpha;<sub>i</sub></em> = <em>&alpha;<em>w<sub>i</sub></em></em></p>.
+  <li>'<em>&alpha;</em> propagation' through weighted, directed edges
+</li>
+<p>If a hypothesis Hi can be rejected at level <em>&alpha;<sub>i</sub></em> (i.e. <em>p<sub>i</sub></em> ≤ <em>&alpha;<sub>i</sub></em>), propagate its level <em>&alpha;<sub>i</sub></em> to the remaining (not yet tested) hypotheses, according to a prefixed rule, and continue
+testing with the updated <em>&alpha;</em> levels.
+</p>
+</ul>
+
 With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
 Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
 Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. 

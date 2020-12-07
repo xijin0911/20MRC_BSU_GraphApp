@@ -26,7 +26,7 @@ library(shinyalert)
 library(jsonlite)  # guideline shinyjs
 
 source("R/footer.R")
-source("R/func/gMCP_xc2.R")
+source("R/func/gMCP_xc3.R")
 source("R/func/generate_graph.R")
 source("R/func/generate_data.R")
 source("R/func/function_matrix.R")
@@ -347,9 +347,9 @@ server <- function(input, output,session) {
                    color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
-        geom_edgetext_repel(aes(label = weights), color = "white",
-                            fill = "grey25",
-                            box.padding = unit(0.25, "line")) +
+        # geom_edgetext_repel(aes(label = weights), color = "white",
+        #                     fill = "grey25",
+        #                     box.padding = unit(0.25, "line")) +
         scale_color_brewer(palette = "Set2") +
         labs(title='Initial graph')+
         # theme_blank()+
@@ -358,7 +358,7 @@ server <- function(input, output,session) {
                                         margin = margin(15, 0, 15, 0)),
               plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
       
-      res <- gMCP_xc2(matrix=input$TransitionMatrixG,
+      res <- gMCP_xc3(matrix=input$TransitionMatrixG,
                       weights=f2d(input$WeightPvalue[,"weights"]),
                       pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
                       alpha = input$alpha_procedure,fweights = F)
@@ -375,7 +375,6 @@ server <- function(input, output,session) {
       e <- network.edgecount(res_net)
       res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
       res_net %v% "Rejection" <- (as.character(res$rejected))
-      res_net %v% "Rejection"
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
@@ -406,7 +405,7 @@ server <- function(input, output,session) {
     
     output$rejresult <- renderTable({
         names <- paste0("H", 1:input$Number_Hypotheses)
-        result <- gMCP_xc2(matrix=input$TransitionMatrixG,
+        result <- gMCP_xc3(matrix=input$TransitionMatrixG,
                            weights=f2d(input$WeightPvalue[,"weights"]),
                            pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
                            alpha = input$alpha_procedure,fweights = F)
@@ -477,15 +476,8 @@ server <- function(input, output,session) {
                plot.title = element_text(size=15, face="bold.italic",
                                          margin = margin(10, 0, 10, 0)),
                plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
-#      })
-# 
-# 
-# output$resPlots_final <- renderPlot({
-#   num <- 4
-#   df <- df_create_test()
-#   wp <- wp_create_test()
-#   names <- lapply(1:num, function(i) {paste0("H", i)})
-  res <- gMCP_xc2(matrix=df,
+       
+  res <- gMCP_xc3(matrix=df,
                   weights=f2d(wp[,"weights"]),
                   pvalues=as.numeric(wp[,"pvalues"]),
                   alpha = input$alpha_test,fweights = F)
