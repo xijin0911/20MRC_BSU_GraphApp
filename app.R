@@ -81,6 +81,7 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            stringsAsFactors = F)
 
 server <- function(input, output,session) { 
+  Sys.sleep(0)
   # # back to top
   # observeEvent(input$toTop, {
   #   js$toTop();
