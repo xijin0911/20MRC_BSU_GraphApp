@@ -59,7 +59,7 @@ gMCP_xc3 <- function(matrix,weights,
   }
   # adjusted p-values 
   # adjPValues <- p.adjust(pvalues,method="holm")
-  adjPValues <- generatePvals(matrix,
+  adjPValues <- gMCP::generatePvals(matrix,
                               weights,pvalues,cr=diag(n)) 
   
   # rejetions

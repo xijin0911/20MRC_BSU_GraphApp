@@ -1,58 +1,125 @@
 ---
-title: "Report for the results"
-output: html_document
+output: pdf_document
 params:
   alpha_draw: NA
   graph_data: NA
 header-includes:
   \usepackage{booktabs}
+  \usepackage{fancyhdr}
+  \pagestyle{fancy}
+  \fancyhead[CO,CE]{Graphapp Draw Report}
 ---
+The inputs in the \textit{Graph} and \textit{Details} parts correspond to the information required for the multiple test procedures. Specifically, the \textit{nodes} correspond to elementary hypotheses: $H_1$, ..., $H_m$ with associated weights denoting the local significance levels $\alpha_1$, ..., $\alpha_m$. In addition, any two vertices $H_i$ and $H_j$ are connected through directed \textit{edges} and the associated weights $g_{ij}$ indicates the fraction of the local significance level $\alpha_i$ that is propagated to $H_j$ once $H_i$ has been rejected. A weight $g_{ij}=0$ indicates that no propagation of the significance level is foreseen and the edge is dopped for convenience.
 
-```{r}
+```{r, echo=FALSE}
 library(knitr)
 library(xtable)
 alpha <- params$alpha_draw
 edges <- params$graph_data$edges
 nodes <- params$graph_data$nodes
-edges
-nodes
+num <- nrow(nodes)
+names <- nodes$label
+df <- matrix(0,nrow=num,ncol=num)
+rownames(df) <- names
+colnames(df) <- names
+for (i in 1:nrow(edges)){
+  df[which(rownames(df)==edges$from[i]),which(colnames(df)==edges$to[i])] <- as.numeric(edges$label[i])
+}
 ```
 
 ```{r, echo=FALSE, results='asis'}
-library(knitr)
-library(xtable)
-t1 <- kable(nodes,
-  # cbind('Items'=c(#"Number of patients",
-  #             "Number of predictors",
-  #             "Number of events "),
-  #           'Values'=c(#params$n,
-  #              params$p,
-  #              params$Ef)), 
-  format = "latex", booktabs = TRUE)
-           
-t2 <- kable(edges,
-  # cbind('Items'=c("Shrinkage factor",
-  #             "Adjusted Cox-Snell R-squared",
-  #             "Absolute difference",
-  #             "Margin of error"),
-  #           'Values'=c(params$S_VH,
-  #              params$csR2_adj,
-  #              params$d,
-  #              params$error_mar)), 
-  format = "latex", booktabs = TRUE)
+t1 <- kable(nodes[,c("label","weight","pvalue")], format = "latex", booktabs = TRUE)
+
+t2 <- kable(df, format = "latex", booktabs = TRUE)
 cat(c("\\begin{table}[!htb]
     \\begin{minipage}{.5\\linewidth}
-      \\caption{Data characteristics}
+      \\caption{Nodes}
       \\centering",
         t1,
     "\\end{minipage}%
     \\begin{minipage}{.5\\linewidth}
       \\centering
-        \\caption{Input desired values}",
+        \\caption{Edges}",
         t2,
     "\\end{minipage} 
 \\end{table}"
 ))  
 ```
 
+The results of graphical approaches could be summarized as below:
+
+```{r echo=FALSE,fig.height=4.5}
+
+
+wp <- matrix(0,nrow=num,ncol=2)
+colnames(wp) <- c("weights","pvalues")
+rownames(wp) <- names
+wp[,"weights"] <- f2d(nodes$weight)
+wp[,"pvalues"] <- as.numeric(nodes$pvalue)
+
+
+net <- network(df,
+               directed = TRUE,
+               names.eval = "weights",
+               ignore.eval = FALSE)
+net %v% "vertex.names"  <- names
+e <- network.edgecount(net)
+      
+initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
+        xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
+        geom_edges(arrow = arrow(length = unit(20, "pt"), 
+                                 type = "closed"),color = "grey50",curvature = 0.15) +
+        geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
+        geom_nodetext(aes(label = vertex.names)) +
+        scale_color_brewer(palette = "Set2") +
+        labs(title='Initial graph',size=8)+
+        theme_blank()+
+        theme(aspect.ratio=1,
+              plot.title = element_text(size=15, face="bold.italic",
+                                        margin = margin(15, 0, 15, 0)),
+              plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
+      
+res <- gMCP_xc3(matrix=df,
+                weights=f2d(wp[,"weights"]),
+                pvalues=as.numeric(wp[,"pvalues"]),
+                alpha = alpha,fweights = F)
+res_pvalues <- res$pvalues
+res_weights <- res$weights
+res_G <- res$G
+res_net <- network(res_G,directed = TRUE,
+                   names.eval = "weights",ignore.eval = FALSE)
+res_net %v% "vertex.names"  <- names
+e <- network.edgecount(res_net)
+res_net %v% "Rejection" <- (res$rejected)
+      
+final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
+        xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
+        geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+                   color = "grey50",curvature = 0.15) +
+        geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
+        geom_nodetext(aes(label = vertex.names)) +
+        scale_color_brewer(palette = "Set2") +
+        labs(title='Final graph',size=8)+
+        theme(legend.position = "none")+
+        theme_blank()+
+        theme(legend.position = "none")+
+        theme(aspect.ratio=1,
+              plot.title = element_text(size=15, face="bold.italic",
+                                        margin = margin(10, 5, 10, 0)),
+              plot.margin = margin(0.5,0.5,0.1,0.1))
+      legend_b <- get_legend(final + theme(legend.position="bottom"))
+      p <- cowplot::plot_grid( initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
+      p
+      
+```
+
+```{r, echo=FALSE, results='asis'}
+result_rej <- data.frame(res$rejected)
+result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
+result_adjp <- res$adjpvalues
+output <- data.frame(cbind(as.character(names),result_adjp,result_rej))
+colnames(output) <- c("hypothesis","adjusted p-value","rejection")
+rownames(output) <- NULL
+kable(output,caption = "Results of Rejectiona and Adjusted p-values")
+```
 

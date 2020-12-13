@@ -1,15 +1,5 @@
 tabProcedure <- tabPanel("Common procedures",
                          includeCSS("www/style.css"),
-                         # icon=icon("cog", lib = "glyphicon"),  
-                         # includeCSS("introjs.min.css"),
-                         # includeCSS("app.css"),
-                         # includeScript("intro.min.js"),
-                         # includeScript("app.js"),
-                         # div(class="flexcontainer",
-                         #     span(actionButton(inputId="procedure_instruction", 
-                         #                       label="Guide", 
-                         #                       class="btn-default",icon("atom")),
-                         #          style = "position:absolute;left:2em;")),
                          fluidRow(
                            column(id="Settings_procedure",3,
                                   style="background-color: skyblue;",
@@ -44,7 +34,7 @@ tabProcedure <- tabPanel("Common procedures",
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fallback procedure'",
                                 div(strong("Note:"), HTML("Each hypothesis is tested in the pre-specified sequence, and the &alpha; between hypotheses. 
-                                                          For each <em>H<sub>i</sub></em>, &sum;<sub>1</sub><sup>K</sup>&alpha;<sup>i</sup>=&alpha;"))
+                                                          For each <em>H<sub>i</sub></em>, &sum;<sub>1</sub><sup>K</sup>&alpha;<sub>i</sub>=&alpha;"))
                               ),
                               # hr(),
                               # p(style="font-family:courier;","Rejection rule"),
@@ -67,7 +57,7 @@ tabProcedure <- tabPanel("Common procedures",
                               ),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fixed sequence test'",
-                                div(HTML("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. <i>Drug Information Journal</i>, 34(2), 591–597.")),
+                                div(HTML("Lehmacher, W., Kieser, M., & Hothorn, L. (2000). Sequential and Multiple Testing for Dose-Response Analysis. <i>Drug Information Journal</i>, 34(2), 591-597.")),
                                 div(HTML("Westfall, PH, & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. <i>Journal of Statistical Planning and Inference</i>, 99 (1), 25-40."))
                               ),
                               conditionalPanel(

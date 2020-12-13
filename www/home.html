@@ -63,40 +63,43 @@ span.frac > span {display: none;}
 
 <body>
 <h3>Welcome to <i>GraphApp</i>!</h3>
-<p><i>GraphApp</i> is a Shiny application that helps to implement the graphical approach for multile test procedures. The app is a companion to the following article:
+<p><i>GraphApp</i> is a Shiny application that helps to implement the graphical approach for multile test procedures. 
+The key idea is to express the resulting multiple test procedures by directed, weighted graphs, where each node corresponds to an elementary hypothesis, together with a simple algorithm to generate such graphs while sequentially testing the individual hypotheses. 
 
+The application is a companion to the following article:
 <b><li>Bretz, F., Posch, M., Glimm, E., Klinglmueller, F., Maurer, W., & Rohmeyer, K. (2011). Graphical approaches for multiple comparison procedures using weighted Bonferroni, Simes, or parametric tests. <i>Biometrical Journal</i>, 53(6), 894-913. <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/bimj.201000239">PDF</a></li></b>
-
-The key idea is to express the resulting multiple test procedures by directed, weighted graphs, where each node corresponds to an elementary hypothesis, together with a simple algorithm to generate such graphs while sequentially testing the individual hypotheses.
 
 <h3>How to use this application</h3>
 You should navigate this site using the header tabs:
 <br>
 <i class="glyphicon glyphicon-home"></i> <b>Home</b>: 
-General description of this Shiny App and some learning materials.
+General description of this Shiny application and some learning materials.
 <br>
-<i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Draw the test procedure by yourself with nodes and edges.
+<i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Draw the test procedure by yourself with nodes and edges or corresponding information.
 <br>
 <i class="glyphicon glyphicon-cog"></i> <b>Examples</b>: The most commonly used procedures or specifice tests:<br>
- <li>Common procedures</li>
-  Bonferroni-Holm procedure; Fixed Sequence tests; Fallback procedures.
-<li>Specific tests</li>
-
+ <li>Common procedures:</li>
+ <font size="-2" face="Verdana">
+Bonferroni-Holm procedure; Fixed Sequence tests; Fallback procedures</font> 
+<li>Specific tests:</li>
+ <font size="-2" face="Verdana">
+Simple successive procedure; Parallel gatekeeping procedure</font> 
+<br>
 <h3>Method</h3>
-
-Technical basis of the graphical approach: the graph defines a<p id="myBtn"><b><u>closed testing procedure</u></b></p>
+From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
+Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. The graphical approach to hypothesis testing, in this Shiny application is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.
+The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. Technical basis of the graphical approach: the graph defines a<p id="myBtn"><b><u>closed testing procedure</u></b></p>
 <div id="myModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
-    <p>General methodology to construct multiple testing procedures which strongly control the FWER.  An individual hypothesis <em>Hi</em> is rejected at
-familywise level &alpha; only if every intersection hypothesis HJ
+    <p>General methodology to construct multiple testing procedures which strongly control the FWER.  An individual hypothesis <em>H<sub>i</sub></em> is rejected at
+familywise level &alpha; only if every intersection hypothesis H<sub>J</sub>
 with i &isin; J is rejected at local level &alpha;</p>
   </div>
-</div> with weighted Bonferroni tests for
-each intersection hypothesis. In short, the graphical approaches could be summarized by the following steps:
-
+</div> 
+Below is an example for the graphical approaches with weighted Bonferroni tests for each intersection hypothesis:
 <ul>
-  <li>Hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>K</sub></em> represented as nodes</li>
+  <li>Hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>K</sub></em> are represented as nodes</li>
   <li>Split of significance level <em>&alpha;</em> into (<em>&alpha;<sub>1</sub></em>, ...,  <em>&alpha;<sub>K</sub></em>)</li>
   <p>Equivalent formulation of split of <em>&alpha;<sub>i</sub></em> using weights (<em>w<sub>1</sub></em>, ..., <em>w<sub>K</sub></em>) where <em>&sum;<sup>K</sup><sub style="margin-left: 1px">i=1</sub>w<sub>i</sub></em>= 1 and <em>&alpha;<sub>i</sub></em> = <em>&alpha;<em>w<sub>i.</sub></em></em></p>
   <li>'<em>&alpha;</em> propagation' through weighted, directed edges
@@ -105,70 +108,10 @@ each intersection hypothesis. In short, the graphical approaches could be summar
 testing with the updated <em>&alpha;</em> levels.
 </p>
 </ul>
-
 With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
-Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
-Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. 
-<b>The graphical approach to hypothesis testing</b>, in this Shiny app is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.
-
-The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. The key idea is to express the resulting multiple test procedures by directed, weighted graph, where <em>vertices</em> correspond to elementary hypotheses: <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em> with associated weights denoting the local significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em>. In addition, any two vertices <em>H<sub>i</sub></em> and <em>H<sub>j</sub></em> are connected through directed <em>edges</em>, and the associated weights <em>g<sub>ij</sub></em> indicates the fraction of the local significance level <em>&alpha;<sub>i</sub></em> that is propagated to <em>H<sub>j</sub></em> once <em>H<sub>i</sub></em> has been rejected. A weight <em>g<sub>ij</sub></em>=0 indicates that no propagation of the significance level is foreseen and the edge is dopped for convenience.
-
-
-
-
-<br><br>
-
-<h5>1. Weighting strategy</h5>
-The weighting strategies can reflect the given study objectives, which can be communicated to the clinical team. Weighting strategies are formally defined through the weights <em>&omega;<sub>i</sub>(I),i&#8712;I</em>, for the global null hypothesis <em>H<sub>I</sub></em> and the transition matrix <em>G=(g<sub>ij</sub>)</em>, where <em>0&le;g<sub>ij</sub>&le;1</em>,<em>g<sub>ii</sub></em>=0, and <em>&sum;g<sub>ij</sub>&le;1</em> for all <em>i,j&#8712;I</em>. We additionally need to determine how the graph is updated once a vertex is removed. This can be achieved by tailoring Algotithm 1 as below to the graphical weighting strategy.   
-
-<code r>
-
-</code>
-
-<br><br>
-<div id="algo">
-  <dt>Algorithm 1</dt>
-  Transition matrix <em>G=(g<sub>ij</sub>)</em>, where <em>g<sub>ij</sub></em> is the fraction of  <em>&alpha;<sub>i</sub></em> allocated to <em>H<sub>j</sub></em> if <em>H<sub>i</sub></em> is rejected.
-  Require <em>0&le;g<sub>ij</sub>&le;1</em>, <em>g<sub>ii</sub>=0</em> and <em>&sum;<sub>k=1</sub>g<sub>ik</sub>=1</em> for <em>i ,j = 1, ..., K.</em>
-  
-  <ol>
-  <li><em>J = {1, ..., K}</em></li>
-  <li>Select a <em>j&isin;J</em> such that <em>p<sub>j</sub>&alpha;</em><sub>j</sub> and reject <em>H<sub>j</sub></em>; otherwise stop</li>
-  <li>Update the graph:
-  <br>
-  <em>J &rarr; J\{j}</em> 
-  <br><br>
-  <em>&alpha;<sub>l</sub> &rarr; &#123;<sup style="margin-left: 7px">
-    <span class="frac"><sup>g<sub>lk</sub>+g<sub>lj</sub>g<sub>jk</sub></sup><span>&frasl;</span><sub>1-g<sub>lj</sub>g<sub>jl</sub></sub></span> for <em>l,k&isin;J, l&ne; k, g<sub>lj</sub>g<sub>jl</sub> < 1 </em> 
-  </sup>
-  
-  <sub style="margin-left:-20px">0 otherwise</sub></em>
-  </li>
-</ol>
-  
-</div>
-
-
-<br><br>
-
-
-<h5>2. Test procedure</h5>
-Different test procedures can account for the inherent logical relationships between the test statistics.
-<dt>Bonferroni-Holm procedure:</dt> 
-
+Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. 
 <br>
-<dt>Fixed Sequence tests:</dt> 
-<br>
-<dt>Fallback procedures:</dt> 
-<br>
-<dt>Fixed Sequence tests:</dt> 
-<br>
-
-<br><br>
 <h3>References</h3>
-
-
-
 <b><li>Holm, S. (1979). A simple sequentially rejective multiple test procedure.  <i>Scandinavian journal of statistics</i>, 65-70.</li></b>
 <b><li>Holm, S. (1979). Westfall, P. H., & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. <i>Journal of Statistical Planning and Inference</i>, 99(1), 25-40. 65-70.</li></b>
 <b><li>Wiens, B. L. (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. <i>Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry</i>, 2(3), 211-215. 65-70.</li></b>
@@ -177,23 +120,18 @@ Different test procedures can account for the inherent logical relationships bet
 <script>
 // Get the modal
 var modal = document.getElementById("myModal");
-
 // Get the button that opens the modal
 var btn = document.getElementById("myBtn");
-
 // Get the <span> element that closes the modal
 var span = document.getElementsByClassName("close")[0];
-
 // When the user clicks the button, open the modal 
 btn.onclick = function() {
   modal.style.display = "block";
 }
-
 // When the user clicks on <span> (x), close the modal
 span.onclick = function() {
   modal.style.display = "none";
 }
-
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
   if (event.target == modal) {

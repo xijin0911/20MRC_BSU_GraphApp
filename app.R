@@ -64,7 +64,6 @@ ui <- tagList(
                  navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
                             tabProcedure,
                             tabTest)
-                 
     )),
   br(),br(),br(),
   foot)
@@ -82,7 +81,10 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            stringsAsFactors = F)
 
 server <- function(input, output,session) { 
-  
+  # # back to top
+  # observeEvent(input$toTop, {
+  #   js$toTop();
+  # })
   # shinyjs instructions
   # --- draw
   steps_draw <- read.csv("help_draw.csv")
@@ -110,9 +112,9 @@ server <- function(input, output,session) {
   # shinyjs instructions
   
   output$downloadData <- downloadHandler(
-    filename = "file1.pdf",
+    filename = "CourseSlide.pdf",
     content = function(file) {
-      file.copy("www/file1.pdf", file)
+      file.copy("www/CourseSlide.pdf", file)
     }
   )
   shinyjs::onclick("Moreinformation",
@@ -280,7 +282,7 @@ server <- function(input, output,session) {
   caption.width = getOption("xtable.caption.width", NULL))
   
   output$report <- downloadHandler(
-    filename = "report.html",
+    filename = "report.pdf",
     content = function(file) {
       tempReport <- file.path(tempdir(), "report.Rmd")
       file.copy("report.Rmd", tempReport, overwrite = TRUE)
@@ -302,9 +304,9 @@ server <- function(input, output,session) {
     })
     wp_create <- reactive({
       switch(input$common_procedures,
-             "Bonferroni-Holm procedure" = wpcreat(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
-             "Fixed sequence test" = wpcreat(input$Number_Hypotheses,"Fixed sequence test"),
-             "Fallback procedure" = wpcreat(input$Number_Hypotheses,"Fallback procedure")
+             "Bonferroni-Holm procedure" = wpcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
+             "Fixed sequence test" = wpcreate(input$Number_Hypotheses,"Fixed sequence test"),
+             "Fallback procedure" = wpcreate(input$Number_Hypotheses,"Fallback procedure")
       )
     })
     
@@ -506,8 +508,8 @@ server <- function(input, output,session) {
      
      wp_create_test <- reactive({
        switch(input$exRadio,
-              "Simple successive procedure" = wpcreat(4,"Simple successive procedure"),
-              "Parallel gatekeeping procedure" = wpcreat(4, "Parallel gatekeeping procedure")
+              "Simple successive procedure" = wpcreate(4,"Simple successive procedure"),
+              "Parallel gatekeeping procedure" = wpcreate(4, "Parallel gatekeeping procedure")
        )
      })
      
@@ -522,7 +524,6 @@ server <- function(input, output,session) {
      }, rownames = TRUE)
      
        output$uioutput_Tmatrix_wp <- renderTable({
-         num <- 4
          wp <- wp_create_test()
          wp
      }, rownames = TRUE)
@@ -614,7 +615,7 @@ server <- function(input, output,session) {
                                     margin = margin(10, 0, 10, 0)),
           plot.margin = margin(0.1,0.1,0.1,0.1))
   legend_b <- get_legend(final + theme(legend.position="bottom"))
-  p <- cowplot::plot_grid( initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
+  p <- cowplot::plot_grid(initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
   p
   # +
   # annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
