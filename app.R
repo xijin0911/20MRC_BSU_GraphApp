@@ -23,15 +23,16 @@ library(shinyjs)
 library(rintrojs) # introBox
 library(DiagrammeR)
 library(shinyalert)
+library(cowplot)
 library(jsonlite)  # guideline shinyjs
 
 
 source("R/footer.R")
-source("R/func/gMCP_xc3.R")
-source("R/func/generate_graph.R")
-source("R/func/generate_data.R")
-source("R/func/function_matrix.R")
-source("R/func/graph_create.R")
+source("R/function/gMCP_xc3.R")
+source("R/function/generate_graph.R")
+source("R/function/generate_data.R")
+source("R/function/function_matrix.R")
+source("R/function/graph_create.R")
 
 # ui output
 source("R/module/tabhome.R")
@@ -56,9 +57,7 @@ ui <- tagList(
         color: red;
       }
     "))),
-      navbarPage(id = "tabs",
-                 title=tags$em("GraphApp"),
-                 collapsible = TRUE,
+      navbarPage(id = "tabs",title=tags$em("GraphApp"),collapsible = TRUE,
                  tabHome,
                  tabDraw,
                  navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
@@ -81,37 +80,15 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            stringsAsFactors = F)
 
 server <- function(input, output,session) { 
+  # loading setting
   Sys.sleep(0)
-  # # back to top
-  # observeEvent(input$toTop, {
-  #   js$toTop();
-  # })
-  # shinyjs instructions
-  # --- draw
+  # instruction
   steps_draw <- read.csv("help_draw.csv")
   session$sendCustomMessage(type = 'setHelpContent', 
                             message = list(steps = toJSON(steps_draw) ))
   observeEvent(input$draw_instruction,{
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
-  # --- procedure
-  # steps_procedure <- read.csv("help_procedure.csv")
-  # session$sendCustomMessage(type = 'setHelpContent2', 
-  #                           message = list(steps = toJSON(steps_procedure) ))
-  # observeEvent(input$procedure_instruction,{
-  #   session$sendCustomMessage(type = 'startHelp2', 
-  #                             message = list(""))
-  # })
-  # # --- test
-  # steps_test <- read.csv("help_test.csv")
-  # session$sendCustomMessage(type = 'setHelpContent3', 
-  #                           message = list(steps = toJSON(steps_test) ))
-  # observeEvent(input$test_instruction,{
-  #   session$sendCustomMessage(type = 'startHelp3', 
-  #                             message = list(""))
-  # })
-  # shinyjs instructions
-  
   output$downloadData <- downloadHandler(
     filename = "CourseSlide.pdf",
     content = function(file) {
@@ -141,12 +118,10 @@ server <- function(input, output,session) {
                text= "<li>Graph & Details: Inputs</li>
                <li>Results: Outputs of the rejection results.</li>",html=TRUE)
   })
-
   graph_data = reactiveValues(
     nodes = init.nodes.df,
     edges = init.edges.df
   )
-  
   output$editable_network <- renderVisNetwork({
     visNetwork(graph_data$nodes, graph_data$edges) %>%
       visExport() %>%
@@ -160,7 +135,6 @@ server <- function(input, output,session) {
                                      addNodeCols = c("id","weight", "pvalue")
       ))
   })
-  
   observeEvent(input$editable_network_graphChange, {
     if(input$editable_network_graphChange$cmd == "addNode") {
       temp = bind_rows(
@@ -169,8 +143,7 @@ server <- function(input, output,session) {
                    label = input$editable_network_graphChange$id,
                    weight = input$editable_network_graphChange$weight,
                    pvalue = input$editable_network_graphChange$pvalue,
-                   stringsAsFactors = F)
-      )
+                   stringsAsFactors = F))
       graph_data$nodes = temp
     }
     else if(input$editable_network_graphChange$cmd == "addEdge") {
@@ -181,8 +154,7 @@ server <- function(input, output,session) {
           from = input$editable_network_graphChange$from,
           to = input$editable_network_graphChange$to,
           label = "undefined",
-          stringsAsFactors = F)
-      )
+          stringsAsFactors = F))
       graph_data$edges = temp
     }
     else if(input$editable_network_graphChange$cmd == "editNode") {
@@ -196,7 +168,6 @@ server <- function(input, output,session) {
     else if(input$editable_network_graphChange$cmd == "editEdge") {
       temp = graph_data$edges
       temp$label[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$label
-      
       graph_data$edges = temp
     }
     else if(input$editable_network_graphChange$cmd == "deleteElements") {
@@ -208,11 +179,9 @@ server <- function(input, output,session) {
       for(edge.id in input$editable_network_graphChange$edges) {
         temp = graph_data$edges
         temp = temp[temp$id != edge.id,]
-        graph_data$edges = temp
-      }
+        graph_data$edges = temp}
     }
   })
-  
   # Update graph when a cell is edited in the visEdges datatable
   proxy_visEdges <- dataTableProxy("graphOutput_visEdges")
   observeEvent(input$graphOutput_visEdges_cell_edit, {
@@ -310,7 +279,6 @@ server <- function(input, output,session) {
              "Fallback procedure" = wpcreate(input$Number_Hypotheses,"Fallback procedure")
       )
     })
-    
     output$uioutput_Tmatrix1 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
       df <- df_create()
@@ -320,9 +288,7 @@ server <- function(input, output,session) {
       colnames(df) <- rownames(df)
       wp <- wp_create()
       box(
-        # title = h5(HTML("Transition matrix <em>G</em>")),
           status = "primary", solidHeader = TRUE,width = 10, 
-          # withMathJax(helpText("The propagation of significance levels")),
           matrixInput(inputId = "TransitionMatrixG",
                       value = df,class = "numeric",
                       cols = list(names = TRUE,extend = FALSE,
@@ -331,8 +297,7 @@ server <- function(input, output,session) {
                                   editableNames = FALSE,delta = 1),
                       copy = TRUE,paste = TRUE),
           helpText("The values are between 0 and 1.")
-      )
-      }) 
+      )}) 
     
     output$uioutput_Tmatrix2 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
@@ -343,9 +308,7 @@ server <- function(input, output,session) {
       })
       colnames(df) <- rownames(df)
       box(
-        # title = h5(HTML("Weights <em>w</em> and <em>p</em>-values")),
           status = "primary",solidHeader = TRUE,width = 10,
-          # helpText(div(HTML("Initial weights and <em>p</em>-values"))),
           matrixInput(inputId = "WeightPvalue",
                       value = wp, class = "numeric",
                       cols = list(names = TRUE, extend = FALSE,
@@ -355,6 +318,22 @@ server <- function(input, output,session) {
                       copy = TRUE, paste = TRUE),
           helpText("The sum of weights are no more than 1."))
     })    
+    
+    output$rejresult <- renderTable({
+      names <- paste0("H", 1:input$Number_Hypotheses)
+      result <- gMCP_xc3(matrix=input$TransitionMatrixG,
+                         weights=f2d(input$WeightPvalue[,"weights"]),
+                         pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                         alpha = input$alpha_procedure,fweights = F)
+      result_rej <- data.frame(result$rejected)
+      result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
+      result_adjp <- data.frame(result$adjpvalues)
+      result_table <- (cbind(as.character(names),result_adjp,as.character(result_rej)))
+      colnames(result_table) <- c("hypothesis","adjusted p-value","rejection")
+      result_table
+    }, caption = "<b>Rejection table</b>",
+    caption.placement = getOption("xtable.caption.placement", "top"), 
+    caption.width = getOption("xtable.caption.width", NULL))
     
     output$ResultPlot <- renderPlot({
       net <- network(input$TransitionMatrixG,
@@ -376,7 +355,7 @@ server <- function(input, output,session) {
         #                     box.padding = unit(0.25, "line")) +
         scale_color_brewer(palette = "Set2") +
         labs(title='Initial graph')+
-        # theme_blank()+
+        theme_blank()+
         theme(aspect.ratio=1,
               plot.title = element_text(size=15, face="bold.italic",
                                         margin = margin(15, 0, 15, 0)),
@@ -418,87 +397,18 @@ server <- function(input, output,session) {
                                         margin = margin(10, 5, 10, 0)),
               plot.margin = margin(0.5,0.5,0.1,0.1))
       legend_b <- get_legend(final + theme(legend.position="bottom"))
-      
-        # annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
-        #                   # ttheme_minimal() could be transparent
-        #                   xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
-      # ggarrange(initial,final,ncol = 2, nrow = 1)
-      p <- cowplot::plot_grid( initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
-      p
-    })
-    
-    output$rejresult <- renderTable({
-        names <- paste0("H", 1:input$Number_Hypotheses)
-        result <- gMCP_xc3(matrix=input$TransitionMatrixG,
-                           weights=f2d(input$WeightPvalue[,"weights"]),
-                           pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
-                           alpha = input$alpha_procedure,fweights = F)
-        result_rej <- data.frame(result$rejected)
-        result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
-        result_adjp <- result$adjpvalues
-        output <- data.frame(cbind(as.character(names),result_adjp,result_rej))
-        colnames(output) <- c("hypothesis","adjusted p-value","rejection")
-        output
-    })
-    
-    
-    # twoPlots <- eventReactive(input$TestButton,
-    #                           {
-    #                             net <- network(input$TransitionMatrixG,
-    #                                            directed = TRUE,
-    #                                            names.eval = "weights",
-    #                                            ignore.eval = FALSE)
-    #                             net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
-    #                             e <- network.edgecount(net)
-    #                             ###
-    #                             a <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
-    #                               geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
-    #                                          color = "grey50",
-    #                                          curvature = 0.15) +
-    #                               geom_nodes(aes(x, y),color = "grey", size = 8) +
-    #                               geom_nodetext(aes(label = vertex.names)) +
-    #                               geom_edgetext_repel(aes(label = weights), color = "white", fill = "grey25",
-    #                                                   box.padding = unit(0.25, "line")) +
-    #                               scale_color_brewer(palette = "Set2") +
-    #                               theme(margin = c(0.1,0.1,0.1,0.1))+
-    #                               #  scale_size_area("importance", breaks = 1:3, max_size = 9) +
-    #                               theme_blank()
-    #                             
-    #                             
-    #                             ###
-    #                             WPmatrix <- input$WeightPvalue
-    #                             # 
-    #                             res <- gMCP_xc3(matrix=input$TransitionMatrixG,
-    #                                             weights=as.numeric(input$WeightPvalue[,"weights"]),
-    #                                             pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
-    #                                             alpha = input$alpha_procedure,fweights = F)
-    #                             res_pvalues <- res$pvalues
-    #                             res_weights <- round(res$weights,digits = 2)
-    #                             res_G <- round(res$G,digits = 2)
-    #                             
-    #                             res_net <- network(res_G,directed = TRUE,
-    #                                                names.eval = "weights",ignore.eval = FALSE)
-    #                             res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
-    #                             e <- network.edgecount(res_net)
-    #                             res_net %v% "Rejection" <- res$rejected
-    #                             b <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
-    #                               geom_edges(arrow = arrow(length = unit(15, "pt"), type = "closed"),
-    #                                          color = "grey50",
-    #                                          curvature = 0.15) +
-    #                               geom_nodes(aes(x, y,color = Rejection), size = 12) +
-    #                               geom_nodetext(aes(label = vertex.names)) +
-    #                               scale_color_brewer(palette = "Set2") +
-    #                               theme_blank()
-    #                             
-    #                             legend_b <- get_legend(b + theme(legend.position="bottom"))
-    #                             p <- cowplot::plot_grid(a, b, legend_b, ncol = 2, rel_heights = c(1, .2))
-    #                             p
-    #                           })
-    
-    # output$ResultPlot_procedure <- renderPlot(
-    #   twoPlots()
-    # )
-    
+      p <- cowplot::plot_grid(initial,final,
+                              label_fontface = "plain",label_fontfamily = "serif",
+                              legend_b, ncol = 2, rel_heights = c(1, .2),
+                              label_size = 6,
+                              label_x = 0, label_y = 0,
+                              hjust = -0.5, vjust = -0.5)
+      title <- ggdraw() +
+        draw_label("Graphical approach for multile test procedures",
+          fontface = 'bold',x = 0,hjust = 0) +
+        theme(plot.margin = margin(0, 0, 0, 7))
+      plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))
+      })
      # ---------------- Test Page output ----------------
      df_create_test <- reactive({
        switch(input$exRadio,

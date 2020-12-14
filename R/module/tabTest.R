@@ -21,11 +21,10 @@ tabTest <- tabPanel("Specific tests",
                 conditionalPanel(
                   condition = "input.exRadio == 'Parallel gatekeeping procedure'",
                   div(HTML("Dmitrienko, A., Offen, WW, & Westfall, PH (2003). Gatekeeping strategies for clinical trials that do not require all primary effects to be significant. <i>Statistics in medicine</i>, 22 (15), 2387-2400."))
-                ),
+                ),br()
          ),
          column(4,# style = "background-color:#FFFAFA;",
                 h3("Details",align = "center"),
-                # h5(HTML("Transition matrix <em>G</em>")),
                 actionButton("G_infor", HTML("Transition matrix <em>G</em>"), icon("paper-plane"),
                              style="background-color: AliceBlue;
                                             border-color: AliceBlue"),
@@ -33,7 +32,6 @@ tabTest <- tabPanel("Specific tests",
                           "right", options = list(container = "body")),
                 tableOutput("uioutput_Tmatrix_df"),
                 br(),br(),
-                # h5(HTML("Weights <em>w</em> and <em>p</em>-values")),
                 actionButton("wp_infor", HTML("Weights <em>w</em> and <em>p</em>-values"), icon("paper-plane"),
                              style="background-color: AliceBlue;
                                             border-color: AliceBlue"),
@@ -46,7 +44,6 @@ tabTest <- tabPanel("Specific tests",
                 h3("Results", align = "center"),
                 tableOutput("rejtable"),
                 plotOutput("resPlots_both")
-                # plotOutput("resPlots_final"))
          ))
 )
          

@@ -20,6 +20,9 @@
 #' pvalues <- c(0.1, 0.008,0.005,0.15, 0.04, 0.006)
 #' gMCP_xc3(matrix,weights,
 #'          pvalues, alpha = 0.05,fweights = F) 
+
+my_signif = function(x, digits) floor(x) + signif(x %% 1, digits)
+
 gMCP_xc3 <- function(matrix,weights, 
                      # trasition matrix and weights instead of graph
                      pvalues, alpha = 0.05,
@@ -68,16 +71,19 @@ gMCP_xc3 <- function(matrix,weights,
   # weights
   if (fweights) {
     list(# pvalues = pvalues, 
-      adjpvalues =  round(adjPValues,digits = 4), # more outputs
+      # adjpvalues =  round(adjPValues,digits = 4), # more outputs
+      adjpvalues =  my_signif(adjPValues,3),
       alpha = alpha, rejected =  (h),  
       weights = a/alpha,
       G = G)  # more outputs
   }
   else {
     list(pvalues = pvalues,
-         adjpvalues =  round(adjPValues,digits = 4), # more outputs
+         # adjpvalues =  round(adjPValues,digits = 4), # more outputs
+         adjpvalues =  my_signif(adjPValues,3),
          alpha = alpha, rejected =  (h), 
          weights = a/alpha,
          G = G)  # more outputs
   }
 }
+

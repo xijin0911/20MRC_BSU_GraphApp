@@ -110,6 +110,20 @@ testing with the updated <em>&alpha;</em> levels.
 </ul>
 With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
 Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. 
+<br><br>
+
+<p>The function <code>gMCP_xc3()</code> comes to the result of grphical approach of multiple testing.</p>
+<code>matrix <- rbind(H11 = c(0, 0.5, 0, 0.5, 0, 0), 
+           <br> H21 = c(1/3, 0, 1/3, 0, 1/3, 0),
+           <br> H31 = c(0, 0.5, 0, 0, 0, 0.5), 
+           <br> H12 = c(0, 1, 0, 0, 0, 0), 
+           <br> H22 = c(0.5, 0, 0.5, 0, 0, 0), 
+           <br> H32 = c(0, 1, 0, 0, 0, 0)) 
+<br>weights <-  c(1/3, 1/3, 1/3, 0, 0, 0)
+<br>pvalues <- c(0.1, 0.008,0.005,0.15, 0.04, 0.006) 
+<br>gMCP_xc3(matrix,weights,pvalues, alpha = 0.05,fweights = F)
+</code>
+
 <br>
 <h3>References</h3>
 <b><li>Holm, S. (1979). A simple sequentially rejective multiple test procedure.  <i>Scandinavian journal of statistics</i>, 65-70.</li></b>

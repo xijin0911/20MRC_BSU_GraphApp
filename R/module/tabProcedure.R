@@ -4,8 +4,6 @@ tabProcedure <- tabPanel("Common procedures",
                            column(id="Settings_procedure",3,
                                   style="background-color: skyblue;",
                                   h3("Settings", align = "center"),
-                                  # style = "background-color: skyblue;",
-                              # h3("", align = "center"),
                               br(),
                               collapsible = FALSE,solidHeader = TRUE,collapsed = TRUE,
                               numericInput(inputId="Number_Hypotheses",
@@ -36,19 +34,6 @@ tabProcedure <- tabPanel("Common procedures",
                                 div(strong("Note:"), HTML("Each hypothesis is tested in the pre-specified sequence, and the &alpha; between hypotheses. 
                                                           For each <em>H<sub>i</sub></em>, &sum;<sub>1</sub><sup>K</sup>&alpha;<sub>i</sub>=&alpha;"))
                               ),
-                              # hr(),
-                              # p(style="font-family:courier;","Rejection rule"),
-                              # conditionalPanel(
-                              #   condition = "input.common_procedures == 'Bonferroni-Holm procedure'",
-                              #   p("")
-                              # ),
-                              # conditionalPanel(
-                              #   condition = "input.common_procedures == 'Fixed sequence test'",
-                              #   div(HTML("if <em>p<sub>k</sub></em> &le;&alpha; reject <em>H<sub>k</sub></em> and continue; else stop"))
-                              #   ),
-                              # conditionalPanel(
-                              #   condition = "input.common_procedures == 'Fallback procedure'",
-                              #   p()),
                               hr(),
                               p(style="font-family:courier;","Reference"),
                               conditionalPanel(
@@ -64,33 +49,36 @@ tabProcedure <- tabPanel("Common procedures",
                                 condition = "input.common_procedures == 'Fallback procedure'",
                                 div(HTML("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: <i>The Journal of Applied Statistics in the Pharmaceutical Industry</i>, 2 (3), 211-215."),
                                     div(HTML("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. <i>Statistics in Medicine</i> 2009; 28:586-604.")))
-                              )
+                              ),
+                              br()
                        ),
                        column(id="Details_procedure",4,# style = "background-color:#FFFAFA;",
                               style="background-color: AliceBlue;border-color: AliceBlue",
                               h2("Details", align = "center"),
-                              actionButton("G_infor", HTML("Transition matrix <em>G</em>"), icon("paper-plane"),
-                                           style="background-color: AliceBlue;
+                              actionButton("G_infor", HTML("Transition matrix <em>G</em>"), 
+                                           icon("paper-plane"), width = "180px",
+                                           style="background-color: AliceBlue; padding:8px; font-size:100%;
                                             border-color: AliceBlue"),
+                              br(),
                               bsTooltip("G_infor", "The propagation of significance levels",
                                         "right", options = list(container = "body")),
                               uiOutput("uioutput_Tmatrix1"),
                               br(),br(),
-                              actionButton("wp_infor", HTML("Weights <em>w</em> and <em>p</em>-values"), icon("paper-plane"),
-                                           style="background-color: AliceBlue;
-                                            border-color: AliceBlue"),
+                              actionButton("wp_infor", HTML("Weights <em>w</em> and <em>p</em>-values"), 
+                                           icon("paper-plane"),width = "180px",
+                                           style="background-color: AliceBlue; padding:8px; font-size:100%;
+                                            border-color: AliceBlue; material-flat"),
+                              br(),
                               bsTooltip("wp_infor", "Initial weights and <em>p</em>-values",
                                         "right", options = list(container = "body")),
                               uiOutput("uioutput_Tmatrix2"),
                               br(),
                               shinyjs::useShinyjs()),
-                       column(id="Details_procedure",5,
-                              style="background-color: AliceBlue;border-color: AliceBlue",
+                       column(id="Results_procedure",5,
+                              style="background-color: AliceBlue;border-color: AliceBlue;padding:8px; font-size:80%;",
                               h2("Results", align = "center"),
-                              p("Results of the testing procedures"), 
-                              tableOutput("rejresult"),
-                              # actionButton("TestButton", "Graph",
-                              #              style="background-color: AliceBlue;border-color: AliceBlue"),
-                              plotOutput("ResultPlot")
+                              # p("Results of the testing procedures"), 
+                              withSpinner(tableOutput("rejresult")),
+                              withSpinner(plotOutput("ResultPlot"))
                               ))
                        )
