@@ -1,6 +1,7 @@
 tabTest <- tabPanel("Specific tests",
-                    fluidRow( column(3,style = "background-color: skyblue;",
-                h3("Examples", align = "center"),
+                    fluidRow(
+                      column(3,style = "background-color: skyblue;",
+                h2("Examples", align = "center"),
                 numericInput(inputId = "alpha_test", 
                              label = HTML("Total &alpha;"),
                              value = 0.05,step = 0.001,min = 0),
@@ -13,6 +14,7 @@ tabTest <- tabPanel("Specific tests",
                   fill = TRUE,
                   inline = TRUE
                 ),
+                hr(),
                 p(style="font-family:courier;","Reference"),
                 conditionalPanel(
                   condition = "input.exRadio == 'Simple successive procedure'",
@@ -24,26 +26,28 @@ tabTest <- tabPanel("Specific tests",
                 ),br()
          ),
          column(4,# style = "background-color:#FFFAFA;",
-                h3("Details",align = "center"),
-                actionButton("G_infor", HTML("Transition matrix <em>G</em>"), icon("paper-plane"),
+                h2("Details",align = "center"),
+                actionButton("G_infor", HTML("Transition matrix <em>G</em>"), 
+                             icon("paper-plane"),width = "180px",
                              style="background-color: AliceBlue;
                                             border-color: AliceBlue"),
                 bsTooltip("G_infor", "The propagation of significance levels",
                           "right", options = list(container = "body")),
-                tableOutput("uioutput_Tmatrix_df"),
+                withSpinner(tableOutput("uioutput_Tmatrix_df")),
                 br(),br(),
-                actionButton("wp_infor", HTML("Weights <em>w</em> and <em>p</em>-values"), icon("paper-plane"),
+                actionButton("wp_infor", HTML("Weights <em>w</em> and <em>p</em>-values"),
+                             icon("paper-plane"),width = "180px",
                              style="background-color: AliceBlue;
                                             border-color: AliceBlue"),
                 bsTooltip("wp_infor", "Initial weights and <em>p</em>-values",
                           "right", options = list(container = "body")),
-                tableOutput("uioutput_Tmatrix_wp"),
+                withSpinner(tableOutput("uioutput_Tmatrix_wp")),
                 br(),
                 shinyjs::useShinyjs()),
-         column(5,style = "background-color: AliceBlue;",
-                h3("Results", align = "center"),
-                tableOutput("rejtable"),
-                plotOutput("resPlots_both")
+         column(5,style="background-color: AliceBlue;border-color: AliceBlue;padding:8px; font-size:80%;",
+                h2("Results", align = "center"),
+                withSpinner(tableOutput("rejtable")),
+                withSpinner(plotOutput("resPlots_both"))
          ))
 )
          

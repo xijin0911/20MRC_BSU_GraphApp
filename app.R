@@ -219,6 +219,19 @@ server <- function(input, output,session) {
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
+  # ## empty initial log
+  # textLog <- sum(as.numeric(graph_data$nodes[,c("weight")]))
+  # observeEvent(input$go, {
+  #   ## add 'Button GO Pressed' to existing log
+  #   textLog(paste("Sum of weights is",textLog()))
+  # })
+
+  
+  output$sum_weight_draw <- renderText({
+    dat <- sum(f2d(graph_data$nodes[,"weight"]))
+    paste("Sum of weights:",dat)
+    })
+  
   output$graphOutput_visEdges = DT::renderDT({
     result <- graph_data$edges[,c("from","to","label")]
     colnames(result) <- c("from","to","propagation (label)")
@@ -233,20 +246,21 @@ server <- function(input, output,session) {
     ini.matrix <- matrix(0,nrow=num,ncol=num)
     colnames(ini.matrix) <- names
     rownames(ini.matrix) <- names
+    # transform long to wide table of the transition matrix
     for (i in 1:nrow(graph_data$edges)){
       ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
                  which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
     }
-    result <- gMCP_xc3(matrix=ini.matrix,
+    result_draw <- gMCP_xc3(matrix=ini.matrix,
                        weights=f2d(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
-    result_rej <- data.frame(result$rejected)
+    result_rej <- data.frame(result_draw$rejected)
     result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
-    result_adjp <- result$adjpvalues
-    result <- cbind(as.character(names),result_adjp,result_rej)
-    colnames(result) <- c("hypothesis","adjusted p-value","rejection")
-    result
+    result_adjp <- result_draw$adjpvalues
+    result_draw <- cbind(as.character(names),result_adjp,result_rej)
+    colnames(result_draw) <- c("hypothesis","adjusted p-value","rejection")
+    result_draw
   }, caption = "Rejection results depend on the relationship between the calculated adjusted <em>p</em>-value and the specified total &alpha;.",
   caption.placement = getOption("xtable.caption.placement", "bottom"), 
   caption.width = getOption("xtable.caption.width", NULL))
@@ -269,26 +283,21 @@ server <- function(input, output,session) {
       switch(input$common_procedures,
              "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = dfcreate(input$Number_Hypotheses,"Fixed sequence test"),
-             "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure")
-      )
+             "Fallback procedure" = dfcreate(input$Number_Hypotheses,"Fallback procedure"))
     })
     wp_create <- reactive({
       switch(input$common_procedures,
              "Bonferroni-Holm procedure" = wpcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
              "Fixed sequence test" = wpcreate(input$Number_Hypotheses,"Fixed sequence test"),
-             "Fallback procedure" = wpcreate(input$Number_Hypotheses,"Fallback procedure")
-      )
-    })
+             "Fallback procedure" = wpcreate(input$Number_Hypotheses,"Fallback procedure"))
+      })
     output$uioutput_Tmatrix1 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
+      names <- lapply(1:num, function(i) {paste0("H", i)})
       df <- df_create()
-      rownames(df) <- lapply(1:num, function(i) {
-        paste0("H", i)
-      })
-      colnames(df) <- rownames(df)
-      wp <- wp_create()
-      box(
-          status = "primary", solidHeader = TRUE,width = 10, 
+      rownames(df) <- names
+      colnames(df) <- names
+      box(status = "primary", solidHeader = TRUE,width = 10, 
           matrixInput(inputId = "TransitionMatrixG",
                       value = df,class = "numeric",
                       cols = list(names = TRUE,extend = FALSE,
@@ -300,39 +309,39 @@ server <- function(input, output,session) {
       )}) 
     
     output$uioutput_Tmatrix2 <- renderUI({
-      num <- as.integer(input$Number_Hypotheses)
-      df <- df_create()
       wp <- wp_create()
-      rownames(df) <- lapply(1:num, function(i) {
-        paste0("H", i)
-      })
-      colnames(df) <- rownames(df)
-      box(
-          status = "primary",solidHeader = TRUE,width = 10,
+      box(status = "primary",solidHeader = TRUE,width = 10,
           matrixInput(inputId = "WeightPvalue",
                       value = wp, class = "numeric",
                       cols = list(names = TRUE, extend = FALSE,
                                   editableNames = FALSE, delta = 2),
                       rows = list(names = TRUE, extend = FALSE,
                                   editableNames = FALSE, delta = 1),
-                      copy = TRUE, paste = TRUE),
-          helpText("The sum of weights are no more than 1."))
+                      copy = TRUE, paste = TRUE))
     })    
+    
+    output$sum_weight_procedure <- renderText({
+      dat <- sum(f2d(input$WeightPvalue[,"weights"]))
+      paste("Sum of weights:",dat)
+    })
+    
     
     output$rejresult <- renderTable({
       names <- paste0("H", 1:input$Number_Hypotheses)
-      result <- gMCP_xc3(matrix=input$TransitionMatrixG,
-                         weights=f2d(input$WeightPvalue[,"weights"]),
-                         pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
-                         alpha = input$alpha_procedure,fweights = F)
-      result_rej <- data.frame(result$rejected)
-      result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
-      result_adjp <- data.frame(result$adjpvalues)
-      result_table <- (cbind(as.character(names),result_adjp,as.character(result_rej)))
-      colnames(result_table) <- c("hypothesis","adjusted p-value","rejection")
-      result_table
-    }, caption = "<b>Rejection table</b>",
-    caption.placement = getOption("xtable.caption.placement", "top"), 
+      result_procedure <- gMCP_xc3(matrix=input$TransitionMatrixG,
+                                   weights=f2d(input$WeightPvalue[,"weights"]),
+                                   pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                                   alpha = input$alpha_procedure,fweights = F)
+      result_procedure_rej <- data.frame(result_procedure$rejected)
+      result_procedure_rej <- ifelse(result_procedure_rej=="TRUE","rejected", "not rejected")
+      result_procedure_adjp <- result_procedure$adjpvalues
+      result_procedure_table <- cbind(as.character(names),
+                                      result_procedure_adjp,
+                                      result_procedure_rej)
+      colnames(result_procedure_table) <- c("hypothesis","adjusted p-value","rejection")
+      result_procedure_table
+      }, caption = "<b>Rejection table</b>",
+    caption.placement = getOption("xtable.caption.placement", "top"),
     caption.width = getOption("xtable.caption.width", NULL))
     
     output$ResultPlot <- renderPlot({
@@ -357,27 +366,25 @@ server <- function(input, output,session) {
         labs(title='Initial graph')+
         theme_blank()+
         theme(aspect.ratio=1,
-              plot.title = element_text(size=15, face="bold.italic",
+              plot.title = element_text(size=15, 
                                         margin = margin(15, 0, 15, 0)),
-              plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
+              plot.margin = margin(-1,-1,-1,-1))+  # t r b l
+        theme(legend.position = "none")
       
-      res <- gMCP_xc3(matrix=input$TransitionMatrixG,
-                      weights=f2d(input$WeightPvalue[,"weights"]),
-                      pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
-                      alpha = input$alpha_procedure,fweights = F)
-      res_pvalues <- res$pvalues
-      res_weights <- res$weights
-      res_G <- res$G
-      # res_adj <- data.frame("Hypothesis" = paste0("H", 1:input$Number_Hypotheses),
-      #                       "Adjusted p-values" = res$adjpvalues,
-      #                       check.names = FALSE)
+      result_procedure <- gMCP_xc3(matrix=input$TransitionMatrixG,
+                                   weights=f2d(input$WeightPvalue[,"weights"]),
+                                   pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                                   alpha = input$alpha_procedure,fweights = F)
+      res_pvalues <- result_procedure$pvalues
+      res_weights <- result_procedure$weights
+      res_G <- result_procedure$G
       
       res_net <- network(res_G,directed = TRUE,
                          names.eval = "weights",ignore.eval = FALSE)
       res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(res_net)
       # res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
-      res_net %v% "Rejection" <- (res$rejected)
+      res_net %v% "Rejection" <- (result_procedure$rejected)
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
@@ -390,12 +397,14 @@ server <- function(input, output,session) {
         #                     box.padding = unit(0.25, "line")) +
         scale_color_brewer(palette = "Set2") +
         labs(title='Final graph')+
-        theme(legend.position = "none")+
-        # theme_blank()+
+        theme_blank()+
         theme(aspect.ratio=1,
-              plot.title = element_text(size=15, face="bold.italic",
+              plot.title = element_text(size=15, 
                                         margin = margin(10, 5, 10, 0)),
-              plot.margin = margin(0.5,0.5,0.1,0.1))
+              plot.margin = margin(-1,-1,-1,-1))+
+        # theme(panel.background=element_rect(fill = "aliceblue"))+
+        theme(legend.position = "none")
+      
       legend_b <- get_legend(final + theme(legend.position="bottom"))
       p <- cowplot::plot_grid(initial,final,
                               label_fontface = "plain",label_fontfamily = "serif",
@@ -406,22 +415,22 @@ server <- function(input, output,session) {
       title <- ggdraw() +
         draw_label("Graphical approach for multile test procedures",
           fontface = 'bold',x = 0,hjust = 0) +
-        theme(plot.margin = margin(0, 0, 0, 7))
-      plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))
+        theme(plot.margin = margin(-5, -5, 0, 5))
+        # theme(panel.background=element_rect(fill = "aliceblue"))
+      plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
+        theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
       })
      # ---------------- Test Page output ----------------
      df_create_test <- reactive({
        switch(input$exRadio,
               "Simple successive procedure" = dfcreate(4,"Simple successive procedure"),
-              "Parallel gatekeeping procedure" = dfcreate(4,"Parallel gatekeeping procedure")
-       )
+              "Parallel gatekeeping procedure" = dfcreate(4,"Parallel gatekeeping procedure"))
      })
      
      wp_create_test <- reactive({
        switch(input$exRadio,
               "Simple successive procedure" = wpcreate(4,"Simple successive procedure"),
-              "Parallel gatekeeping procedure" = wpcreate(4, "Parallel gatekeeping procedure")
-       )
+              "Parallel gatekeeping procedure" = wpcreate(4, "Parallel gatekeeping procedure"))
      })
      
      output$uioutput_Tmatrix_df <- renderTable({
@@ -453,15 +462,14 @@ server <- function(input, output,session) {
                             pvalues=as.numeric(wp[,"pvalues"]),
                             alpha = input$alpha_test,fweights = F)
          result_rej <- data.frame(result$rejected)
-         # result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
+         result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
          result_adjp <- result$adjpvalues
          output <- data.frame(cbind(as.character(names),result_adjp,result_rej))
          colnames(output) <- c("hypothesis","adjusted p-value","rejection")
          output
-       })
-       
-     
-    
+       }, caption = "<b>Rejection table</b>",
+       caption.placement = getOption("xtable.caption.placement", "top"),
+       caption.width = getOption("xtable.caption.width", NULL))
        
      output$resPlots_both <- renderPlot({
        num <- 4
@@ -489,7 +497,7 @@ server <- function(input, output,session) {
          labs(title='Initial graph')+
          theme_blank()+
          theme(aspect.ratio=1,
-               plot.title = element_text(size=15, face="bold.italic",
+               plot.title = element_text(size=15, 
                                          margin = margin(10, 0, 10, 0)),
                plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
        
@@ -522,16 +530,23 @@ server <- function(input, output,session) {
     theme_blank()+
     theme(legend.position = "none")+
     theme(aspect.ratio=1,
-          plot.title = element_text(size=15, face="bold.italic",
+          plot.title = element_text(size=15, 
                                     margin = margin(10, 0, 10, 0)),
           plot.margin = margin(0.1,0.1,0.1,0.1))
   legend_b <- get_legend(final + theme(legend.position="bottom"))
-  p <- cowplot::plot_grid(initial,final, legend_b, ncol = 2, rel_heights = c(1, .2))
-  p
-  # +
-  # annotation_custom(tableGrob(res_adj, rows=NULL,theme = grobtheme),
-  #                   # ttheme_minimal() could be transparent
-  #                   xmin=1.06, xmax=1.15, ymin=1.01, ymax=1.06)
+  p <- cowplot::plot_grid(initial,final,
+                          label_fontface = "plain",label_fontfamily = "serif",
+                          legend_b, ncol = 2, rel_heights = c(1, .2),
+                          label_size = 6
+                          # label_x = 0, label_y = 0,
+                          # hjust = -0.5, vjust = -0.5
+                          )
+  title <- ggdraw() +
+    draw_label("Graphical approach for multile test procedures",
+               fontface = 'bold',x = 0,hjust = 0) +
+    theme(plot.margin = margin(5, 5, 5, 5))
+  plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
+    theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
 })
 }
 

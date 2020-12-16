@@ -28,6 +28,8 @@ for (i in 1:nrow(edges)){
 ```
 
 ```{r, echo=FALSE, results='asis'}
+rename_nodes <- nodes[,c("label","weight","pvalue")]
+colnames(rename_nodes) <- c("hypothesis","weight","pvalue")
 t1 <- kable(nodes[,c("label","weight","pvalue")], format = "latex", booktabs = TRUE)
 
 t2 <- kable(df, format = "latex", booktabs = TRUE)

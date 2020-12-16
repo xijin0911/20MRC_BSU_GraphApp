@@ -3,17 +3,14 @@ tabProcedure <- tabPanel("Common procedures",
                          fluidRow(
                            column(id="Settings_procedure",3,
                                   style="background-color: skyblue;",
-                                  h3("Settings", align = "center"),
-                              br(),
+                                  h2("Settings", align = "center"),
                               collapsible = FALSE,solidHeader = TRUE,collapsed = TRUE,
                               numericInput(inputId="Number_Hypotheses",
                                            label="Number of Hypotheses:",
                                            value=3,step = 1,min = 1),
-                              br(),
                               numericInput(inputId = "common_procedures", 
                                            label = HTML("Total &alpha;"),
                                            value = 0.05,step = 0.001,min = 0),
-                              br(),
                               selectInput(inputId = "common_procedures",
                                           label = "Common procedures",
                                           choices = c("Bonferroni-Holm procedure",
@@ -28,7 +25,6 @@ tabProcedure <- tabPanel("Common procedures",
                                 condition = "input.common_procedures == 'Fixed sequence test'",
                                 div(HTML("Each hypothesis is tested in the pre-specified sequence at level &alpha; until the first non-rejection"))
                               ),
-                              
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fallback procedure'",
                                 div(strong("Note:"), HTML("Each hypothesis is tested in the pre-specified sequence, and the &alpha; between hypotheses. 
@@ -49,8 +45,7 @@ tabProcedure <- tabPanel("Common procedures",
                                 condition = "input.common_procedures == 'Fallback procedure'",
                                 div(HTML("Wiens, BL (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. Pharmaceutical Statistics: <i>The Journal of Applied Statistics in the Pharmaceutical Industry</i>, 2 (3), 211-215."),
                                     div(HTML("Bretz F., Maurer W., Brannath W., Posch M.: A graphical approach to sequentially rejective multiple test procedures. <i>Statistics in Medicine</i> 2009; 28:586-604.")))
-                              ),
-                              br()
+                              ),br()
                        ),
                        column(id="Details_procedure",4,# style = "background-color:#FFFAFA;",
                               style="background-color: AliceBlue;border-color: AliceBlue",
@@ -72,12 +67,12 @@ tabProcedure <- tabPanel("Common procedures",
                               bsTooltip("wp_infor", "Initial weights and <em>p</em>-values",
                                         "right", options = list(container = "body")),
                               uiOutput("uioutput_Tmatrix2"),
+                              # verbatimTextOutput("sum_weight_procedure", placeholder = TRUE),
                               br(),
                               shinyjs::useShinyjs()),
                        column(id="Results_procedure",5,
                               style="background-color: AliceBlue;border-color: AliceBlue;padding:8px; font-size:80%;",
                               h2("Results", align = "center"),
-                              # p("Results of the testing procedures"), 
                               withSpinner(tableOutput("rejresult")),
                               withSpinner(plotOutput("ResultPlot"))
                               ))
