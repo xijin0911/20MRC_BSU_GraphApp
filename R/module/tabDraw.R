@@ -30,8 +30,7 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         bsTooltip("node_infor", "The nodes table includes the information about individual hypotheses",
                                   "right", options = list(container = "body")),
                         withSpinner(DTOutput("graphOutput_visNodes")), # loading part
-                        verbatimTextOutput("sum_weight_draw", placeholder = TRUE),
-                        # p("Sum of weights should be no larger than 1."),
+                        verbatimTextOutput("sum_weight_draw"),
                         actionButton("edge_infor", "Edges:", icon("paper-plane"),
                                      style="background-color: AliceBlue;
                                             border-color: AliceBlue"),

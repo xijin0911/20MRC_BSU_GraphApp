@@ -28,7 +28,7 @@ library(jsonlite)  # guideline shinyjs
 
 
 source("R/footer.R")
-source("R/function/gMCP_xc3.R")
+source("R/function/gMCP_app.R")
 source("R/function/generate_graph.R")
 source("R/function/generate_data.R")
 source("R/function/function_matrix.R")
@@ -79,7 +79,7 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            label = c("0.1","0.1"), # label should be the same as 'propagation'
                            stringsAsFactors = F)
 
-server <- function(input, output,session) { 
+server <- function(input, output,session){ 
   # loading setting
   Sys.sleep(0)
   # instruction
@@ -219,17 +219,9 @@ server <- function(input, output,session) {
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
-  # ## empty initial log
-  # textLog <- sum(as.numeric(graph_data$nodes[,c("weight")]))
-  # observeEvent(input$go, {
-  #   ## add 'Button GO Pressed' to existing log
-  #   textLog(paste("Sum of weights is",textLog()))
-  # })
-
-  
   output$sum_weight_draw <- renderText({
     dat <- sum(f2d(graph_data$nodes[,"weight"]))
-    paste("Sum of weights:",dat)
+    paste("Sum of weights:",my_signif(dat,3))
     })
   
   output$graphOutput_visEdges = DT::renderDT({
@@ -251,7 +243,7 @@ server <- function(input, output,session) {
       ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
                  which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
     }
-    result_draw <- gMCP_xc3(matrix=ini.matrix,
+    result_draw <- gMCP_app(matrix=ini.matrix,
                        weights=f2d(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
@@ -291,6 +283,7 @@ server <- function(input, output,session) {
              "Fixed sequence test" = wpcreate(input$Number_Hypotheses,"Fixed sequence test"),
              "Fallback procedure" = wpcreate(input$Number_Hypotheses,"Fallback procedure"))
       })
+    
     output$uioutput_Tmatrix1 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
       names <- lapply(1:num, function(i) {paste0("H", i)})
@@ -305,7 +298,7 @@ server <- function(input, output,session) {
                       rows = list(names = TRUE, extend = FALSE,
                                   editableNames = FALSE,delta = 1),
                       copy = TRUE,paste = TRUE),
-          helpText("The values are between 0 and 1.")
+          helpText("The values must be between 0 and 1.")
       )}) 
     
     output$uioutput_Tmatrix2 <- renderUI({
@@ -320,24 +313,23 @@ server <- function(input, output,session) {
                       copy = TRUE, paste = TRUE))
     })    
     
-    output$sum_weight_procedure <- renderText({
-      dat <- sum(f2d(input$WeightPvalue[,"weights"]))
-      paste("Sum of weights:",dat)
-    })
+    # output$sum_weight_procedure <- renderText({
+    #   dat <- sum(f2d(input$WeightPvalue[,"weights"]))
+    #   paste("Sum of weights:",my_signif(dat,3))
+    # })
     
-    
-    output$rejresult <- renderTable({
+    output$rej_table <- renderTable({
       names <- paste0("H", 1:input$Number_Hypotheses)
-      result_procedure <- gMCP_xc3(matrix=input$TransitionMatrixG,
+      result_procedure <- gMCP_app(matrix=input$TransitionMatrixG,
                                    weights=f2d(input$WeightPvalue[,"weights"]),
                                    pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
                                    alpha = input$alpha_procedure,fweights = F)
       result_procedure_rej <- data.frame(result_procedure$rejected)
-      result_procedure_rej <- ifelse(result_procedure_rej=="TRUE","rejected", "not rejected")
+      result_procedure_rejection <- as.character(ifelse(result_procedure_rej=="TRUE","rejected", "not rejected"))
       result_procedure_adjp <- result_procedure$adjpvalues
       result_procedure_table <- cbind(as.character(names),
                                       result_procedure_adjp,
-                                      result_procedure_rej)
+                                      result_procedure_rejection)
       colnames(result_procedure_table) <- c("hypothesis","adjusted p-value","rejection")
       result_procedure_table
       }, caption = "<b>Rejection table</b>",
@@ -371,7 +363,7 @@ server <- function(input, output,session) {
               plot.margin = margin(-1,-1,-1,-1))+  # t r b l
         theme(legend.position = "none")
       
-      result_procedure <- gMCP_xc3(matrix=input$TransitionMatrixG,
+      result_procedure <- gMCP_app(matrix=input$TransitionMatrixG,
                                    weights=f2d(input$WeightPvalue[,"weights"]),
                                    pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
                                    alpha = input$alpha_procedure,fweights = F)
@@ -457,7 +449,7 @@ server <- function(input, output,session) {
          })
          rownames(df) <- names
          colnames(df) <- rownames(df)
-         result <- gMCP_xc3(matrix=df,
+         result <- gMCP_app(matrix=df,
                             weights=f2d(wp[,"weights"]),
                             pvalues=as.numeric(wp[,"pvalues"]),
                             alpha = input$alpha_test,fweights = F)
@@ -501,7 +493,7 @@ server <- function(input, output,session) {
                                          margin = margin(10, 0, 10, 0)),
                plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
        
-  res <- gMCP_xc3(matrix=df,
+  res <- gMCP_app(matrix=df,
                   weights=f2d(wp[,"weights"]),
                   pvalues=as.numeric(wp[,"pvalues"]),
                   alpha = input$alpha_test,fweights = F)

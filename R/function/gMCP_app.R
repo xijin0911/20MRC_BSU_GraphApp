@@ -23,7 +23,7 @@
 
 my_signif = function(x, digits) floor(x) + signif(x %% 1, digits)
 
-gMCP_xc3 <- function(matrix,weights, 
+gMCP_app <- function(matrix,weights, 
                      # trasition matrix and weights instead of graph
                      pvalues, alpha = 0.05,
                      fweights = F) 
