@@ -42,27 +42,17 @@ source("R/module/tabtest.R")
 
 # -----------------------------------------------------
 ui <- tagList(
-  # tags$head(includeScript("google_analytics.html")),
   fluidPage(setBackgroundColor("AliceBlue"),
       theme = shinytheme("cerulean"),
       list(tags$head(tags$style(HTML("
-      .navbar .navbar-nav {float: left; 
-                           color: white; 
-                           font-size: 10px;} 
-      .navbar .navbar-header {float: left;} 
-
-  ")))),
+      .navbar .navbar-nav {float: left; color: white; font-size: 10px;} 
+      .navbar .navbar-header {float: left;}")))),
       tags$head(tags$style(HTML("
-      .shiny-output-error-myClass {
-        color: red;
-      }
-    "))),
+      .shiny-output-error-myClass { color: red;} "))),
       navbarPage(id = "tabs",title=tags$em("GraphApp"),collapsible = TRUE,
-                 tabHome,
-                 tabDraw,
+                 tabHome,tabDraw,
                  navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
-                            tabProcedure,
-                            tabTest)
+                            tabProcedure,tabTest)
     )),
   br(),br(),br(),
   foot)

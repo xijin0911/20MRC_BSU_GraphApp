@@ -81,7 +81,7 @@ initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
                                         margin = margin(15, 0, 15, 0)),
               plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
       
-res <- gMCP_xc3(matrix=df,
+res <- gMCP_app(matrix=df,
                 weights=f2d(wp[,"weights"]),
                 pvalues=as.numeric(wp[,"pvalues"]),
                 alpha = alpha,fweights = F)

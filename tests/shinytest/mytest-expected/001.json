@@ -1,0 +1,22 @@
+{
+  "input": {
+    "alpha_draw": 0.05,
+    "alpha_procedure": 0.05,
+    "alpha_test": 0.05,
+    "common_procedures": "Bonferroni-Holm procedure",
+    "draw_instruction": 0,
+    "edge_infor": 0,
+    "exRadio": "Simple successive procedure",
+    "G_infor": 0,
+    "node_infor": 0,
+    "Number_Hypotheses": 3,
+    "tabs": "Home",
+    "wp_infor": 0
+  },
+  "output": {
+
+  },
+  "export": {
+
+  }
+}
