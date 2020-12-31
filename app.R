@@ -26,7 +26,6 @@ library(shinyalert)
 library(cowplot)
 library(jsonlite)  # guideline shinyjs
 
-
 source("R/footer.R")
 source("R/function/gMCP_app.R")
 source("R/function/generate_graph.R")
@@ -415,33 +414,45 @@ server <- function(input, output,session){
               "Parallel gatekeeping procedure" = wpcreate(4, "Parallel gatekeeping procedure"))
      })
      
-     output$uioutput_Tmatrix_df <- renderTable({
+     output$uioutput_Tmatrix_df <- renderUI({
        num <- 4
+       names <- lapply(1:num, function(i) {paste0("H", i)})
        df <- df_create_test()
-       rownames(df) <- lapply(1:num, function(i) {
-         paste0("H", i)
-       })
-       colnames(df) <- rownames(df)
-       df
-     }, rownames = TRUE)
+       rownames(df) <- names
+       colnames(df) <- names
+       box(status = "primary", solidHeader = TRUE,width = 10, 
+           matrixInput(inputId = "TransitionMatrixG_test",
+                       value = df,class = "numeric",
+                       cols = list(names = TRUE,extend = FALSE,
+                                   editableNames = FALSE,delta = 2),
+                       rows = list(names = TRUE, extend = FALSE,
+                                   editableNames = FALSE,delta = 1),
+                       copy = TRUE,paste = TRUE),
+           helpText("The values must be between 0 and 1.")
+       )}) 
      
-       output$uioutput_Tmatrix_wp <- renderTable({
-         wp <- wp_create_test()
-         wp
-     }, rownames = TRUE)
-       
+     output$uioutput_Tmatrix_wp <- renderUI({
+       wp <- wp_create_test()
+       box(status = "primary",solidHeader = TRUE,width = 10,
+           matrixInput(inputId = "WeightPvalue_test",
+                       value = wp, class = "numeric",
+                       cols = list(names = TRUE, extend = FALSE,
+                                   editableNames = FALSE, delta = 2),
+                       rows = list(names = TRUE, extend = FALSE,
+                                   editableNames = FALSE, delta = 1),
+                       copy = TRUE, paste = TRUE))
+     })    
+     
        output$rejtable <- renderTable({
          num <- 4
          wp <- wp_create_test()
          df <- df_create_test()
-         names <- lapply(1:num, function(i) {
-           paste0("H", i)
-         })
+         names <- lapply(1:num, function(i) {paste0("H", i)})
          rownames(df) <- names
          colnames(df) <- rownames(df)
-         result <- gMCP_app(matrix=df,
-                            weights=f2d(wp[,"weights"]),
-                            pvalues=as.numeric(wp[,"pvalues"]),
+         result <- gMCP_app(matrix=input$TransitionMatrixG_test,
+                            weights=f2d(input$WeightPvalue_test[,"weights"]),
+                            pvalues=as.numeric(input$WeightPvalue_test[,"pvalues"]),
                             alpha = input$alpha_test,fweights = F)
          result_rej <- data.frame(result$rejected)
          result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
@@ -458,7 +469,7 @@ server <- function(input, output,session){
        df <- df_create_test()
        wp <- wp_create_test()
        names <- lapply(1:num, function(i) {paste0("H", i)})
-       net <- network(df,
+       net <- network(input$TransitionMatrixG_test,
                       directed = TRUE,
                       names.eval = "weights",
                       ignore.eval = FALSE)
@@ -483,10 +494,11 @@ server <- function(input, output,session){
                                          margin = margin(10, 0, 10, 0)),
                plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
        
-  res <- gMCP_app(matrix=df,
-                  weights=f2d(wp[,"weights"]),
-                  pvalues=as.numeric(wp[,"pvalues"]),
+  res <- gMCP_app(matrix=input$TransitionMatrixG_test,
+                  weights=f2d(input$WeightPvalue_test[,"weights"]),
+                  pvalues=as.numeric(input$WeightPvalue_test[,"pvalues"]),
                   alpha = input$alpha_test,fweights = F)
+  
   res_pvalues <- res$pvalues
   res_weights <- round(res$weights,digits = 2)
   res_G <- round(res$G,digits = 2)
@@ -515,7 +527,10 @@ server <- function(input, output,session){
           plot.title = element_text(size=15, 
                                     margin = margin(10, 0, 10, 0)),
           plot.margin = margin(0.1,0.1,0.1,0.1))
-  legend_b <- get_legend(final + theme(legend.position="bottom"))
+  legend_b <- get_legend(final + 
+                           theme(legend.position="bottom",
+                                 legend.box.margin = margin(0, 0, 0, 15))
+                         )
   p <- cowplot::plot_grid(initial,final,
                           label_fontface = "plain",label_fontfamily = "serif",
                           legend_b, ncol = 2, rel_heights = c(1, .2),
