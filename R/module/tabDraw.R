@@ -30,6 +30,7 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         bsTooltip("node_infor", "The nodes table includes the information about individual hypotheses",
                                   "right", options = list(container = "body")),
                         withSpinner(DTOutput("graphOutput_visNodes")), # loading part
+                        # error information about the sum of weights
                         verbatimTextOutput("sum_weight_draw"),
                         actionButton("edge_infor", "Edges:", icon("paper-plane"),
                                      style="background-color: AliceBlue;
@@ -46,6 +47,14 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
                       withSpinner(tableOutput("res_Table")), # loading part
-                      downloadButton("report", "Generate report")
+                      downloadButton("report", "Generate report"),
+                      br(),br(),
+                      # tags$iframe(
+                      #   # width="560", height="315", 
+                      #             src="https://www.youtube.com/embed/T1-k7VYwsHg",
+                      #             frameborder="0", 
+                      #             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture")
+                      tags$video(id="video1", type = "video/mp4",
+                                 src = "Fallback03.mp4", controls = "controls")
                     ))
 )

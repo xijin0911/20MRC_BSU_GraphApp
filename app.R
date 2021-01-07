@@ -41,6 +41,14 @@ source("R/module/tabtest.R")
 
 # -----------------------------------------------------
 ui <- tagList(
+  # error style setting
+  tags$head(
+    tags$style(HTML("
+      .shiny-output-error-validation {
+        color: red;
+      }
+    "))
+  ),
   fluidPage(setBackgroundColor("AliceBlue"),
       theme = shinytheme("cerulean"),
       list(tags$head(tags$style(HTML("
@@ -208,8 +216,13 @@ server <- function(input, output,session){
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
+  
   output$sum_weight_draw <- renderText({
     dat <- sum(f2d(graph_data$nodes[,"weight"]))
+    # error information about the sum of weights
+    shiny::validate(
+      need(as.numeric(dat) <= 1, 'Sum of weights should not be larger than 1.')
+    )
     paste("Sum of weights:",my_signif(dat,3))
     })
   
