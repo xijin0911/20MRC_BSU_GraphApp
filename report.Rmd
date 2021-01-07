@@ -1,8 +1,9 @@
 ---
-output: pdf_document
 params:
   alpha_draw: NA
   graph_data: NA
+
+output: pdf_document
 header-includes:
   \usepackage{booktabs}
   \usepackage{fancyhdr}

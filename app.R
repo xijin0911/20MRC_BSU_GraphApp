@@ -25,6 +25,8 @@ library(DiagrammeR)
 library(shinyalert)
 library(cowplot)
 library(jsonlite)  # guideline shinyjs
+library(markdown)
+library(rmarkdown)
 
 source("R/footer.R")
 source("R/function/gMCP_app.R")
@@ -226,6 +228,7 @@ server <- function(input, output,session){
     paste("Sum of weights:",my_signif(dat,3))
     })
   
+  
   output$graphOutput_visEdges = DT::renderDT({
     result <- graph_data$edges[,c("from","to","label")]
     colnames(result) <- c("from","to","propagation (label)")
@@ -259,19 +262,43 @@ server <- function(input, output,session){
   caption.placement = getOption("xtable.caption.placement", "bottom"), 
   caption.width = getOption("xtable.caption.width", NULL))
   
+  # output$report <- downloadHandler(
+  #   filename = "report.pdf",
+  #   content = function(file) {
+  #     tempReport <- file.path(tempdir(), "report.Rmd")
+  #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
+  #     params <- list(alpha_draw = input$alpha_draw,
+  #                    graph_data = graph_data)
+  #     rmarkdown::render(tempReport, output_file = file,
+  #                       params = params,
+  #                       envir = new.env(parent = globalenv())
+  #     )
+  #   }
+  # )
   output$report <- downloadHandler(
-    filename = "report.pdf",
+    filename = function() {
+      paste('Draw-output', sep = '.', switch(
+        input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+      ))
+    },  
     content = function(file) {
-      tempReport <- file.path(tempdir(), "report.Rmd")
-      file.copy("report.Rmd", tempReport, overwrite = TRUE)
+      src <- normalizePath('report.Rmd')
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
       params <- list(alpha_draw = input$alpha_draw,
                      graph_data = graph_data)
-      rmarkdown::render(tempReport, output_file = file,
-                        params = params,
-                        envir = new.env(parent = globalenv())
-      )
+      
+      out <- render('report.Rmd', switch(
+        input$format,
+        PDF = pdf_document(), HTML = html_document(), Word = word_document()
+      ),params = params,
+      envir = new.env(parent = globalenv()))
+      file.rename(out, file)
     }
   )
+  
+  
     # ---------------- Procedure Page output ----------------
     df_create <- reactive({
       switch(input$common_procedures,

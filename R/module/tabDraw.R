@@ -47,7 +47,10 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
                       withSpinner(tableOutput("res_Table")), # loading part
-                      downloadButton("report", "Generate report"),
+                      # downloadButton("report", "Generate report"),
+                      radioButtons('format', 'Report', c('PDF', 'HTML', 'Word'),
+                                   inline = TRUE),
+                      downloadButton('report'),
                       br(),br(),
                       # tags$iframe(
                       #   # width="560", height="315", 
