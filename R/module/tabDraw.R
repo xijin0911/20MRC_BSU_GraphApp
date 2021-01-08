@@ -1,8 +1,8 @@
 tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
-                    includeCSS("introjs.min.css"),
-                    includeCSS("app.css"),
-                    includeScript("intro.min.js"),
-                    includeScript("app.js"),  
+                    includeCSS("www/introjs.min.css"),
+                    includeCSS("www/app.css"),
+                    includeScript("www/intro.min.js"),
+                    includeScript("www/app.js"),  
                     br(),
                     div(class="flexcontainer",
                         span(actionButton(inputId="draw_instruction", 
@@ -47,17 +47,16 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
                       withSpinner(tableOutput("res_Table")), # loading part
-                      # downloadButton("report", "Generate report"),
                       radioButtons('format', 'Report', c('PDF', 'HTML', 'Word'),
                                    inline = TRUE),
                       downloadButton('report'),
-                      br(),br(),
+                      br(),br()
                       # tags$iframe(
                       #   # width="560", height="315", 
                       #             src="https://www.youtube.com/embed/T1-k7VYwsHg",
                       #             frameborder="0", 
                       #             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture")
-                      tags$video(id="video1", type = "video/mp4",
-                                 src = "Fallback03.mp4", controls = "controls")
+                      # tags$video(id="video1", type = "video/mp4",
+                      #            src = "Fallback03.mp4", controls = "controls")
                     ))
 )

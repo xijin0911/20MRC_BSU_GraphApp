@@ -110,33 +110,22 @@ testing with the updated <em>&alpha;</em> levels.
 </ul>
 With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
 Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. 
-<br><br>
-
 <p>The function <code>gMCP_app()</code> comes to the result of grphical approach of multiple testing.</p>
-<code>
-# the Transition Matrix<br>
-matrix <- rbind(H1 = c(0, 0.5, 0, 0.5, 0, 0), <br>
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 
-H2 = c(1/3, 0, 1/3, 0, 1/3, 0),<br>
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 
-H3 = c(0, 0.5, 0, 0, 0, 0.5),<br> 
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 
-H4 = c(0, 1, 0, 0, 0, 0), <br>
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 
-H5 = c(0.5, 0, 0.5, 0, 0, 0), <br>
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; 
-H6 = c(0, 1, 0, 0, 0, 0)) <br>
-# weights and <i>p</i>-values of individual hypothesis<br>
-weights <-  c(1/3, 1/3, 1/3, 0, 0, 0)
-<br>pvalues <- c(0.1, 0.008,0.005,0.15, 0.04, 0.006) 
-<br>gMCP_app(matrix,weights,pvalues, alpha = 0.05,fweights = F)
-</code>
+<pre><code class="lang-r">
+# the Transition Matrix
+matrix &lt;- rbind(H1 = c(0, 0.5, 0.5), 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H2 = c(0.5, 0, 0.5),
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H3 = c(0.5, 0.5, 0)) 
+# weights and <i>p</i>-values of individual hypothesis
+weights &lt;-  c(1/3, 1/3, 1/3)
+pvalues &lt;- c(0.01,0.07,0.02)
+gMCP_app(matrix,weights,pvalues, alpha = 0.05,fweights = F)
 
+</code></pre>
 <br>
-<video width="400" controls>
-  <source src="Bonferroni01.mp4" type="video/mp4">
-</video>
-<br>
+
+
+
 <h3>References</h3>
 <b><li>Holm, S. (1979). A simple sequentially rejective multiple test procedure.  <i>Scandinavian journal of statistics</i>, 65-70.</li></b>
 <b><li>Holm, S. (1979). Westfall, P. H., & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. <i>Journal of Statistical Planning and Inference</i>, 99(1), 25-40. 65-70.</li></b>

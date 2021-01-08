@@ -24,10 +24,8 @@
 my_signif = function(x, digits) floor(x) + signif(x %% 1, digits)
 
 gMCP_app <- function(matrix,weights, 
-                     # trasition matrix and weights instead of graph
                      pvalues, alpha = 0.05,
-                     fweights = F) 
-{
+                     fweights = F){
   library(gMCP)
   G <- matrix
   n <- ncol(G)   # number of hypotheses
@@ -63,27 +61,24 @@ gMCP_app <- function(matrix,weights,
   # adjusted p-values 
   # adjPValues <- p.adjust(pvalues,method="holm")
   adjPValues <- gMCP::generatePvals(matrix,
-                              weights,pvalues,cr=diag(n)) 
+                                    weights,pvalues,cr=diag(n)) 
   
   # rejetions
   h <- as.logical(h)
   names(h) <- paste0("H", 1:n)
   # weights
   if (fweights) {
-    list(# pvalues = pvalues, 
-      # adjpvalues =  round(adjPValues,digits = 4), # more outputs
-      adjpvalues =  my_signif(adjPValues,3),
-      alpha = alpha, rejected =  (h),  
-      weights = a/alpha,
-      G = G)  # more outputs
+    list(adjpvalues =  my_signif(adjPValues,3),
+         alpha = alpha, rejected =  (h),  
+         weights = a/alpha,
+         G = G)  
   }
   else {
     list(pvalues = pvalues,
-         # adjpvalues =  round(adjPValues,digits = 4), # more outputs
          adjpvalues =  my_signif(adjPValues,3),
          alpha = alpha, rejected =  (h), 
          weights = a/alpha,
-         G = G)  # more outputs
+         G = G)  
   }
 }
 

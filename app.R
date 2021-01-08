@@ -88,12 +88,19 @@ server <- function(input, output,session){
   observeEvent(input$draw_instruction,{
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
-  output$downloadData <- downloadHandler(
+  output$downloadSlide <- downloadHandler(
     filename = "CourseSlide.pdf",
     content = function(file) {
       file.copy("www/CourseSlide.pdf", file)
     }
   )
+  output$downloadRMD <- downloadHandler(
+    filename = "function_use.Rmd",
+    content = function(file) {
+      file.copy("www/function_use.Rmd", file)
+    }
+  )
+  
   shinyjs::onclick("Moreinformation",
                    shinyjs::toggle(id = "moreinfor", anim = TRUE))
   values <- reactiveValues()
@@ -262,19 +269,6 @@ server <- function(input, output,session){
   caption.placement = getOption("xtable.caption.placement", "bottom"), 
   caption.width = getOption("xtable.caption.width", NULL))
   
-  # output$report <- downloadHandler(
-  #   filename = "report.pdf",
-  #   content = function(file) {
-  #     tempReport <- file.path(tempdir(), "report.Rmd")
-  #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
-  #     params <- list(alpha_draw = input$alpha_draw,
-  #                    graph_data = graph_data)
-  #     rmarkdown::render(tempReport, output_file = file,
-  #                       params = params,
-  #                       envir = new.env(parent = globalenv())
-  #     )
-  #   }
-  # )
   output$report <- downloadHandler(
     filename = function() {
       paste('Draw-output', sep = '.', switch(
