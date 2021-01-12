@@ -78,25 +78,18 @@ General description of this Shiny application and some learning materials.
 <i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Draw the test procedure by yourself with nodes and edges or corresponding information.
 <br>
 <i class="glyphicon glyphicon-cog"></i> <b>Examples</b>: The most commonly used procedures or specific tests:<br>
-<font size="-2" face="Verdana">
+<font face="Verdana">
  <li>Common procedures:</li>
 Bonferroni-Holm procedure; Fixed Sequence tests; Fallback procedures</font> 
- <font size="-2" face="Verdana">
+ <font face="Verdana">
 <li>Specific tests:</li>
 Simple successive procedure; Parallel gatekeeping procedure</font> 
 <br>
 <h3>Method</h3>
 From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
 Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. The graphical approach to hypothesis testing, in this Shiny application is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.
-The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. Technical basis of the graphical approach: the graph defines a<p id="myBtn"><b><u>closed testing procedure</u></b></p>
-<div id="myModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <p>General methodology to construct multiple testing procedures which strongly control the FWER.  An individual hypothesis <em>H<sub>i</sub></em> is rejected at
-familywise level &alpha; only if every intersection hypothesis H<sub>J</sub>
-with i &isin; J is rejected at local level &alpha;</p>
-  </div>
-</div> 
+The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. Technical basis of the graphical approach: the graph defines a closed testing procedure.
+
 Below is an example for the graphical approaches with weighted Bonferroni tests for each intersection hypothesis:
 <ul>
   <li>Hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>K</sub></em> are represented as nodes</li>
@@ -110,9 +103,9 @@ testing with the updated <em>&alpha;</em> levels.
 </ul>
 With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
 Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. 
-<p>The function <code>gMCP_app()</code> comes to the result of grphical approach of multiple testing.</p>
+<p>The function <code>gMCP_app()</code> comes to the result of graphical approach of multiple testing. An example is displayed below to show how to use this funciton. </p>
 <pre><code class="lang-r">
-# the Transition Matrix
+# the Transition Matrix (Bonferroni-Holm Test)
 matrix &lt;- rbind(H1 = c(0, 0.5, 0.5), 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H2 = c(0.5, 0, 0.5),
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H3 = c(0.5, 0.5, 0)) 
@@ -122,15 +115,9 @@ pvalues &lt;- c(0.01,0.07,0.02)
 gMCP_app(matrix,weights,pvalues, alpha = 0.05,fweights = F)
 
 </code></pre>
+On the right panel, the videos show how to work this example by <em>Draw</em> and <em>Example</em> panels. Besides, the R markdown file shows how to work out this example by R code.
 <br>
 
-
-
-<h3>References</h3>
-<b><li>Holm, S. (1979). A simple sequentially rejective multiple test procedure.  <i>Scandinavian journal of statistics</i>, 65-70.</li></b>
-<b><li>Holm, S. (1979). Westfall, P. H., & Krishen, A. (2001). Optimally weighted, fixed sequence and gatekeeper multiple testing procedures. <i>Journal of Statistical Planning and Inference</i>, 99(1), 25-40. 65-70.</li></b>
-<b><li>Wiens, B. L. (2003). A fixed sequence Bonferroni procedure for testing multiple endpoints. <i>Pharmaceutical Statistics: The Journal of Applied Statistics in the Pharmaceutical Industry</i>, 2(3), 211-215. 65-70.</li></b>
-<b><li>Maurer, W., Glimm, E., & Bretz, F. (2011). Multiple and repeated testing of primary, coprimary, and secondary hypotheses. <i>Statistics in Biopharmaceutical Research</i>, 3(2), 336-352.</li></b>
 
 <script>
 // Get the modal

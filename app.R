@@ -95,12 +95,11 @@ server <- function(input, output,session){
     }
   )
   output$downloadRMD <- downloadHandler(
-    filename = "function_use.Rmd",
+    filename = "Function_gMCP_app.Rmd",
     content = function(file) {
-      file.copy("www/function_use.Rmd", file)
+      file.copy("www/Function_gMCP_app.Rmd", file)
     }
   )
-  
   shinyjs::onclick("Moreinformation",
                    shinyjs::toggle(id = "moreinfor", anim = TRUE))
   values <- reactiveValues()
@@ -235,7 +234,6 @@ server <- function(input, output,session){
     paste("Sum of weights:",my_signif(dat,3))
     })
   
-  
   output$graphOutput_visEdges = DT::renderDT({
     result <- graph_data$edges[,c("from","to","label")]
     colnames(result) <- c("from","to","propagation (label)")
@@ -265,8 +263,8 @@ server <- function(input, output,session){
     result_draw <- cbind(as.character(names),result_adjp,result_rej)
     colnames(result_draw) <- c("hypothesis","adjusted p-value","rejection")
     result_draw
-  }, caption = "Rejection results depend on the relationship between the calculated adjusted <em>p</em>-value and the specified total &alpha;.",
-  caption.placement = getOption("xtable.caption.placement", "bottom"), 
+  },caption = "<b>Rejection table</b>", 
+  caption.placement = getOption("xtable.caption.placement", "top"), 
   caption.width = getOption("xtable.caption.width", NULL))
   
   output$report <- downloadHandler(
@@ -370,7 +368,7 @@ server <- function(input, output,session){
       
       initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
-        geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+        geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
@@ -398,12 +396,12 @@ server <- function(input, output,session){
                          names.eval = "weights",ignore.eval = FALSE)
       res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(res_net)
-      # res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
+      result_procedure$rejected <- ifelse(result_procedure$rejected==TRUE,"rejected","not rejected")
       res_net %v% "Rejection" <- (result_procedure$rejected)
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
-        geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+        geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
@@ -431,9 +429,12 @@ server <- function(input, output,session){
         draw_label("Graphical approach for multile test procedures",
           fontface = 'bold',x = 0,hjust = 0) +
         theme(plot.margin = margin(-5, -5, 0, 5))
-        # theme(panel.background=element_rect(fill = "aliceblue"))
-      plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
-        theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
+      
+      # plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
+      #   theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
+      grid.arrange(initial, final, legend_b, ncol=2, nrow = 2, 
+                   layout_matrix = rbind(c(1,2), c(3,3)),
+                   widths = c(2.7, 2.7), heights = c(1.5, 0.5))
       })
      # ---------------- Test Page output ----------------
      df_create_test <- reactive({
@@ -513,13 +514,13 @@ server <- function(input, output,session){
        
        initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
          xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
-         geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                     color = "grey50",curvature = 0.15) +
          geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
          geom_nodetext(aes(label = vertex.names)) +
-         geom_edgetext_repel(aes(label = weights), color = "white",
-                             fill = "grey25",
-                             box.padding = unit(0.25, "line")) +
+         # geom_edgetext_repel(aes(label = weights), color = "white",
+         #                     fill = "grey25",
+         #                     box.padding = unit(0.25, "line")) +
          scale_color_brewer(palette = "Set2") +
          labs(title='Initial graph')+
          theme_blank()+
@@ -548,7 +549,7 @@ server <- function(input, output,session){
   
   final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
     xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
-    geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+    geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                color = "grey50",
                curvature = 0.15) +
     geom_nodes(aes(x, y,color = Rejection), alpha = 0.5,size = 14) +
@@ -567,17 +568,18 @@ server <- function(input, output,session){
                          )
   p <- cowplot::plot_grid(initial,final,
                           label_fontface = "plain",label_fontfamily = "serif",
-                          legend_b, ncol = 2, rel_heights = c(1, .2),
-                          label_size = 6
-                          # label_x = 0, label_y = 0,
-                          # hjust = -0.5, vjust = -0.5
+                          legend_b, ncol = 2, rel_heights = c(1, .2),label_size = 6
                           )
   title <- ggdraw() +
     draw_label("Graphical approach for multile test procedures",
                fontface = 'bold',x = 0,hjust = 0) +
     theme(plot.margin = margin(5, 5, 5, 5))
-  plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
-    theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
+  # plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
+  #   theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
+  grid.arrange(initial, final, legend_b, ncol=2, nrow = 2, 
+               layout_matrix = rbind(c(1,2), c(3,3)),
+               widths = c(2.7, 2.7), heights = c(1.5, 0.5))
+  
 })
 }
 

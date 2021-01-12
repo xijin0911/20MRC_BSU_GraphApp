@@ -37,7 +37,9 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                                             border-color: AliceBlue"),
                         bsTooltip("edge_infor", "The edges table includes the information about propagation",
                                   "right", options = list(container = "body")),
-                        withSpinner(DTOutput("graphOutput_visEdges"))), # loading part
+                        withSpinner(DTOutput("graphOutput_visEdges")), # loading part
+                        HTML("The edges table is transformed from the transition matrix <em>G</em>. The propagation level is transferred from the hypothes specified in row of the transition matrix  <em>G</em> to the hypothesis specified in column of the transition matrix  <em>G</em>."),
+                      ), 
                       # column 3
                     column(id="Results",width = 3,
                            style="background-color: AliceBlue;border-color: AliceBlue;padding:8px; font-size:80%;",
@@ -47,16 +49,10 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
                       withSpinner(tableOutput("res_Table")), # loading part
+                      br(),br(),
                       radioButtons('format', 'Report', c('PDF', 'HTML', 'Word'),
                                    inline = TRUE),
                       downloadButton('report'),
                       br(),br()
-                      # tags$iframe(
-                      #   # width="560", height="315", 
-                      #             src="https://www.youtube.com/embed/T1-k7VYwsHg",
-                      #             frameborder="0", 
-                      #             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture")
-                      # tags$video(id="video1", type = "video/mp4",
-                      #            src = "Fallback03.mp4", controls = "controls")
                     ))
 )
