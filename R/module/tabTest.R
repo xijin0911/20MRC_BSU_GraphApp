@@ -7,19 +7,17 @@ tabTest <- tabPanel("Specific tests",
                              value = 0.05,step = 0.001,min = 0),
                 prettyRadioButtons(
                   inputId = "exRadio",
-                  label = "Click me!",
+                  label = "Specific procedures",
                   choices = c("Simple successive procedure",
                               "Parallel gatekeeping procedure"),
                   shape = "round",
                   fill = TRUE,
-                  inline = TRUE
-                ),
+                  inline = TRUE),
                 hr(),
                 p(style="font-family:courier;","Reference"),
                 conditionalPanel(
                   condition = "input.exRadio == 'Simple successive procedure'",
-                  div(HTML("Maurer, W., Glimm, E., & Bretz, F. (2011). Multiple and repeated testing of primary, coprimary, and secondary hypotheses. <i>Statistics in Biopharmaceutical Research</i>, 3(2), 336-352."))
-                ),
+                  div(HTML("Maurer, W., Glimm, E., & Bretz, F. (2011). Multiple and repeated testing of primary, coprimary, and secondary hypotheses. <i>Statistics in Biopharmaceutical Research</i>, 3(2), 336-352."))),
                 conditionalPanel(
                   condition = "input.exRadio == 'Parallel gatekeeping procedure'",
                   div(HTML("Dmitrienko, A., Offen, WW, & Westfall, PH (2003). Gatekeeping strategies for clinical trials that do not require all primary effects to be significant. <i>Statistics in medicine</i>, 22 (15), 2387-2400."))
@@ -27,6 +25,7 @@ tabTest <- tabPanel("Specific tests",
          ),
          column(4,# style = "background-color:#FFFAFA;",
                 h2("Details",align = "center"),
+                HTML("<p>Please click in the white space after finishing inputs.</p>"),
                 actionButton("G_infor2", HTML("Transition matrix <em>G</em>"), 
                              icon("paper-plane"),width = "180px",
                              style="background-color: AliceBlue;

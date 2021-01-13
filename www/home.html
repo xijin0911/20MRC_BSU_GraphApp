@@ -63,7 +63,7 @@ span.frac > span {display: none;}
 
 <body>
 <h3>Welcome to <i>GraphApp</i>!</h3>
-<p><i>GraphApp</i> is a Shiny application that helps to implement the graphical approach for multiple test procedures. 
+<p><i>GraphApp</i> is a web application that helps to implement the graphical approach to multiple testing. 
 The key idea is to express the resulting multiple test procedures by directed, weighted graphs, where each node corresponds to an elementary hypothesis, together with a simple algorithm to generate such graphs while sequentially testing the individual hypotheses. 
 
 The application is a companion to the following article:
@@ -78,45 +78,36 @@ General description of this Shiny application and some learning materials.
 <i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Draw the test procedure by yourself with nodes and edges or corresponding information.
 <br>
 <i class="glyphicon glyphicon-cog"></i> <b>Examples</b>: The most commonly used procedures or specific tests:<br>
-<font face="Verdana">
+<p style="font-size:8px">
  <li>Common procedures:</li>
-Bonferroni-Holm procedure; Fixed Sequence tests; Fallback procedures</font> 
- <font face="Verdana">
+Bonferroni-Holm procedure; Fixed Sequence tests; Fallback procedures</p> 
+ <p style="font-size:8px">
 <li>Specific tests:</li>
-Simple successive procedure; Parallel gatekeeping procedure</font> 
+Simple successive procedure; Parallel gatekeeping procedure</p> 
 <br>
 <h3>Method</h3>
 From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
-Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. The graphical approach to hypothesis testing, in this Shiny application is an approach that can satisfy the Type-I error adjustment and reflect the relationships between different hypotheses simultaneously.
-The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure </em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. Technical basis of the graphical approach: the graph defines a closed testing procedure.
-
-Below is an example for the graphical approaches with weighted Bonferroni tests for each intersection hypothesis:
+Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. The graphical approach to hypothesis testing, in this web application is an approach that can satisfy the Type-I error adjustment and reflect the relations between different hypotheses simultaneously.
+The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure</em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. Technical basis of the graphical approach: the graph defines a closed testing procedure.
+<br>
+In this framework:
 <ul>
-  <li>Hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>K</sub></em> are represented as nodes</li>
-  <li>Split of significance level <em>&alpha;</em> into (<em>&alpha;<sub>1</sub></em>, ...,  <em>&alpha;<sub>K</sub></em>)</li>
-  <p>Equivalent formulation of split of <em>&alpha;<sub>i</sub></em> using weights (<em>w<sub>1</sub></em>, ..., <em>w<sub>K</sub></em>) where <em>&sum;<sup>K</sup><sub style="margin-left: 1px">i=1</sub>w<sub>i</sub></em>= 1 and <em>&alpha;<sub>i</sub></em> = <em>&alpha;<em>w<sub>i.</sub></em></em></p>
-  <li>'<em>&alpha;</em> propagation' through weighted, directed edges
-</li>
-<p>If a hypothesis Hi can be rejected at level <em>&alpha;<sub>i</sub></em> (i.e. <em>p<sub>i</sub></em> ≤ <em>&alpha;<sub>i</sub></em>), propagate its level <em>&alpha;<sub>i</sub></em> to the remaining (not yet tested) hypotheses, according to a prefixed rule, and continue
-testing with the updated <em>&alpha;</em> levels.
-</p>
+  <li>Nodes represent individual hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em></li>
+  <li>Weights denote local significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em></li>
+  <li>Edges are directed, and the associated weight <em>g<sub>ij</sub></em> indicates the fraction of the local significance level <em>&alpha;<sub>i</sub></em> that is propagated to <em>H<sub>j</sub></em> once <em>H<sub>i</sub></em> has been rejected.</li>
 </ul>
-With Transition Matrix <em>G</em> and specified weights <em>&omega;<sub>i</sub></em>, the initial graph and final graph can be provided.
-Multiple testing procedures for clinical trials are able to address multiple objectives, such as comparison of different treatments, subgroups or endpoints. 
-<p>The function <code>gMCP_app()</code> comes to the result of graphical approach of multiple testing. An example is displayed below to show how to use this funciton. </p>
+<p>The R function <code>gMCP_app</code> helps to perform the graphical approach to multiple hypotheses testing. An example is displayed below to show how to use this function. </p>
 <pre><code class="lang-r">
-# the Transition Matrix (Bonferroni-Holm Test)
+# An example based on the Bonferroni-Holm Test
+# the Transition Matrix
 matrix &lt;- rbind(H1 = c(0, 0.5, 0.5), 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H2 = c(0.5, 0, 0.5),
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H3 = c(0.5, 0.5, 0)) 
 # weights and <i>p</i>-values of individual hypothesis
 weights &lt;-  c(1/3, 1/3, 1/3)
 pvalues &lt;- c(0.01,0.07,0.02)
-gMCP_app(matrix,weights,pvalues, alpha = 0.05,fweights = F)
-
+gMCP_app(matrix, weights, pvalues, alpha = 0.05)
 </code></pre>
-On the right panel, the videos show how to work this example by <em>Draw</em> and <em>Example</em> panels. Besides, the R markdown file shows how to work out this example by R code.
-<br>
 
 
 <script>

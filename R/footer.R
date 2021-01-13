@@ -3,14 +3,13 @@
 
 foot <- tags$footer(
   tagList(
-    p("If you have any questions or comments, you can",
-      tags$a(href = "https://www.mrc-bsu.cam.ac.uk/people/in-alphabetical-order/n-to-s/david-robertson/",
-             "email us."),
-      style="font-size:100%; font-family:Arial; line-height:.8rem;"),
     p("Built to implement the graphical approach for multile test procedures."),
+    p("If you have any questions or comments, you can email us at",
+      tags$a(href = "mailto:xijin.chen@mrc-bsu.cam.ac.uk",
+             "xijin.chen@mrc-bsu.cam.ac.uk"),
+      style="font-size:100%; font-family:Arial; line-height:.8rem;"),
     p("GUI created with R Shiny by Xijin Chen and Dr. David Robertson. Code is available on",
-      tags$a(
-        href = "https://github.com/xijin0911","Github."),
+      tags$a(href = "https://github.com/xijin0911","Github."),
       style="font-size:100%; font-family:Arial; line-height:.8rem;"
     )
   ),

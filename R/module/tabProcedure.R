@@ -50,6 +50,7 @@ tabProcedure <- tabPanel("Common procedures",
                        column(id="Details_procedure",4,# style = "background-color:#FFFAFA;",
                               style="background-color: AliceBlue;border-color: AliceBlue",
                               h2("Details", align = "center"),
+                              HTML("<p>Please click in the white space after finishing inputs.</p>"),
                               actionButton("G_infor", HTML("Transition matrix <em>G</em>"), 
                                            icon("paper-plane"), width = "180px",
                                            style="background-color: AliceBlue; padding:8px; font-size:100%;

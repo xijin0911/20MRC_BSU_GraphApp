@@ -218,7 +218,7 @@ server <- function(input, output,session){
   
   output$graphOutput_visNodes = DT::renderDT({
     nodes_result = graph_data$nodes[,c("id","weight","pvalue")]
-    colnames(nodes_result) = c("hypothesis (id)","weight","p-value")
+    colnames(nodes_result) = c("hypotheses (ids)","weights","p-values")
     nodes_result
   },
   editable = TRUE,
@@ -261,7 +261,7 @@ server <- function(input, output,session){
     result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
     result_adjp <- result_draw$adjpvalues
     result_draw <- cbind(as.character(names),result_adjp,result_rej)
-    colnames(result_draw) <- c("hypothesis","adjusted p-value","rejection")
+    colnames(result_draw) <- c("hypotheses","adjusted p-values","rejections")
     result_draw
   },caption = "<b>Rejection table</b>", 
   caption.placement = getOption("xtable.caption.placement", "top"), 
@@ -324,6 +324,7 @@ server <- function(input, output,session){
     
     output$uioutput_Tmatrix2 <- renderUI({
       wp <- wp_create()
+      colnames(wp) <- c("weights","p-values")
       box(status = "primary",solidHeader = TRUE,width = 10,
           matrixInput(inputId = "WeightPvalue",
                       value = wp, class = "numeric",
@@ -343,7 +344,7 @@ server <- function(input, output,session){
       names <- paste0("H", 1:input$Number_Hypotheses)
       result_procedure <- gMCP_app(matrix=input$TransitionMatrixG,
                                    weights=f2d(input$WeightPvalue[,"weights"]),
-                                   pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                                   pvalues=as.numeric(input$WeightPvalue[,"p-values"]),
                                    alpha = input$alpha_procedure,fweights = F)
       result_procedure_rej <- data.frame(result_procedure$rejected)
       result_procedure_rejection <- as.character(ifelse(result_procedure_rej=="TRUE","rejected", "not rejected"))
@@ -351,7 +352,7 @@ server <- function(input, output,session){
       result_procedure_table <- cbind(as.character(names),
                                       result_procedure_adjp,
                                       result_procedure_rejection)
-      colnames(result_procedure_table) <- c("hypothesis","adjusted p-value","rejection")
+      colnames(result_procedure_table) <- c("hypotheses","adjusted p-values","rejections")
       result_procedure_table
       }, caption = "<b>Rejection table</b>",
     caption.placement = getOption("xtable.caption.placement", "top"),
@@ -386,7 +387,7 @@ server <- function(input, output,session){
       
       result_procedure <- gMCP_app(matrix=input$TransitionMatrixG,
                                    weights=f2d(input$WeightPvalue[,"weights"]),
-                                   pvalues=as.numeric(input$WeightPvalue[,"pvalues"]),
+                                   pvalues=as.numeric(input$WeightPvalue[,"p-values"]),
                                    alpha = input$alpha_procedure,fweights = F)
       res_pvalues <- result_procedure$pvalues
       res_weights <- result_procedure$weights
@@ -468,6 +469,7 @@ server <- function(input, output,session){
      
      output$uioutput_Tmatrix_wp <- renderUI({
        wp <- wp_create_test()
+       colnames(wp) <- c("weights","p-values")
        box(status = "primary",solidHeader = TRUE,width = 10,
            matrixInput(inputId = "WeightPvalue_test",
                        value = wp, class = "numeric",
@@ -487,13 +489,13 @@ server <- function(input, output,session){
          colnames(df) <- rownames(df)
          result <- gMCP_app(matrix=input$TransitionMatrixG_test,
                             weights=f2d(input$WeightPvalue_test[,"weights"]),
-                            pvalues=as.numeric(input$WeightPvalue_test[,"pvalues"]),
+                            pvalues=as.numeric(input$WeightPvalue_test[,"p-values"]),
                             alpha = input$alpha_test,fweights = F)
          result_rej <- data.frame(result$rejected)
          result_rej <- ifelse(result_rej=="TRUE","rejected", "not rejected")
          result_adjp <- result$adjpvalues
          output <- data.frame(cbind(as.character(names),result_adjp,result_rej))
-         colnames(output) <- c("hypothesis","adjusted p-value","rejection")
+         colnames(output) <- c("hypotheses","adjusted p-values","rejections")
          output
        }, caption = "<b>Rejection table</b>",
        caption.placement = getOption("xtable.caption.placement", "top"),
@@ -531,7 +533,7 @@ server <- function(input, output,session){
        
   res <- gMCP_app(matrix=input$TransitionMatrixG_test,
                   weights=f2d(input$WeightPvalue_test[,"weights"]),
-                  pvalues=as.numeric(input$WeightPvalue_test[,"pvalues"]),
+                  pvalues=as.numeric(input$WeightPvalue_test[,"p-values"]),
                   alpha = input$alpha_test,fweights = F)
   
   res_pvalues <- res$pvalues
@@ -568,8 +570,7 @@ server <- function(input, output,session){
                          )
   p <- cowplot::plot_grid(initial,final,
                           label_fontface = "plain",label_fontfamily = "serif",
-                          legend_b, ncol = 2, rel_heights = c(1, .2),label_size = 6
-                          )
+                          legend_b, ncol = 2, rel_heights = c(1, .2),label_size = 6)
   title <- ggdraw() +
     draw_label("Graphical approach for multile test procedures",
                fontface = 'bold',x = 0,hjust = 0) +

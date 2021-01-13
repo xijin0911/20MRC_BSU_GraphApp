@@ -54,7 +54,7 @@ t2
 
 The results of graphical approaches could be summarized as below:
 
-```{r echo=FALSE,fig.height=3.5}
+```{r echo=FALSE,fig.height=3}
 wp <- matrix(0,nrow=num,ncol=2)
 colnames(wp) <- c("weights","pvalues")
 rownames(wp) <- names
@@ -69,9 +69,9 @@ net %v% "vertex.names"  <- names
 e <- network.edgecount(net)
       
 initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
-        xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
-        geom_edges(arrow = arrow(length = unit(20, "pt"), 
-                                 type = "closed"),color = "grey50",curvature = 0.15) +
+        xlim(-0.1, 1.1) + ylim(-0.1, 1.1)+
+        geom_edges(arrow = arrow(length = unit(10, "pt"),type = "closed"),
+                   color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
         scale_color_brewer(palette = "Set2") +
@@ -79,9 +79,9 @@ initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
         theme_blank()+
         theme(aspect.ratio=1,
               plot.title = element_text(size=15, face="bold.italic",
-                                        margin = margin(15, 0, 15, 0)),
-              plot.margin = margin(0.5,0.1,0.1,0.1))    # t r b l
-      
+                                        margin = margin(10, 0, 10, 0)),
+              plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
+
 res <- gMCP_app(matrix=df,
                 weights=f2d(wp[,"weights"]),
                 pvalues=as.numeric(wp[,"pvalues"]),
@@ -93,31 +93,30 @@ res_net <- network(res_G,directed = TRUE,
                    names.eval = "weights",ignore.eval = FALSE)
 res_net %v% "vertex.names"  <- names
 e <- network.edgecount(res_net)
+res$rejected <- ifelse(res$rejected==TRUE,"rejected","not rejected")
 res_net %v% "Rejection" <- (res$rejected)
       
 final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
-        xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
-        geom_edges(arrow = arrow(length = unit(20, "pt"), type = "closed"),
+        xlim(-0.1, 1.1) + ylim(-0.1, 1.1)+
+        geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "grey50",curvature = 0.15) +
         geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
         scale_color_brewer(palette = "Set2") +
         labs(title='Final graph',size=8)+
-        theme(legend.position = "none")+
         theme_blank()+
         theme(legend.position = "none")+
         theme(aspect.ratio=1,
               plot.title = element_text(size=15, face="bold.italic",
-                                        margin = margin(10, 5, 10, 0)),
-              plot.margin = margin(0.5,0.5,0.1,0.1))
+                                        margin = margin(10, 0, 10, 0)),
+              plot.margin = margin(0.5,0.5,0.5,0.5))
 
-      legend_b <- get_legend(final + theme(legend.position="bottom",
-                                           legend.justification="center"))
-  grid.arrange(initial, final, legend_b, ncol=2, nrow = 2, 
+legend_b <- get_legend(final + theme(legend.position="bottom",
+                                     legend.justification="center"))
+
+grid.arrange(initial, final, legend_b, ncol=2, nrow = 2, 
                layout_matrix = rbind(c(1,2), c(3,3)),
                widths = c(2.7, 2.7), heights = c(1.5, 0.5))
-
-      
 ```
 
 ```{r, echo=FALSE, results='asis'}
