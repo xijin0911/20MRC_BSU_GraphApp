@@ -14,7 +14,7 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                       column(id="Graph",width = 5,
                              style="background-color: AliceBlue;border-color: AliceBlue", 
                              h2("Graph", align = "center"),
-                             p("Click the Edit button"),
+                             HTML("Click the <b>Edit</b> button. Note: <p class='text-danger'>You cannot add a node with 'undefined' element.</p>"),
                              withSpinner(visNetworkOutput("editable_network", height = "400px"))), # loading part
                       # column 2
                       column(id="Details",width = 4,
