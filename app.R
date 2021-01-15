@@ -75,7 +75,7 @@ init.nodes.df = data.frame(id = c("H1","H2"),
 init.edges.df = data.frame(id = c("e1","e2"),
                            from = c("H1","H2"), 
                            to = c("H2","H1"),
-                           label = c("0.1","0.1"), # label should be the same as 'propagation'
+                           label = c("1","1"), # label should be the same as 'propagation'
                            stringsAsFactors = F)
 
 server <- function(input, output,session){ 
@@ -370,7 +370,7 @@ server <- function(input, output,session){
       initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
-                   color = "grey50",curvature = 0.15) +
+                   color = "black",curvature = 0.15) +
         geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
         # geom_edgetext_repel(aes(label = weights), color = "white",
@@ -403,7 +403,7 @@ server <- function(input, output,session){
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
-                   color = "grey50",curvature = 0.15) +
+                   color = "black",curvature = 0.15) +
         geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
         # geom_edgetext_repel(aes(label = weights), color = "white",
@@ -413,8 +413,7 @@ server <- function(input, output,session){
         labs(title='Final graph')+
         theme_blank()+
         theme(aspect.ratio=1,
-              plot.title = element_text(size=15, 
-                                        margin = margin(10, 5, 10, 0)),
+              plot.title = element_text(size=15,margin = margin(10, 5, 10, 0)),
               plot.margin = margin(-1,-1,-1,-1))+
         # theme(panel.background=element_rect(fill = "aliceblue"))+
         theme(legend.position = "none")
@@ -517,7 +516,7 @@ server <- function(input, output,session){
        initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
          xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
          geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
-                    color = "grey50",curvature = 0.15) +
+                    color = "black",curvature = 0.15) +
          geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
          geom_nodetext(aes(label = vertex.names)) +
          # geom_edgetext_repel(aes(label = weights), color = "white",
@@ -552,7 +551,7 @@ server <- function(input, output,session){
   final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
     xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
     geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
-               color = "grey50",
+               color = "black",
                curvature = 0.15) +
     geom_nodes(aes(x, y,color = Rejection), alpha = 0.5,size = 14) +
     geom_nodetext(aes(label = vertex.names)) +

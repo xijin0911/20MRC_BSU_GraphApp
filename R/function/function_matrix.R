@@ -65,20 +65,20 @@ wpcreate <- function(num,test="Bonferroni-Holm procedure"){
       paste0("H", i)
   }))
     if(test=="Bonferroni-Holm procedure"){
-      weight = (rep(1/num,num))
+      weight = f2d(rep(1/num,num))
       pvalues = rep(0.01,num)
     }
    if(test=="Fixed sequence test"){
-     weight = c(1,rep(0,num-1))
+     weight = f2d(c(1,rep(0,num-1)))
      pvalues = rep(0.01,num)
     }
   if(test == "Fallback procedure"){
-    weight = (rep(1/num,num))
+    weight = f2d(rep(1/num,num))
     pvalues = rep(0.01,num)
   }
   if(test == "Simple successive procedure"){
     weight = c(0.5,0.5,0,0)
-    pvalues = rep(0.01,num)
+    pvalues = c(0.01,0.03,0.02,0.08)
   }
   if(test == "Parallel gatekeeping procedure"){
     weight = c(0.5,0.5,0,0)

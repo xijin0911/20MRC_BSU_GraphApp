@@ -8,11 +8,22 @@ tabTest <- tabPanel("Specific tests",
                 prettyRadioButtons(
                   inputId = "exRadio",
                   label = "Specific procedures",
-                  choices = c("Simple successive procedure",
-                              "Parallel gatekeeping procedure"),
+                  choices = c("Parallel gatekeeping procedure",
+                              "Simple successive procedure"),
                   shape = "round",
                   fill = TRUE,
                   inline = TRUE),
+                br(),
+                conditionalPanel(
+                  condition = "input.exRadio == 'Parallel gatekeeping procedure'",
+                  div("Hypotheses are classified into primary and secondary hypotheses. 
+                      One may proceed to secondary family tests when at least one of the primary tests exhibits significance.")
+                ),
+                conditionalPanel(
+                  condition = "input.exRadio == 'Simple successive procedure'",
+                  div(HTML("Hypotheses is arranged in a hierarchy with some hypotheses being equally important and
+                  others being formally tested only conditional on the rejection of more important ones."))
+                ),
                 hr(),
                 p(style="font-family:courier;","Reference"),
                 conditionalPanel(

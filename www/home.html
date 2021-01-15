@@ -70,10 +70,10 @@ The application is a companion to the following article:
 <b><li>Bretz, F., Posch, M., Glimm, E., Klinglmueller, F., Maurer, W., & Rohmeyer, K. (2011). Graphical approaches for multiple comparison procedures using weighted Bonferroni, Simes, or parametric tests. <i>Biometrical Journal</i>, 53(6), 894-913. <a href="https://onlinelibrary.wiley.com/doi/full/10.1002/bimj.201000239">PDF</a></li></b>
 
 <h3>How to use this application</h3>
-You should navigate this site using the header tabs:
+You should navigate this web application using the header tabs:
 <br>
 <i class="glyphicon glyphicon-home"></i> <b>Home</b>: 
-General description of this Shiny application and some learning materials. 
+General descriptions of this application and some learning materials. 
 <br>
 <i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Draw the test procedure by yourself with nodes and edges or corresponding information.
 <br>
@@ -88,25 +88,25 @@ Simple successive procedure; Parallel gatekeeping procedure</p>
 <h3>Method</h3>
 From a regulatory viewpoint, a flexible and appropriate approach is required for Type-I error control. 
 Besides, the corresponding clinical trials always have complex objectives and a hierarchical structure to the hypotheses tested. The graphical approach to hypothesis testing, in this web application is an approach that can satisfy the Type-I error adjustment and reflect the relations between different hypotheses simultaneously.
-The graphical approaches dissociate the <em>underlying weighting strategy </em> and the <em>employed test procedure</em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. Technical basis of the graphical approach: the graph defines a closed testing procedure.
+The graphical approach dissociates the <em>underlying weighting strategy </em> and the <em>employed test procedure</em>. Such a separation between the weighting strategy and the test procedure facilitates the application of graphical approach underling varying situations. 
 <br>
 In this framework:
 <ul>
-  <li>Nodes represent individual hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em></li>
-  <li>Weights denote local significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em></li>
+  <li>Nodes represent individual hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em> with associated weights denoting the significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em>.</li>
   <li>Edges are directed, and the associated weight <em>g<sub>ij</sub></em> indicates the fraction of the local significance level <em>&alpha;<sub>i</sub></em> that is propagated to <em>H<sub>j</sub></em> once <em>H<sub>i</sub></em> has been rejected.</li>
 </ul>
-<p>The R function <code>gMCP_app</code> helps to perform the graphical approach to multiple hypotheses testing. An example is displayed below to show how to use this function. </p>
+<p>The R function <code>gMCP_app</code> helps to perform the multiple testing. An example is displayed below to show how to use this function. </p>
 <pre><code class="lang-r">
 # An example based on the Bonferroni-Holm Test
-# the Transition Matrix
+# weights and <i>p</i>-values of individual hypothesis (Nodes)
+weights &lt;-  c(1/3, 1/3, 1/3)
+pvalues &lt;- c(0.01,0.07,0.02)
+# the Transition Matrix (Edges)
 matrix &lt;- rbind(H1 = c(0, 0.5, 0.5), 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H2 = c(0.5, 0, 0.5),
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H3 = c(0.5, 0.5, 0)) 
-# weights and <i>p</i>-values of individual hypothesis
-weights &lt;-  c(1/3, 1/3, 1/3)
-pvalues &lt;- c(0.01,0.07,0.02)
-gMCP_app(matrix, weights, pvalues, alpha = 0.05)
+gMCP_app(weights, pvalues, matrix, alpha = 0.05)
+# A null hypothesis can be rejected, when the <i>p</i>-value is less than the &alpha; level of the corresponding node. In this case the graph will be updated and the &alpha; level of this node is passed according to the edge values in the transition matrix.
 </code></pre>
 
 

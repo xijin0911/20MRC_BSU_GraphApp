@@ -1,4 +1,4 @@
-"step","element","intro","position"
-"1","#Graph","Add/Delete/Edit nodes and edges in the graph. Note that the elements could not be 'undefined'.", "top"
-"2","#Details","Add/Delete/Edit nodes and edges in the table.", "top"
-"3","#Results","The result of multiple testing based on the information in Graph and Details. A report based on your inputs could also be obtained.", "top"
+step,element,intro,position
+1,#Graph,Add/Delete/Edit nodes and edges in the graph. Note that the elements could not be 'undefined'.," ""top"""
+2,#Details,Edit information about nodes and edges in the table.," ""top"""
+3,#Results,The result of multiple testing based on the information in Graph and Details. A report based on your inputs could also be obtained.," ""top"""

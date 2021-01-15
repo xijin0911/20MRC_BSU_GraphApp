@@ -20,7 +20,7 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                       column(id="Details",width = 4,
                              style="background-color: AliceBlue;border-color: AliceBlue;padding:8px; font-size:85%;",
                              h2("Details", align = "center"),
-                             p("Please double click the cells below to edit and click in the white space after finishing inputs"),
+                             p("Please double click the cells below to edit and click in the white space after finishing inputs."),
                              numericInput(inputId = "alpha_draw",
                                           label = HTML("Total &alpha;"),
                                           value = 0.05,step = 0.001,min = 0),
@@ -38,7 +38,7 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         bsTooltip("edge_infor", "The edges table includes the information about propagation",
                                   "right", options = list(container = "body")),
                         withSpinner(DTOutput("graphOutput_visEdges")), # loading part
-                        HTML("The edges table is transformed from the transition matrix <em>G</em>. The propagation level is transferred from the hypothes specified in row of the transition matrix  <em>G</em> to the hypothesis specified in column of the transition matrix  <em>G</em>."),
+                        HTML("The edges table is transformed from the transition matrix <em>G</em>. The propagation level is transferred from the hypothes specified in the row of the transition matrix  <em>G</em> to the hypothesis specified in the column of the transition matrix  <em>G</em>."),
                       ), 
                       # column 3
                     column(id="Results",width = 3,
@@ -49,6 +49,8 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         tags$style(HTML("h4 {text-decoration: underline;}" 
                         ))),
                       withSpinner(tableOutput("res_Table")), # loading part
+                      HTML("The adjusted <i>p</i>-values of hypothesis <em>H<sub>j</sub></em> is the smallest significance level at which 
+                           one can reject the hypothesis using the given multiple test procedure."),
                       br(),br(),
                       radioButtons('format', 'Report', c('PDF', 'HTML', 'Word'),
                                    inline = TRUE),

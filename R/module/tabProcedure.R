@@ -6,7 +6,7 @@ tabProcedure <- tabPanel("Common procedures",
                                   h2("Settings", align = "center"),
                               collapsible = FALSE,solidHeader = TRUE,collapsed = TRUE,
                               numericInput(inputId="Number_Hypotheses",
-                                           label="Number of Hypotheses:",
+                                           label="Number of hypotheses:",
                                            value=3,step = 1,min = 1),
                               numericInput(inputId = "alpha_procedure", 
                                            label = HTML("Total &alpha;"),
@@ -19,16 +19,16 @@ tabProcedure <- tabPanel("Common procedures",
                                           selected = "Bonferroni-Holm procedure"),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Bonferroni-Holm procedure'",
-                                div("All hypothesese have the same weights.")
+                                div("All hypotheses have the same weights.")
                               ),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fixed sequence test'",
-                                div(HTML("Each hypothesis is tested in the pre-specified sequence at level &alpha; until the first non-rejection"))
+                                div(HTML("Each hypothesis is tested in the pre-specified sequence at level &alpha; until the first non-rejection."))
                               ),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fallback procedure'",
-                                div(strong("Note:"), HTML("Each hypothesis is tested in the pre-specified sequence, and the &alpha; between hypotheses. 
-                                                          For each <em>H<sub>i</sub></em>, &sum;<sub>1</sub><sup>K</sup>&alpha;<sub>i</sub>=&alpha;"))
+                                div(strong("Note:"), HTML("Each hypothesis is tested in the pre-specified sequence, and the total &alpha; is split into hypotheses. 
+                                                          &sum;<sub>1</sub><sup>K</sup>&alpha;<sub>i</sub>=&alpha; for each <em>H<sub>i</sub></em>."))
                               ),
                               hr(),
                               p(style="font-family:courier;","Reference"),
@@ -68,8 +68,8 @@ tabProcedure <- tabPanel("Common procedures",
                               bsTooltip("wp_infor", "Initial weights and <em>p</em>-values",
                                         "right", options = list(container = "body")),
                               uiOutput("uioutput_Tmatrix2"),
-                              # verbatimTextOutput("sum_weight_procedure"),
-                              br(),
+                              br(),br(),
+                              # HTML("<p>Please click in the white space after finishing inputs.</p>"),
                               shinyjs::useShinyjs()),
                        column(id="Results_procedure",5,
                               style="background-color: AliceBlue;border-color: AliceBlue;padding:8px; font-size:80%;",
