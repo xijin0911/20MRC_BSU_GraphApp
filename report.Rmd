@@ -39,19 +39,6 @@ t1 <- kable(nodes[,c("label","weight","pvalue")],
 t2 <- kable(df,caption = "Edges")
 t1
 t2
-# cat(c("\\begin{table}[!htb]
-#     \\begin{minipage}{.5\\linewidth}
-#       \\caption{Nodes}
-#       \\centering",
-#         t1,
-#     "\\end{minipage}%
-#     \\begin{minipage}{.5\\linewidth}
-#       \\centering
-#         \\caption{Edges}",
-#         t2,
-#     "\\end{minipage} 
-# \\end{table}"
-# ))  
 ```
 
 The results of graphical approaches could be summarized as below:

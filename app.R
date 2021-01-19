@@ -83,46 +83,49 @@ server <- function(input, output,session){
   Sys.sleep(0)
   # instruction
   steps_draw <- read.csv("help_draw.csv")
+  
   session$sendCustomMessage(type = 'setHelpContent', 
                             message = list(steps = toJSON(steps_draw) ))
   observeEvent(input$draw_instruction,{
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
-  output$downloadSlide <- downloadHandler(
-    filename = "CourseSlide.pdf",
-    content = function(file) {
-      file.copy("www/CourseSlide.pdf", file)
-    }
-  )
+  
+  # output$downloadSlide <- downloadHandler(
+  #   filename = "CourseSlide.pdf",
+  #   content = function(file) {
+  #     file.copy("www/CourseSlide.pdf", file)
+  #   }
+  # )
   output$downloadRMD <- downloadHandler(
     filename = "Function_gMCP_app.Rmd",
     content = function(file) {
       file.copy("www/Function_gMCP_app.Rmd", file)
     }
   )
-  shinyjs::onclick("Moreinformation",
-                   shinyjs::toggle(id = "moreinfor", anim = TRUE))
-  values <- reactiveValues()
-  values$num <- 3
-  observeEvent(input$spec, {
-    shinyalert("Number of hypotheses", 
-               type = "input",
-               inputType = "number",
-               inputValue = "3",
-               inputId = "num_alert",
-               inputPlaceholder = "",
-               confirmButtonText = "Yes", 
-               callbackR = modalCallback)
-  })
-  modalCallback <- function(value) {
-    value$num <- input$num_alert
-  }
+  # shinyjs::onclick("Moreinformation",
+  #                  shinyjs::toggle(id = "moreinfor", anim = TRUE))
+  # values <- reactiveValues()
+  # values$num <- 3
+  # observeEvent(input$spec, {
+  #   shinyalert("Number of hypotheses", 
+  #              type = "input",
+  #              inputType = "number",
+  #              inputValue = "3",
+  #              inputId = "num_alert",
+  #              inputPlaceholder = "",
+  #              confirmButtonText = "Yes", 
+  #              callbackR = modalCallback)
+  # })
+  # modalCallback <- function(value) {
+  #   value$num <- input$num_alert
+  # }
     # ---------------- Draw Page output ----------------  
   observeEvent(input$inst, {
     shinyalert(title = "Instructions",type = "info", 
                text= "<li>Graph & Details: Inputs</li>
                <li>Results: Outputs of the rejection results.</li>",html=TRUE)
   })
+  
   graph_data = reactiveValues(
     nodes = init.nodes.df,
     edges = init.edges.df
@@ -141,6 +144,7 @@ server <- function(input, output,session){
                                      addNodeCols = c("id","weight", "pvalue")
       ))
   })
+  
   observeEvent(input$editable_network_graphChange, {
     if(input$editable_network_graphChange$cmd == "addNode") {
       temp = bind_rows(
