@@ -127,6 +127,7 @@ server <- function(input, output,session){
     nodes = init.nodes.df,
     edges = init.edges.df
   )
+  
   output$editable_network <- renderVisNetwork({
     visNetwork(graph_data$nodes, graph_data$edges) %>%
       visExport() %>%
@@ -304,7 +305,6 @@ server <- function(input, output,session){
              "Fixed sequence test" = wpcreate(input$Number_Hypotheses,"Fixed sequence test"),
              "Fallback procedure" = wpcreate(input$Number_Hypotheses,"Fallback procedure"))
       })
-    
     output$uioutput_Tmatrix1 <- renderUI({
       num <- as.integer(input$Number_Hypotheses)
       names <- lapply(1:num, function(i) {paste0("H", i)})
@@ -397,14 +397,15 @@ server <- function(input, output,session){
                          names.eval = "weights",ignore.eval = FALSE)
       res_net %v% "vertex.names"  <- rownames(input$TransitionMatrixG)
       e <- network.edgecount(res_net)
-      result_procedure$rejected <- ifelse(result_procedure$rejected==TRUE,"rejected","not rejected")
+      result_procedure$rejected <- ifelse(result_procedure$rejected==TRUE,
+                                          "rejected","not rejected")
       res_net %v% "Rejection" <- (result_procedure$rejected)
       
       final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         xlim(-0.05, 1.05) + ylim(-0.05, 1.05)+
         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "black",curvature = 0.15) +
-        geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
+        geom_nodes(aes(x, y, colour = Rejection),alpha = 0.5,size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
         # geom_edgetext_repel(aes(label = weights), color = "white",
         #                     fill = "grey25",
@@ -415,7 +416,6 @@ server <- function(input, output,session){
         theme(aspect.ratio=1,
               plot.title = element_text(size=15,margin = margin(10, 5, 10, 0)),
               plot.margin = margin(-1,-1,-1,-1))+
-        # theme(panel.background=element_rect(fill = "aliceblue"))+
         theme(legend.position = "none")
       
       legend_b <- get_legend(final + theme(legend.position="bottom"))
@@ -430,8 +430,6 @@ server <- function(input, output,session){
           fontface = 'bold',x = 0,hjust = 0) +
         theme(plot.margin = margin(-5, -5, 0, 5))
       
-      # plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
-      #   theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
       grid.arrange(initial, final, legend_b, ncol=2, nrow = 2, 
                    layout_matrix = rbind(c(1,2), c(3,3)),
                    widths = c(2.7, 2.7), heights = c(1.5, 0.5))

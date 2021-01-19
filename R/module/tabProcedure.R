@@ -19,7 +19,7 @@ tabProcedure <- tabPanel("Common procedures",
                                           selected = "Bonferroni-Holm procedure"),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Bonferroni-Holm procedure'",
-                                div("All hypotheses have the same weights.")
+                                div("All hypotheses have the same weights if the procedure is unweighted.")
                               ),
                               conditionalPanel(
                                 condition = "input.common_procedures == 'Fixed sequence test'",

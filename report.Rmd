@@ -18,6 +18,8 @@ library(xtable)
 alpha <- params$alpha_draw
 edges <- params$graph_data$edges
 nodes <- params$graph_data$nodes
+
+
 num <- nrow(nodes)
 names <- nodes$label
 df <- matrix(0,nrow=num,ncol=num)

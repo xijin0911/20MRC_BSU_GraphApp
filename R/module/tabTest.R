@@ -1,7 +1,7 @@
-tabTest <- tabPanel("Specific tests",
+tabTest <- tabPanel("Case studies",
                     fluidRow(
                       column(3,style = "background-color: skyblue;",
-                h2("Examples", align = "center"),
+                h2("Clinical trials", align = "center"),
                 numericInput(inputId = "alpha_test", 
                              label = HTML("Total &alpha;"),
                              value = 0.05,step = 0.001,min = 0),
