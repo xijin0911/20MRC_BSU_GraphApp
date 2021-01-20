@@ -95,7 +95,7 @@ In this framework:
   <li>Nodes represent individual hypotheses <em>H<sub>1</sub></em>, ..., <em>H<sub>m</sub></em> with associated weights denoting the significance levels <em>&alpha;<sub>1</sub></em>, ..., <em>&alpha;<sub>m</sub></em>.</li>
   <li>Edges are directed, and the associated weight <em>g<sub>ij</sub></em> indicates the fraction of the local significance level <em>&alpha;<sub>i</sub></em> that is propagated to <em>H<sub>j</sub></em> once <em>H<sub>i</sub></em> has been rejected.</li>
 </ul>
-<p>The R function <code>gMCP_app</code> helps to perform the multiple testing. An example is displayed below to show how to use this function. </p>
+<p>The R function <code>graph_app</code> helps to perform the multiple testing. An example is displayed below to show how to use this function. </p>
 <pre><code class="lang-r">
 # An example based on the Bonferroni-Holm Test
 # weights and <i>p</i>-values of individual hypothesis (Nodes)
@@ -105,7 +105,7 @@ pvalues &lt;- c(0.01,0.07,0.02)
 matrix &lt;- rbind(H1 = c(0, 0.5, 0.5), 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H2 = c(0.5, 0, 0.5),
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;H3 = c(0.5, 0.5, 0)) 
-gMCP_app(weights, pvalues, matrix, alpha = 0.05)
+graph_app(weights, pvalues, matrix, alpha = 0.05)
 # A null hypothesis can be rejected, when the <i>p</i>-value is less than the &alpha; level of the corresponding node. In this case the graph will be updated and the &alpha; level of this node is passed according to the edge values in the transition matrix.
 </code></pre>
 

@@ -29,7 +29,7 @@ library(markdown)
 library(rmarkdown)
 
 source("R/footer.R")
-source("R/function/gMCP_app.R")
+source("R/function/graph_app.R")
 source("R/function/generate_graph.R")
 source("R/function/generate_data.R")
 source("R/function/function_matrix.R")
@@ -97,9 +97,9 @@ server <- function(input, output,session){
   #   }
   # )
   output$downloadRMD <- downloadHandler(
-    filename = "Function_gMCP_app.Rmd",
+    filename = "Function_graph_app.Rmd",
     content = function(file) {
-      file.copy("www/Function_gMCP_app.Rmd", file)
+      file.copy("www/Function_graph_app.Rmd", file)
     }
   )
   # shinyjs::onclick("Moreinformation",
@@ -258,7 +258,7 @@ server <- function(input, output,session){
       ini.matrix[which(graph_data$edges$from[i]==rownames(ini.matrix)), 
                  which(graph_data$edges$to[i]==rownames(ini.matrix))] <- as.numeric(graph_data$edges[i,"label"])
     }
-    result_draw <- gMCP_app(matrix=ini.matrix,
+    result_draw <- graph_app(matrix=ini.matrix,
                        weights=f2d(graph_data$nodes[,"weight"]),
                        pvalues=as.numeric(graph_data$nodes[,"pvalue"]),
                        alpha = input$alpha_draw,fweights = F)
@@ -339,14 +339,9 @@ server <- function(input, output,session){
                       copy = TRUE, paste = TRUE))
     })    
     
-    # output$sum_weight_procedure <- renderText({
-    #   dat <- sum(f2d(input$WeightPvalue[,"weights"]))
-    #   paste("Sum of weights:",my_signif(dat,3))
-    # })
-    
     output$rej_table <- renderTable({
       names <- paste0("H", 1:input$Number_Hypotheses)
-      result_procedure <- gMCP_app(matrix=input$TransitionMatrixG,
+      result_procedure <- graph_app(matrix=input$TransitionMatrixG,
                                    weights=f2d(input$WeightPvalue[,"weights"]),
                                    pvalues=as.numeric(input$WeightPvalue[,"p-values"]),
                                    alpha = input$alpha_procedure,fweights = F)
@@ -389,7 +384,7 @@ server <- function(input, output,session){
               plot.margin = margin(-1,-1,-1,-1))+  # t r b l
         theme(legend.position = "none")
       
-      result_procedure <- gMCP_app(matrix=input$TransitionMatrixG,
+      result_procedure <- graph_app(matrix=input$TransitionMatrixG,
                                    weights=f2d(input$WeightPvalue[,"weights"]),
                                    pvalues=as.numeric(input$WeightPvalue[,"p-values"]),
                                    alpha = input$alpha_procedure,fweights = F)
@@ -488,7 +483,7 @@ server <- function(input, output,session){
          names <- lapply(1:num, function(i) {paste0("H", i)})
          rownames(df) <- names
          colnames(df) <- rownames(df)
-         result <- gMCP_app(matrix=input$TransitionMatrixG_test,
+         result <- graph_app(matrix=input$TransitionMatrixG_test,
                             weights=f2d(input$WeightPvalue_test[,"weights"]),
                             pvalues=as.numeric(input$WeightPvalue_test[,"p-values"]),
                             alpha = input$alpha_test,fweights = F)
@@ -532,7 +527,7 @@ server <- function(input, output,session){
                                          margin = margin(10, 0, 10, 0)),
                plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
        
-  res <- gMCP_app(matrix=input$TransitionMatrixG_test,
+  res <- graph_app(matrix=input$TransitionMatrixG_test,
                   weights=f2d(input$WeightPvalue_test[,"weights"]),
                   pvalues=as.numeric(input$WeightPvalue_test[,"p-values"]),
                   alpha = input$alpha_test,fweights = F)
