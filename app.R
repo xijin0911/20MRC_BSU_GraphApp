@@ -2,7 +2,7 @@
 # devtools::install_github("datastorm-open/visNetwork")
 library(visNetwork)
 library(shiny)
-library(shinyMatrix)
+library(shinyMatrix) # interactive matrix input
 library(network)
 library(shinythemes)
 library(DT)
@@ -331,7 +331,7 @@ server <- function(input, output,session){
       colnames(wp) <- c("weights","p-values")
       box(status = "primary",solidHeader = TRUE,width = 10,
           matrixInput(inputId = "WeightPvalue",
-                      value = wp, class = "numeric",
+                      value = wp, class = "character",
                       cols = list(names = TRUE, extend = FALSE,
                                   editableNames = FALSE, delta = 2),
                       rows = list(names = TRUE, extend = FALSE,
@@ -468,7 +468,7 @@ server <- function(input, output,session){
        colnames(wp) <- c("weights","p-values")
        box(status = "primary",solidHeader = TRUE,width = 10,
            matrixInput(inputId = "WeightPvalue_test",
-                       value = wp, class = "numeric",
+                       value = wp, class = "character",
                        cols = list(names = TRUE, extend = FALSE,
                                    editableNames = FALSE, delta = 2),
                        rows = list(names = TRUE, extend = FALSE,
