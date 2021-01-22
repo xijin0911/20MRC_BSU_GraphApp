@@ -90,8 +90,12 @@ final <- ggplot(res_net, aes(x = x, y = y, xend = xend, yend = yend)) +
         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "black",curvature = 0.15) +
         geom_nodes(aes(x, y, colour = Rejection), alpha = 0.5,size = 14) +
+        scale_fill_manual(values=c("rejected"="red",
+                                     "not rejected"="green"))+
+        scale_color_manual(values=c("rejected"="red",
+                                    "not rejected"="green"))+
         geom_nodetext(aes(label = vertex.names)) +
-        scale_color_brewer(palette = "Set2") +
+        # scale_color_brewer(palette = "Set2") +
         labs(title='Final graph',size=8)+
         theme_blank()+
         theme(legend.position = "none")+
