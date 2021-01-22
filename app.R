@@ -375,7 +375,6 @@ server <- function(input, output,session){
         # geom_edgetext_repel(aes(label = weights), color = "white",
         #                     fill = "grey25",
         #                     box.padding = unit(0.25, "line")) +
-        scale_color_brewer(palette = "Set2") +
         labs(title='Initial graph')+
         theme_blank()+
         theme(aspect.ratio=1,
@@ -405,8 +404,6 @@ server <- function(input, output,session){
         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "black",curvature = 0.15) +
         geom_nodes(aes(x, y, colour = Rejection),alpha = 0.5,size = 14) +
-        scale_fill_manual(values=c("rejected"="red",
-                                     "not rejected"="green"))+
         scale_color_manual(values=c("rejected"="red",
                                     "not rejected"="green"))+
         geom_nodetext(aes(label = vertex.names)) +
@@ -523,7 +520,6 @@ server <- function(input, output,session){
          # geom_edgetext_repel(aes(label = weights), color = "white",
          #                     fill = "grey25",
          #                     box.padding = unit(0.25, "line")) +
-         scale_color_brewer(palette = "Set2") +
          labs(title='Initial graph')+
          theme_blank()+
          theme(aspect.ratio=1,
@@ -556,11 +552,8 @@ server <- function(input, output,session){
                curvature = 0.15) +
     geom_nodes(aes(x, y,color = Rejection), alpha = 0.5,size = 14) +
     geom_nodetext(aes(label = vertex.names)) +
-    scale_fill_manual(values=c("rejected"="red",
-                               "not rejected"="green"))+
     scale_color_manual(values=c("rejected"="red",
                                 "not rejected"="green"))+
-    # scale_color_brewer(palette = "Set2") +
     labs(title='Final graph')+
     theme_blank()+
     theme(legend.position = "none")+
