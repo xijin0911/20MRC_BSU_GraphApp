@@ -70,6 +70,7 @@ initial <-  ggplot(net, aes(x = x, y = y, xend = xend, yend = yend)) +
                                         margin = margin(10, 0, 10, 0)),
               plot.margin = margin(0.1,0.1,0.1,0.1))    # t r b l
 
+
 res <- graph_app(matrix=df,
                 weights=f2d(wp[,"weights"]),
                 pvalues=as.numeric(wp[,"pvalues"]),

@@ -1,33 +1,4 @@
-# the most recent version of visNetwork
-# devtools::install_github("datastorm-open/visNetwork")
-library(visNetwork)
-library(shiny)
-library(shinyMatrix) # interactive matrix input
-library(network)
-library(shinythemes)
-library(DT)
-library(ggnetwork)
-library(ggplot2)
-library(gridExtra)
-library(data.table)
-library(shinyWidgets)
-library(shinycssloaders)
-library(ggpubr)
-library(shinyAce)
-library(shinyBS)
-library(reshape2)
-library(shinyThings)
-library(dplyr)
-library(shinydashboard)
-library(shinyjs)
-library(rintrojs) # introBox
-library(DiagrammeR)
-library(shinyalert)
-library(cowplot)
-library(jsonlite)  # guideline shinyjs
-library(markdown)
-library(rmarkdown)
-
+source("R/dependencies.R")
 source("R/footer.R")
 source("R/function/graph_app.R")
 source("R/function/generate_graph.R")
@@ -580,5 +551,4 @@ server <- function(input, output,session){
   
 })
 }
-
 shinyApp(ui, server)
