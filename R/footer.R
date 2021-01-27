@@ -3,7 +3,7 @@
 
 foot <- tags$footer(
   tagList(
-    p("Built to implement the graphical approach for multile test procedures."),
+    p("A web app implementation of the graphical approach for multiple testing."),
     p("If you have any questions or comments, you can email us at",
       tags$a(href = "mailto:xijin.chen@mrc-bsu.cam.ac.uk",
              "xijin.chen@mrc-bsu.cam.ac.uk"),

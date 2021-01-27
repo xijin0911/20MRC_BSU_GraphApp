@@ -49,6 +49,7 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            label = c("1","1"), # label should be the same as 'propagation'
                            stringsAsFactors = F)
 
+# -----------------------------------------------------
 server <- function(input, output,session){ 
   # loading setting
   Sys.sleep(0)
