@@ -201,7 +201,6 @@ server <- function(input, output,session){
   editable = TRUE,
   options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
-  
   output$sum_weight_draw <- renderText({
     dat <- sum(f2d(graph_data$nodes[,"weight"]))
     # error information about the sum of weights
@@ -376,8 +375,8 @@ server <- function(input, output,session){
         geom_edges(arrow = arrow(length = unit(10, "pt"), type = "closed"),
                    color = "black",curvature = 0.15) +
         geom_nodes(aes(x, y, colour = Rejection),alpha = 0.5,size = 14) +
-        scale_color_manual(values=c("rejected"="red",
-                                    "not rejected"="green"))+
+        scale_color_manual(values=c("rejected"="green",
+                                    "not rejected"="red"))+
         geom_nodetext(aes(label = vertex.names)) +
         # geom_edgetext_repel(aes(label = weights), color = "white",
         #                     fill = "grey25",
@@ -524,8 +523,8 @@ server <- function(input, output,session){
                curvature = 0.15) +
     geom_nodes(aes(x, y,color = Rejection), alpha = 0.5,size = 14) +
     geom_nodetext(aes(label = vertex.names)) +
-    scale_color_manual(values=c("rejected"="red",
-                                "not rejected"="green"))+
+    scale_color_manual(values=c("rejected"="green",
+                                "not rejected"="red"))+
     labs(title='Final graph')+
     theme_blank()+
     theme(legend.position = "none")+
