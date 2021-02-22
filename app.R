@@ -24,20 +24,21 @@ ui <- tagList(
   ),
   fluidPage(setBackgroundColor("AliceBlue"),
       theme = shinytheme("cerulean"),
-      list(tags$head(tags$style(HTML("
+      list(
+      tags$head(tags$style(HTML("
       .navbar .navbar-nav {float: left; color: white; font-size: 10px;} 
       .navbar .navbar-header {float: left;}")))),
       tags$head(tags$style(HTML("
       .shiny-output-error-myClass { color: red;} "))),
       navbarPage(id = "tabs",title=tags$em("GraphApp"),collapsible = TRUE,
-                 tabHome,tabDraw,
-                 navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
-                            tabProcedure,tabTest)
+                 tabHome,tabDraw,tabProcedure,tabTest
+                 # navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
+                            # tabProcedure,tabTest)
     )),
   br(),br(),br(),
   foot)
 
-# graph_data initial setting -----------------------
+# -----------------------graph_data initial setting -----------------------
 init.nodes.df = data.frame(id = c("H1","H2"),
                            label = c("H1","H2"),  # label should be the same as 'id'
                            weight = c("1/2", "1/2"),
@@ -49,8 +50,18 @@ init.edges.df = data.frame(id = c("e1","e2"),
                            label = c("1","1"), # label should be the same as 'propagation'
                            stringsAsFactors = F)
 
-# -----------------------------------------------------
+# ---------------------------------------------------------------------------
 server <- function(input, output,session){ 
+  output$FSfig <- renderImage({
+    list(src = "www/FS_fig.jpg",
+         alt = "", deleteFile = FALSE
+    )
+  })
+  output$FBfig <- renderImage({
+    list(src = "www/FB_fig.jpg",
+         alt = "", deleteFile = FALSE
+    )
+  })
   # loading setting
   Sys.sleep(0)
   # instruction
@@ -62,35 +73,12 @@ server <- function(input, output,session){
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
   
-  # output$downloadSlide <- downloadHandler(
-  #   filename = "CourseSlide.pdf",
-  #   content = function(file) {
-  #     file.copy("www/CourseSlide.pdf", file)
-  #   }
-  # )
   output$downloadRMD <- downloadHandler(
     filename = "Function_graph_app.Rmd",
     content = function(file) {
       file.copy("www/Function_graph_app.Rmd", file)
     }
   )
-  # shinyjs::onclick("Moreinformation",
-  #                  shinyjs::toggle(id = "moreinfor", anim = TRUE))
-  # values <- reactiveValues()
-  # values$num <- 3
-  # observeEvent(input$spec, {
-  #   shinyalert("Number of hypotheses", 
-  #              type = "input",
-  #              inputType = "number",
-  #              inputValue = "3",
-  #              inputId = "num_alert",
-  #              inputPlaceholder = "",
-  #              confirmButtonText = "Yes", 
-  #              callbackR = modalCallback)
-  # })
-  # modalCallback <- function(value) {
-  #   value$num <- input$num_alert
-  # }
     # ---------------- Draw Page output ----------------  
   observeEvent(input$inst, {
     shinyalert(title = "Instructions",type = "info", 
@@ -266,8 +254,34 @@ server <- function(input, output,session){
     }
   )
   
-  
     # ---------------- Procedure Page output ----------------
+  addPopover(session, "common_procedures", 
+             "Common procedures", 
+             content = paste0("<p>Currently, the first attempt of GraphApp 
+             is to visualize <em>Bonferroni-based graphical test procedures. </em></p> "),
+             trigger = 'hover')
+  
+  addPopover(session, "wp_infor", "Initial weights", 
+             content = paste0("<p> Both doses are equally important (<em>w1=w2</em>). 
+               We test the primary null hypothesis first (<em>H1=H2</em>); 
+               only if this is rejected do we test the secondary hypothesis (<em>H3=H4</em>)</p> "),
+             trigger = 'hover')
+  
+  addPopover(session, "rej_table", 
+             "Rejetion results", 
+             content = paste0("<p>The tailored multiple test procedures are based on <em>Bonferroni's inequality.</em> 
+                              by comparing the calculated adjusted <em>p-</em>values and pre-specified &alpha; level.</p>"),
+             trigger = 'hover')
+  addPopover(session, "ResultPlot", 
+             "Graphical results", 
+             content = paste0("<p>The <b>initial graph</b> corresponds to the inputs from <b>Details</b>, 
+                              while the <b>final graph</b> corresponds to the results after implementing the employed test procedure.</p>"),
+             trigger = 'hover')
+  
+  observeEvent(input$link_to_tabpanel_b, {
+    updateTabsetPanel(session, "tabs", "Home")
+  })
+  
     df_create <- reactive({
       switch(input$common_procedures,
              "Bonferroni-Holm procedure" = dfcreate(input$Number_Hypotheses,"Bonferroni-Holm procedure"),
@@ -343,9 +357,6 @@ server <- function(input, output,session){
                    color = "black",curvature = 0.15) +
         geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
         geom_nodetext(aes(label = vertex.names)) +
-        # geom_edgetext_repel(aes(label = weights), color = "white",
-        #                     fill = "grey25",
-        #                     box.padding = unit(0.25, "line")) +
         labs(title='Initial graph')+
         theme_blank()+
         theme(aspect.ratio=1,
@@ -378,10 +389,6 @@ server <- function(input, output,session){
         scale_color_manual(values=c("rejected"="green",
                                     "not rejected"="red"))+
         geom_nodetext(aes(label = vertex.names)) +
-        # geom_edgetext_repel(aes(label = weights), color = "white",
-        #                     fill = "grey25",
-        #                     box.padding = unit(0.25, "line")) +
-        # scale_color_brewer(palette = "Set2") +
         labs(title='Final graph')+
         theme_blank()+
         theme(aspect.ratio=1,
@@ -406,6 +413,41 @@ server <- function(input, output,session){
                    widths = c(2.7, 2.7), heights = c(1.5, 0.5))
       })
      # ---------------- Test Page output ----------------
+    addPopover(session, "exRadio", "Diabetes trial", 
+               content = paste0("<p> Trial compares two doses <em>D1</em> or <em>D2</em> 
+                                against placebo in diabetes patients for two endpoints</p> ",
+                                "<p>There is a natural order: a primary endpoint 
+                                is more important than a secondary endpoint</p>",
+                                "<ul><li>Primary: <b>HbA1c</b></li>
+                                <li>Secondary: <b>Body weight</b></li>"),
+               trigger = 'hover')
+    
+    addPopover(session, "exRadio", "Diabetes trial", 
+               content = paste0("<p> Trial compares two doses <em>D1</em> or <em>D2</em> 
+                                against placebo in diabetes patients for two endpoints</p> ",
+                                "<p>There is a natural order: a primary endpoint 
+                                is more important than a secondary endpoint</p>",
+                                "<ul><li>Primary: <b>HbA1c</b></li>
+                                <li>Secondary: <b>Body weight</b></li>"),
+               trigger = 'hover')
+    
+    addPopover(session, "wp_infor2", "Initial weights", 
+               content = paste0("<p> Both doses are equally important (<em>w1=w2</em>). 
+               We test the primary null hypothesis first (<em>H1=H2</em>); 
+               only if this is rejected do we test the secondary hypothesis (<em>H3=H4</em>)</p> "),
+               trigger = 'hover')
+    
+    addPopover(session, "rejtable", 
+               "Rejetion results", 
+               content = paste0("<p>The tailored multiple test procedures are based on <em>Bonferroni's inequality.</em> 
+                              by comparing the calculated adjusted <em>p-</em>values and pre-specified &alpha; level.</p>"),
+               trigger = 'hover')
+    addPopover(session, "resPlots_both", 
+               "Graphical results", 
+               content = paste0("<p>The <b>initial graph</b> corresponds to the inputs from <b>Details</b>, 
+                              while the <b>final graph</b> corresponds to the results after implementing the employed test procedure.</p>"),
+               trigger = 'hover')
+    
      df_create_test <- reactive({
        switch(input$exRadio,
               "Simple successive procedure" = dfcreate(4,"Simple successive procedure"),
@@ -488,9 +530,6 @@ server <- function(input, output,session){
                     color = "black",curvature = 0.15) +
          geom_nodes(aes(x, y),color = "grey",alpha = 0.5, size = 14) +
          geom_nodetext(aes(label = vertex.names)) +
-         # geom_edgetext_repel(aes(label = weights), color = "white",
-         #                     fill = "grey25",
-         #                     box.padding = unit(0.25, "line")) +
          labs(title='Initial graph')+
          theme_blank()+
          theme(aspect.ratio=1,
@@ -543,8 +582,6 @@ server <- function(input, output,session){
     draw_label("Graphical approach for multile test procedures",
                fontface = 'bold',x = 0,hjust = 0) +
     theme(plot.margin = margin(5, 5, 5, 5))
-  # plot_grid(title, p, ncol = 1, rel_heights = c(0.1, 1))+
-  #   theme(panel.border = element_rect(colour = "aliceblue",fill=NA))
   grid.arrange(initial, final, legend_b, ncol=2, nrow = 2, 
                layout_matrix = rbind(c(1,2), c(3,3)),
                widths = c(2.7, 2.7), heights = c(1.5, 0.5))
