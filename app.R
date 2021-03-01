@@ -30,7 +30,7 @@ ui <- tagList(
       .navbar .navbar-header {float: left;}")))),
       tags$head(tags$style(HTML("
       .shiny-output-error-myClass { color: red;} "))),
-      navbarPage(id = "tabs",title=tags$em("GraphApp"),collapsible = TRUE,
+      navbarPage(id = "tabs",title="GraphApp",collapsible = TRUE,
                  tabHome,tabDraw,tabProcedure,tabTest
                  # navbarMenu("Examples",icon=icon("cog", lib = "glyphicon"),  
                             # tabProcedure,tabTest)
@@ -73,13 +73,14 @@ server <- function(input, output,session){
     session$sendCustomMessage(type = 'startHelp', message = list(""))
   })
   
-  output$downloadRMD <- downloadHandler(
-    filename = "Function_graph_app.Rmd",
+  output$downloadSlide <- downloadHandler(
+    filename = "CourseSlide.pdf",
     content = function(file) {
-      file.copy("www/Function_graph_app.Rmd", file)
+      file.copy("www/CourseSlide.pdf", file)
     }
   )
-    # ---------------- Draw Page output ----------------  
+  
+  # ---------------- Draw Page output ----------------  
   observeEvent(input$inst, {
     shinyalert(title = "Instructions",type = "info", 
                text= "<li>Graph & Details: Inputs</li>
@@ -186,8 +187,14 @@ server <- function(input, output,session){
     colnames(nodes_result) = c("hypotheses (ids)","weights","p-values")
     nodes_result
   },
-  editable = TRUE,
-  options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
+  editable = TRUE, extensions = 'Scroller', options = list(
+    deferRender = TRUE,
+    searching = F, 
+    scrollY = 59,
+    scroller = TRUE
+  ))
+  # editable = TRUE,
+  # options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
   output$sum_weight_draw <- renderText({
     dat <- sum(f2d(graph_data$nodes[,"weight"]))
@@ -203,8 +210,13 @@ server <- function(input, output,session){
     colnames(result) <- c("from","to","propagation (label)")
     result
   },
-  editable = TRUE,
-  options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
+  editable = TRUE, extensions = 'Scroller', options = list(
+    deferRender = TRUE,
+    searching = F, 
+    scrollY = 59,
+    scroller = TRUE
+  ))
+  # options = list("pageLength" = 4, dom = "tp", searching = F, scrollX = F))
   
   output$res_Table <- renderTable({
     num <- nrow(graph_data$nodes)
@@ -255,16 +267,20 @@ server <- function(input, output,session){
   )
   
     # ---------------- Procedure Page output ----------------
-  addPopover(session, "common_procedures", 
-             "Common procedures", 
-             content = paste0("<p>Currently, the first attempt of GraphApp 
-             is to visualize <em>Bonferroni-based graphical test procedures. </em></p> "),
+  # addPopover(session, "common_procedures", 
+  #            "Common procedures", 
+  #            content = paste0("<p>Currently, the first attempt of GraphApp 
+  #            is to visualize <em>Bonferroni-based graphical test procedures. </em></p> "),
+  #            trigger = 'hover')
+  
+  addPopover(session, "wp_infor","",
+             content = paste0("<p>Please double click the cells below to edit 
+                                and click in the white space after finishing inputs.</p> "),
              trigger = 'hover')
   
-  addPopover(session, "wp_infor", "Initial weights", 
-             content = paste0("<p> Both doses are equally important (<em>w1=w2</em>). 
-               We test the primary null hypothesis first (<em>H1=H2</em>); 
-               only if this is rejected do we test the secondary hypothesis (<em>H3=H4</em>)</p> "),
+  addPopover(session, "G_infor","",
+             content = paste0("<p>Please double click the cells below to edit 
+                                and click in the white space after finishing inputs.</p> "),
              trigger = 'hover')
   
   addPopover(session, "rej_table", 
@@ -413,29 +429,29 @@ server <- function(input, output,session){
                    widths = c(2.7, 2.7), heights = c(1.5, 0.5))
       })
      # ---------------- Test Page output ----------------
-    addPopover(session, "exRadio", "Diabetes trial", 
-               content = paste0("<p> Trial compares two doses <em>D1</em> or <em>D2</em> 
-                                against placebo in diabetes patients for two endpoints</p> ",
-                                "<p>There is a natural order: a primary endpoint 
-                                is more important than a secondary endpoint</p>",
-                                "<ul><li>Primary: <b>HbA1c</b></li>
-                                <li>Secondary: <b>Body weight</b></li>"),
+    # addPopover(session, "exRadio", "Diabetes trial", 
+    #            content = paste0("<p> Trial compares two doses <em>D1</em> or <em>D2</em> 
+    #                             against placebo in diabetes patients for two endpoints</p> ",
+    #                             "<p>There is a natural order: a primary endpoint 
+    #                             is more important than a secondary endpoint</p>",
+    #                             "<ul><li>Primary: <b>HbA1c</b></li>
+    #                             <li>Secondary: <b>Body weight</b></li>"),
+    #            trigger = 'hover')
+    addPopover(session, "wp_infor2","",
+               content = paste0("<p>Please double click the cells below to edit 
+                                and click in the white space after finishing inputs.</p> "),
                trigger = 'hover')
     
-    addPopover(session, "exRadio", "Diabetes trial", 
-               content = paste0("<p> Trial compares two doses <em>D1</em> or <em>D2</em> 
-                                against placebo in diabetes patients for two endpoints</p> ",
-                                "<p>There is a natural order: a primary endpoint 
-                                is more important than a secondary endpoint</p>",
-                                "<ul><li>Primary: <b>HbA1c</b></li>
-                                <li>Secondary: <b>Body weight</b></li>"),
+    addPopover(session, "G_infor2","",
+               content = paste0("<p>Please double click the cells below to edit 
+                                and click in the white space after finishing inputs.</p> "),
                trigger = 'hover')
     
-    addPopover(session, "wp_infor2", "Initial weights", 
-               content = paste0("<p> Both doses are equally important (<em>w1=w2</em>). 
-               We test the primary null hypothesis first (<em>H1=H2</em>); 
-               only if this is rejected do we test the secondary hypothesis (<em>H3=H4</em>)</p> "),
-               trigger = 'hover')
+    # addPopover(session, "wp_infor2", "Initial weights", 
+    #            content = paste0("<p> Both doses are equally important (<em>w1=w2</em>). 
+    #            We test the primary null hypothesis first (<em>H1=H2</em>); 
+    #            only if this is rejected do we test the secondary hypothesis (<em>H3=H4</em>)</p> "),
+    #            trigger = 'hover')
     
     addPopover(session, "rejtable", 
                "Rejetion results", 
