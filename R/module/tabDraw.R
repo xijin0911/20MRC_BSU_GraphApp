@@ -38,7 +38,7 @@ tabDraw <- tabPanel("Draw", icon=icon("pencil", lib = "glyphicon"),
                         bsTooltip("edge_infor", "The edges table includes the information about propagation",
                                   "right", options = list(container = "body")),
                         withSpinner(DTOutput("graphOutput_visEdges")), # loading part
-                        HTML("The edges table is transformed from the transition matrix <em>G</em>. The propagation level is transferred from the hypothes specified in the row of the transition matrix  <em>G</em> to the hypothesis specified in the column of the transition matrix  <em>G</em>."),
+                        HTML("The edges table is transformed from the transition matrix <em>G</em>. The propagation level is transferred from the hypothesis specified in the row of the transition matrix  <em>G</em> to the hypothesis specified in the column of the transition matrix  <em>G</em>."),
                       ), 
                       # column 3
                     column(id="Results",width = 3,

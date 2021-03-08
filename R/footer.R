@@ -9,7 +9,7 @@ foot <- tags$footer(
              "xijin.chen@mrc-bsu.cam.ac.uk"),
       style="font-size:100%; font-family:Arial; line-height:.8rem;"),
     p("GUI created with R Shiny by Xijin Chen and Dr. David Robertson. Code is available on",
-      tags$a(href = "https://github.com/xijin0911","Github."),
+      tags$a(href = "https://github.com/xijin0911/20MRC_BSU_GraphApp","Github."),
       style="font-size:100%; font-family:Arial; line-height:.8rem;"
     )
   ),

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<style>
+  h5 {
+    font-weight: bold;
+  }
+#algo {
+  border: 1px solid;
+  padding: 10px;
+  box-shadow: 10px 10px 10px blue;
+}
+span.frac {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+span.frac > sup, span.frac > sub {
+  display: block;
+  font: inherit;
+  padding: 0 0.3em;
+}
+span.frac > sup {border-bottom: 0.08em solid;}
+span.frac > span {display: none;}
+
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+</style>
+
+<body>
+<h3>Navigation</h3>
+<i class="glyphicon glyphicon-home"></i> <b>Home</b>: 
+General description 
+<br>
+<i class="glyphicon glyphicon-pencil"></i> <b>Draw</b>: Manual implementation 
+<br>
+<i class="glyphicon glyphicon-cog"></i> <b>Common procedures</b>: Commonly used procedures<br>
+<i class="glyphicon glyphicon-tasks"></i> <b>Case studies</b>: Published clinical trials<br>
+<br>
+<hr>
+<p style=" font-size: 1em;"> 
+The graphical user interface <b>GraphApp</b> provides a convenient and intuitive way to create or modify directed weighted graphs and apply graphical multiple comparison procedures. There is no additional requirement for programming languages, <em>R</em> and <em>Java</em>, on your system. 
+<br>
+The <em>R</em> package <a href="https://cran.r-project.org/web/packages/gMCP/"><em>gMCP</em></a> also offers a GUI to conveniently create and perform Bonferroni-based graphical test procedures. To this end, the user will be required to invoke in <em>R</em> the <b>gMCP</b> package and subsequently call the GUI.
+<br>
+If there is any comments on the graphical user interface, please contact <a href="mailto:xijin.chen@mrc-bsu.cam.ac.uk">us</a>.
+</p>
+
+
+
+
+<script>
+// Get the modal
+var modal = document.getElementById("myModal");
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+// When the user clicks the button, open the modal 
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+
+
+$(document).ready(function()
+{
+    $("#imgAnimate").hover(
+        function()
+        {
+            $(this).attr("src", "procedure.gif");
+        },
+        function()
+        {
+            $(this).attr("src", "static.gif");
+        });
+});
+
+</script>
+</body>
+
+
